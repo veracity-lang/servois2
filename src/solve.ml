@@ -1,6 +1,17 @@
+(* Module for interfacing with theorem provers *)
+
+
 open Util
 open Smt
 open Spec
+
+
+(* This will create the entire SMT string to send to a prover.
+ * It will engage with lots of features of SMT which are
+ * abstracted away from the actual "smt" module *)
+let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
+  raise @@ NotImplemented "smt_string_of_spec"
+
 
 (* TODO *)
 type solve_result =
@@ -13,9 +24,6 @@ type solve_result =
 module type Prover = sig
   val run : string -> solve_result
 end
-
-let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
-  raise @@ NotImplemented "smt_string_of_spec"
 
 let solve (prover : (module Prover)) (spec : spec) (state_constraints : exp) : solve_result =
   let s = smt_string_of_spec spec state_constraints in
