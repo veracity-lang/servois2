@@ -14,7 +14,7 @@ let sp = Printf.sprintf
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
-let flip (a,b) = b,a
+let swap (a,b) = b,a
 
 (* Randomize order of items in a list *)
 let shuffle =

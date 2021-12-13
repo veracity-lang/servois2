@@ -8,7 +8,8 @@ open Spec
 
 (* This will create the entire SMT string to send to a prover.
  * It will engage with lots of features of SMT which are
- * abstracted away from the actual "smt" module *)
+ * abstracted away from the actual "smt" module.
+ * It'll include the variable declarations, function declarations, etc. *)
 let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
   raise @@ NotImplemented "smt_string_of_spec"
 
@@ -16,7 +17,7 @@ let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
 (* TODO *)
 type solve_result =
   | Valid
-  | Invalid
+  | Invalid of string
   | Failure
 
 

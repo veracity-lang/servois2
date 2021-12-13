@@ -117,5 +117,7 @@ module To_String = struct
     | ELet (bl, e)            -> sp "(let (%s) %s)" (list binding bl) (exp e)
     | EITE (g, e1, e2)        -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
     | EFunc (f, el)           -> sp "(%s %s)" (func f) (list exp el)
-    
 end
+
+let string_of_smt = To_String.exp
+let string_of_ty = To_String.ty
