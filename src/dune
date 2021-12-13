@@ -1,0 +1,16 @@
+(include_subdirs unqualified)
+
+(library
+ (name servois2)
+ (public_name servois2)
+ ;(libraries unix threads str ppxlib ppx_deriving_yaml yaml sexplib)
+ ;(modules (:standard \ parallel_multicore parallel_singlecore run))
+ ;(preprocess (per_module
+ ;   ((pps ppx_deriving_yaml) yaml_generator)))
+ (wrapped false)
+ ;(library_flags -linkall)
+ (synopsis "Servois"))
+
+(env
+ (dev
+  (flags (:standard -warn-error -A -w -27-33 ))))
