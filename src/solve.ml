@@ -11,14 +11,14 @@ open Spec
  * abstracted away from the actual "smt" module.
  * It'll include the variable declarations, function declarations, etc. *)
 let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
-  raise @@ NotImplemented "smt_string_of_spec"
+  raise @@ Failure "smt_string_of_spec"
 
 
 (* TODO *)
 type solve_result =
   | Valid
   | Invalid of string
-  | Failure
+  | Unknown
 
 
 (* We instantiate the module with specific provers, e.g. CVC4, Z3 *)

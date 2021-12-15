@@ -19,3 +19,5 @@ type spec =
   ; state    : ty bindlist
   ; methods  : method_spec list
   }
+
+let get_method = raise @@ NotImplemented "refine"
