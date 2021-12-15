@@ -56,9 +56,9 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of func * exp list
 
-  
+
 (* Requires parsing *)
-let smt_of_string : string -> exp =
+let exp_of_string : string -> exp =
   raise @@ NotImplemented "smt_of_string"
 
 (* Requires parsing *)

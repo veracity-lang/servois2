@@ -1,11 +1,9 @@
-(* Module for 
- *
- *)
-
 open Util
 open Yaml_util
 open Smt
 open Yaml
+
+type term_list = ty * (exp list)
 
 type method_spec =
   { name  : string
@@ -13,7 +11,7 @@ type method_spec =
   ; ret   : ty binding
   ; pre   : exp
   ; post  : exp
-  ; terms : (ty * (exp list)) list
+  ; terms : term_list list
   }
 
 type spec =
@@ -25,6 +23,48 @@ type spec =
   }
 
 
+
+(*** Methods for converting Yaml ADT to spec ***)
+
+let ty_of_yaml (y : Yaml.value) : ty =
+  get_string y "Type isn't string" |>
+  ty_of_string
+
+let binding_of_yaml (y : Yaml.value) : ty binding =
+  let d = get_dict y "Binding isn't dict" in
+  let get_field s =
+    assoc_dict s d @@ sp "Binding is missing '%s' field" s
+  in
+
+  let f_name = get_field "name" in
+  let f_type = get_field "type" in
+
+  let name = get_string f_name "'name' isn't string" in
+  let ty = ty_of_yaml f_type in
+
+  Var (ref name), ty
+
+let pred_of_yaml (y : Yaml.value) : pred =
+  let d = get_dict y "Pred isn't dict" in
+  let get_field s =
+    assoc_dict s d @@ sp "Pred is missing '%s' field" s
+  in
+
+  let f_name = get_field "name" in
+  let f_type = get_field "type" in
+
+  let name = get_string f_name "'name' isn't string" in
+  let ty =
+    get_list f_type "'type' isn't list" |>
+    List.map ty_of_yaml
+  in
+
+  Pred (name, ty)
+
+let exp_of_yaml (y : Yaml.value) : exp =
+  get_string y "Expression isn't string" |>
+  exp_of_string
+
 let method_spec_of_yaml (y : Yaml.value) : method_spec =
   (* Method dictionary *)
   let d = get_dict y "Method isn't dict" in
@@ -33,12 +73,12 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
   in
   
   (* Method dictionary fields *)
-  let f_name         = get_field "name" in
-  let f_args         = get_field "args" in
-  let f_return       = get_field "return" in
-  let f_requires     = get_field "requires" in
-  let f_ensures      = get_field "ensures" in
-  let f_terms        = get_field "terms" in
+  let f_name     = get_field "name" in
+  let f_args     = get_field "args" in
+  let f_return   = get_field "return" in
+  let f_requires = get_field "requires" in
+  let f_ensures  = get_field "ensures" in
+  let f_terms    = get_field "terms" in
 
   raise @@ NotImplemented ""
 
@@ -61,7 +101,10 @@ let spec_of_yaml (y : Yaml.value) : spec =
   let name = get_string f_name "'name' isn't string" in
 
   (* State *)
-  let state = failwith "" in
+  let state =
+    get_list f_state "'state' isn't list" |>
+    List.map binding_of_yaml
+  in
 
   (* Methods *)
   let methods =
@@ -70,9 +113,16 @@ let spec_of_yaml (y : Yaml.value) : spec =
   in
 
   (* Predicates *)
-  let preds = failwith "" in
+  let preds =
+    get_list f_predicates "'predicates' isn't list" |>
+    List.map pred_of_yaml
+  in
 
-  (* States_equal *)
-  let state_eq = failwith "" in
+  (* State equality predicate *)
+  let state_eq =
+    let d = get_dict f_states_equal "'states_equal' isn't dict" in
+    assoc_dict "definition" d "Missing 'defintion' field" |>
+    exp_of_yaml
+  in
 
   { name; state; methods; preds; state_eq }
