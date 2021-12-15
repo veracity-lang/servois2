@@ -56,9 +56,14 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of func * exp list
 
+  
 (* Requires parsing *)
 let smt_of_string : string -> exp =
   raise @@ NotImplemented "smt_of_string"
+
+(* Requires parsing *)
+let ty_of_string : string -> ty =
+  raise @@ NotImplemented "ty_of_string"
 
 
 module To_String = struct

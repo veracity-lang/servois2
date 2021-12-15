@@ -2,7 +2,7 @@
 
 exception UnreachableFailure of string
 exception NotImplemented of string
-
+exception BadInputFormat of string
 
 (*** Shorthands ***)
 
@@ -75,7 +75,6 @@ let time_exec (f : unit -> 'a) : float * 'a =
   t1 -. t0, res
 
 
-
 (*** For printing colored strings in bash ***)
 module ColorPrint = struct
   type color_code =
@@ -125,7 +124,60 @@ let () =
   Printexc.register_printer @@
   function
   | UnreachableFailure s -> 
-    Some (Printf.sprintf "UnreachableFailure (%s)" s)
+    Some (sp "UnreachableFailure (%s)" s)
   | NotImplemented s ->
-    Some (Printf.sprintf "NotImplemented (%s)" s)
+    Some (sp "NotImplemented (%s)" s)
+  | BadInputFormat s ->
+    Some (sp "BadInputFormat (%s)" s)
   | _ -> None
+
+
+
+module Yaml_util = struct
+    
+  let rec string_of_value (v : Yaml.value) =
+    let open Yaml in
+    match v with
+    | `Null -> "Null"
+    | `Bool b -> sp "Bool %s" @@ string_of_bool b
+    | `Float f -> sp "Float %s" @@ string_of_float f
+    | `String s -> sp "String %s" s
+    | `A l ->
+      l |>
+      List.map string_of_value |>
+      String.concat " ; " |>
+      sp "A [ %s ]"
+    | `O l ->
+      l |>
+      List.map (fun (k,v) -> sp "%s : %s" k @@ string_of_value v) |>
+      String.concat " ; " |>
+      sp "O { %s }"
+    
+  let yaml_of_file path =
+    let chan = open_in path in
+    let s = read_all_in chan |> String.concat "\n" in
+    let y = Yaml.of_string_exn s in
+    y
+
+    
+  let assoc_dict field dict msg =
+    match List.assoc_opt field dict with
+    | Some v -> v
+    | None -> raise @@ BadInputFormat msg
+
+  let get_dict (v : Yaml.value) msg =
+    match v with
+    | `O d -> d
+    | _ -> raise @@ BadInputFormat msg
+
+  let get_string (v : Yaml.value) msg =
+    match v with
+    | `String s -> s
+    | _ -> raise @@ BadInputFormat msg
+
+  let get_list (v : Yaml.value) msg =
+    match v with
+    | `A l -> l
+    | _ -> raise @@ BadInputFormat msg
+
+end

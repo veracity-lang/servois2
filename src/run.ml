@@ -7,6 +7,56 @@ module type Runner = sig
 end
 
 
+module RunParse : Runner = struct
+  let usage_msg exe_name =
+    "Usage: " ^ exe_name ^ " parse [<flags>] <YAML file>"
+  
+  let debug = ref false
+
+  let anons = ref []
+
+  let anon_fun (v : string) =
+    anons := v :: !anons
+
+  let output_file = ref ""
+
+  let speclist =
+    [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "-o",      Arg.Set_string output_file, "<file> Output parsing to file (defaults to stdout)"
+    ] |>
+    Arg.align
+
+  let parse yaml =
+    if !debug then begin
+      Printexc.record_backtrace true;
+      ignore @@ Parsing.set_trace true
+    end;
+
+    let parsed =
+      Yaml_util.yaml_of_file yaml |>
+      Yaml_util.string_of_value
+    in
+
+    if !output_file = ""
+    then Printf.printf "%s\n" parsed
+    else
+      let out_chan = open_out !output_file in
+      output_string out_chan parsed;
+      close_out out_chan
+
+  (* Assumes argc > 2 and argv[1] = "parse" *)
+  let run () =
+    Arg.current := 1;
+    Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+    let anons = List.rev (!anons) in
+    match anons with
+    | [prog] -> parse prog
+    | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
+
+end
+
+
 module RunPhi : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " phi [<flags>] <vcy program> <method 1> <method 2>"
@@ -74,24 +124,29 @@ module RunPhi : Runner = struct
 end
 
 
+
 type command =
   | CmdHelp (* Show help info *)
-  | CmdPhi (* Interpret program *)
+  | CmdPhi (* Synthesize phi *)
+  | CmdParse (* Parse YAML *)
 
 let command_map =
-  [ "help",      CmdHelp
-  ; "yaml",      CmdPhi
+  [ "help",     CmdHelp
+  ; "synth",    CmdPhi
+  ; "parse",    CmdParse
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdPhi,    (module RunPhi)
+  ; CmdParse,  (module RunParse)
   ]
 
 let display_help_message exe_name = 
   let details =
     "Commands:\n" ^
     "  help        Display this message\n" ^
-    "  yaml        Run inference\n"
+    "  synth       Run inference\n" ^
+    "  parse       Parse yaml\n"
   in Printf.eprintf "Usage: %s <command> [<flags>] [<args>]\n%s" exe_name details
 
 (* Check first argument for command *)

@@ -3,7 +3,7 @@
 (library
  (name servois2)
  (public_name servois2)
- (libraries unix str)
+ (libraries unix str yaml)
  (modules (:standard \ run))
  ;(preprocess (per_module
  ;   ((pps ppx_deriving_yaml) yaml_generator)))
