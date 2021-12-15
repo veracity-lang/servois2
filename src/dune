@@ -3,13 +3,20 @@
 (library
  (name servois2)
  (public_name servois2)
- ;(libraries unix threads str ppxlib ppx_deriving_yaml yaml sexplib)
- ;(modules (:standard \ parallel_multicore parallel_singlecore run))
+ (libraries unix str)
+ (modules (:standard \ run))
  ;(preprocess (per_module
  ;   ((pps ppx_deriving_yaml) yaml_generator)))
  (wrapped false)
  ;(library_flags -linkall)
  (synopsis "Servois"))
+
+(executable
+ (name run)
+ (public_name servois2run)
+ (modules run)
+ (libraries servois2)
+ (promote (until-clean)))
 
 (env
  (dev

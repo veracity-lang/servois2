@@ -119,3 +119,13 @@ module ColorPrint = struct
     sp "\027[%d;%dm%s\027[0m" foreground background
 
 end
+
+
+let () =
+  Printexc.register_printer @@
+  function
+  | UnreachableFailure s -> 
+    Some (Printf.sprintf "UnreachableFailure (%s)" s)
+  | NotImplemented s ->
+    Some (Printf.sprintf "NotImplemented (%s)" s)
+  | _ -> None
