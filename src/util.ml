@@ -175,6 +175,11 @@ module Yaml_util = struct
     | `String s -> s
     | _ -> raise @@ BadInputFormat msg
 
+  let get_float (v : Yaml.value) msg =
+    match v with
+    | `Float f -> f
+    | _ -> raise @@ BadInputFormat msg
+
   let get_list (v : Yaml.value) msg =
     match v with
     | `A l -> l

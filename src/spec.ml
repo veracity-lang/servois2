@@ -23,7 +23,6 @@ type spec =
   }
 
 
-
 (*** Methods for converting Yaml ADT to spec ***)
 
 let ty_of_yaml (y : Yaml.value) : ty =
@@ -62,8 +61,12 @@ let pred_of_yaml (y : Yaml.value) : pred =
   Pred (name, ty)
 
 let exp_of_yaml (y : Yaml.value) : exp =
-  get_string y "Expression isn't string" |>
-  exp_of_string
+  let s =
+    match y with
+    | `String s -> s
+    | `Float f  -> string_of_float f
+    | _ -> raise @@ BadInputFormat "Exp isn't float or string"
+  in exp_of_string s
 
 let method_spec_of_yaml (y : Yaml.value) : method_spec =
   (* Method dictionary *)
@@ -80,7 +83,34 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
   let f_ensures  = get_field "ensures" in
   let f_terms    = get_field "terms" in
 
-  raise @@ NotImplemented ""
+  (* Name *)
+  let name = get_string f_name "'name' isn't name" in
+
+  (* Args *)
+  let args =
+    get_list f_args "'args' isn't list" |>
+    List.map binding_of_yaml
+  in
+
+  (* Return *)
+  let ret = binding_of_yaml f_return in
+
+  (* Requires *)
+  let pre = exp_of_yaml f_requires in
+
+  (* Ensures *)
+  let post = exp_of_yaml f_ensures in
+
+  let terms =
+    get_dict f_terms "'terms' isn't dict" |>
+    List.map @@
+    fun (s,v) ->
+      ty_of_string s,
+      get_list v "terms aren't list" |>
+      List.map exp_of_yaml
+  in
+
+  { name; args; ret; pre; post; terms }
 
 
 let spec_of_yaml (y : Yaml.value) : spec =

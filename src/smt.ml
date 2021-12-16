@@ -57,14 +57,15 @@ type exp =
   | EFunc of func * exp list
 
 
-(* Requires parsing *)
-let exp_of_string : string -> exp =
-  raise @@ NotImplemented "smt_of_string"
+(* TODO: Requires parsing *)
+let exp_of_string (s : string) : exp =
+  EConst (CInt 0)
+  (*raise @@ NotImplemented "smt_of_string"*)
 
-(* Requires parsing *)
-let ty_of_string : string -> ty =
-  raise @@ NotImplemented "ty_of_string"
-
+(* TODO: Requires parsing *)
+let ty_of_string (s : string) : ty =
+  TInt
+  (*raise @@ NotImplemented "ty_of_string"*)
 
 module To_String = struct
   let rec ty : ty -> string = function

@@ -10,15 +10,7 @@ open Phi
 
 type counterex = exp bindlist
 
-
-(*
-
-
-
-
-*)
-
-let prover : (module Prover) = raise @@ NotImplemented "prover"
+let prover _ : (module Prover) = raise @@ NotImplemented "prover"
 
 let refine phi phi_tilde (h : conjunction) (p : pred list) : unit =
   (*match solve prover *)
