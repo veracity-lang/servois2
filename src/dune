@@ -11,13 +11,19 @@
  ;(library_flags -linkall)
  (synopsis "Servois"))
 
+(ocamllex smt_lexer)
+
+(menhir
+ (modules smt_parser)
+ (flags (--explain)))
+(env
+ (dev
+  (flags (:standard -warn-error -A -w -27-33 ))))
+
+
 (executable
  (name run)
  (public_name servois2run)
  (modules run)
  (libraries servois2)
  (promote (until-clean)))
-
-(env
- (dev
-  (flags (:standard -warn-error -A -w -27-33 ))))

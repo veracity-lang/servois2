@@ -22,6 +22,37 @@ type spec =
   ; methods  : method_spec list
   }
 
+let exp_of_string (s : string) : exp =
+  let lexbuf = Lexing.from_string s in
+  Smt_lexer.reset_lexbuf s 0 lexbuf;
+  try
+    Smt_parser.exp_top Smt_lexer.read lexbuf
+  with Smt_parser.Error ->
+    let e =
+      let p1 = Lexing.lexeme_start_p lexbuf in
+      let p2 = Lexing.lexeme_end_p lexbuf in
+      let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
+      let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
+      Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
+    in
+    raise @@ Failure ("Parse error at: " ^ e)
+
+(* TODO: Requires parsing *)
+let ty_of_string (s : string) : ty =
+  let lexbuf = Lexing.from_string s in
+  Smt_lexer.reset_lexbuf s 0 lexbuf;
+  try
+    Smt_parser.ty_top Smt_lexer.read lexbuf
+  with Smt_parser.Error ->
+    let e =
+      let p1 = Lexing.lexeme_start_p lexbuf in
+      let p2 = Lexing.lexeme_end_p lexbuf in
+      let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
+      let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
+      Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
+    in
+    raise @@ Failure ("Parse error at: " ^ e)
+
 
 (*** Methods for converting Yaml ADT to spec ***)
 
