@@ -14,7 +14,7 @@
 
 let wsp = [' ' '\t' '\n']+
 let digit = ['0'-'9']
-let float = ['+' '-']? ((digit* '.' digit+) | (digit+ '.' digit*))
+let float = ['+' '-']? ((digit* '.' digit+) | (digit+ '.' digit*) | digit+)
 (*let int = ['+' '-']? digit+*)
 let symbol = ['a'-'z' 'A'-'Z']+ ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
