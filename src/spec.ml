@@ -8,7 +8,7 @@ type term_list = ty * (exp list)
 type method_spec =
   { name  : string
   ; args  : ty bindlist
-  ; ret   : ty binding
+  ; ret   : ty bindlist
   ; pre   : exp
   ; post  : exp
   ; terms : term_list list
@@ -124,7 +124,10 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
   in
 
   (* Return *)
-  let ret = binding_of_yaml f_return in
+  let ret = 
+    get_list f_return "'return' isn't list" |>
+    List.map binding_of_yaml
+  in
 
   (* Requires *)
   let pre = exp_of_yaml f_requires in
