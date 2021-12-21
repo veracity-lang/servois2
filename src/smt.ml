@@ -51,9 +51,9 @@ type exp =
   | EBop of bop * exp * exp
   | EUop of uop * exp
   | ELop of lop * exp list
-  | EPred of pred * exp list
   | ELet of exp bindlist * exp
   | EITE of exp * exp * exp
+  | EFunc of string * exp list
   | EForAll of ty bindlist * exp
   | EFunc of func * exp list
 
@@ -114,10 +114,9 @@ module To_String = struct
     | EBop (o, e1, e2)        -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
     | EUop (o, e)             -> sp "(%s %s)" (uop o) (exp e)
     | ELop (o, el)            -> sp "(%s %s)" (lop o) (list exp el)
-    | EPred (Pred (p, _), el) -> sp "(%s %s)" p (list exp el)
     | ELet (bl, e)            -> sp "(let (%s) %s)" (list binding bl) (exp e)
     | EITE (g, e1, e2)        -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
-    | EFunc (f, el)           -> sp "(%s %s)" (func f) (list exp el)
+    | EFunc (f, el)           -> sp "(%s %s)" f (list exp el)
 end
 
 let string_of_smt = To_String.exp

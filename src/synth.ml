@@ -21,17 +21,18 @@ let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
 
+
 let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
   let m_spec = get_method spec m in
   let n_spec = get_method spec n in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
-    begin match solve prover spec @@ commute (exp_of_conj h) spec m_spec n_spec with
+    begin match solve prover spec @@ commute (smt_of_conj h) spec m_spec n_spec with
       | Valid -> phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
       | Invalid s -> begin let com_cex = s in
-        match solve prover spec (EBop(Imp, exp_of_conj h, non_commute m_spec n_spec)) with
+        match solve prover spec (EBop(Imp, smt_of_conj h, non_commute m_spec n_spec)) with
           | Valid -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
           | Invalid s -> begin let non_com_cex = s in
