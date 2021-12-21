@@ -23,7 +23,7 @@ type spec =
   }
 
 
-let get_method spec mname = List.find (fun m -> m.name = mname) spec.methods 
+let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
 
 let exp_of_string (s : string) : exp =
   let lexbuf = Lexing.from_string s in

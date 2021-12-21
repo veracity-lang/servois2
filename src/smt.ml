@@ -55,7 +55,6 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of string * exp list
   | EForAll of ty bindlist * exp
-  | EFunc of func * exp list
 
 (* Requires parsing *)
 let smt_of_string : string -> exp =
@@ -121,3 +120,10 @@ end
 
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
+
+type smt_query =
+  { vars     : ty bindlist
+  ; (* TODO: Other things? *)
+  }
+
+let string_of_smt_query = Failure "Not Implemented"

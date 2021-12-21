@@ -13,7 +13,7 @@ type counterex = exp bindlist
 let prover : (module Prover) = raise @@ Failure "prover"
 
 let non_commute = raise @@ Failure "non_commute"
-let commute h spec m n = EForAll(spec.state @ m.ret :: m.args @ n.ret :: n.args, EBop(Imp, h (* of parameters ?? *), (* TODO *) m.post))
+let commute h spec m n = EForAll(spec.state @ m.ret @ m.args @ n.ret @ n.args, EBop(Imp, h (* of parameters ?? *), (* TODO *) m.post))
 
 (* TODO *)
 let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
