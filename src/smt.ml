@@ -54,6 +54,7 @@ type exp =
   | EPred of pred * exp list
   | ELet of exp bindlist * exp
   | EITE of exp * exp * exp
+  | EForAll of ty bindlist * exp
   | EFunc of func * exp list
 
 (* Requires parsing *)

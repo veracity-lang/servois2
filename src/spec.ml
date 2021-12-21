@@ -20,4 +20,4 @@ type spec =
   ; methods  : method_spec list
   }
 
-let get_method = raise @@ NotImplemented "refine"
+let get_method spec mname = List.find (fun m -> m.name = mname) spec.methods 

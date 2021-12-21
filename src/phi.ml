@@ -4,13 +4,13 @@ let not_atom (a : atom) : atom = raise @@ Failure "not_atom"
 type conjunction =
   Conj of atom list
 
-let add_conjunct c cs = match cs with
-    | Conj cs' -> Conj (c :: cs')
+let un_conj cs = match cs with Conj cs' -> cs'
+let add_conjunct c cs = Conj (c :: un_conj cs)
 
 type t = Disj of conjunction list
 
-let add_disjunct d ds = match ds with 
-    | Disj ds' -> Disj (d :: ds')
+let un_disj ds = match ds with Disj ds' -> ds'
+let add_disjunct d ds = Disj (d :: un_disj ds)
 
 (* TODO: SMT expr. of conjunction and disjunction *)
 let exp_of_conj : conjunction -> Smt.exp = raise @@ Failure "exp_of_disj"

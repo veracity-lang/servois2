@@ -10,34 +10,30 @@ open Phi
 
 type counterex = exp bindlist
 
-
-(*
-
-
-
-
-*)
-
 let prover : (module Prover) = raise @@ Failure "prover"
 
 let non_commute = raise @@ Failure "non_commute"
-let commute = raise @@ Failure "commute"
-let choose = raise @@ Failure "choose"
+let commute h spec m n = EForAll(spec.state @ m.ret :: m.args @ n.ret :: n.args, EBop(Imp, h (* of parameters ?? *), (* TODO *) m.post))
 
-let remove (x : 'a) (xs : 'a list) : 'a list = raise @@ Failure "choose"
+(* TODO *)
+let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
+
+let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
 
 let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
+  let m_spec = get_method spec m in
+  let n_spec = get_method spec n in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
-    begin match solve prover spec (EBop(Imp, exp_of_conj h, commute (get_method spec m) (get_method spec n))) with
+    begin match solve prover spec @@ commute (exp_of_conj h) spec m_spec n_spec with
       | Valid -> phi := add_disjunct h !phi
-      | Unknown -> raise @@ Failure "commute failure"
+      | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
       | Invalid s -> begin let com_cex = s in
-        match solve prover spec (EBop(Imp, exp_of_conj h, non_commute (get_method spec m) (get_method spec n))) with
+        match solve prover spec (EBop(Imp, exp_of_conj h, non_commute m_spec n_spec)) with
           | Valid -> phi_tilde := add_disjunct h !phi_tilde
-          | Unknown -> raise @@ Failure "non_commute failute"
+          | Unknown -> raise @@ Failure "non_commute failure"
           | Invalid s -> begin let non_com_cex = s in
             let p = choose h p_set com_cex non_com_cex in
                 refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
@@ -46,6 +42,6 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
         end
     end in
   begin try refine (Conj []) []
-      with | _ -> ()
+      with | Failure f -> print_string f; print_newline ()
   end;
   !phi, !phi_tilde
