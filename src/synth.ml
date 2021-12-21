@@ -10,23 +10,38 @@ open Phi
 
 type counterex = exp bindlist
 
+let prover : (module Prover) = raise @@ Failure "prover"
 
-(*
+let non_commute = raise @@ Failure "non_commute"
+let commute h spec m n = EForAll(spec.state @ m.ret :: m.args @ n.ret :: n.args, EBop(Imp, h (* of parameters ?? *), (* TODO *) m.post))
 
+(* TODO *)
+let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
 
-
-
-*)
-
-let prover : (module Prover) = raise @@ NotImplemented "prover"
-
-let refine phi phi_tilde (h : conjunction) (p : pred list) : unit =
-  (*match solve prover *)
-  raise @@ NotImplemented "refine"
+let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
 
 let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
-  refine phi phi_tilde (Conj []) [];
+  let m_spec = get_method spec m in
+  let n_spec = get_method spec n in
+  let rec refine (h : conjunction) (p_set : pred list) : unit =
+    begin match solve prover spec @@ commute (exp_of_conj h) spec m_spec n_spec with
+      | Valid -> phi := add_disjunct h !phi
+      | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
+      | Invalid s -> begin let com_cex = s in
+        match solve prover spec (EBop(Imp, exp_of_conj h, non_commute m_spec n_spec)) with
+          | Valid -> phi_tilde := add_disjunct h !phi_tilde
+          | Unknown -> raise @@ Failure "non_commute failure"
+          | Invalid s -> begin let non_com_cex = s in
+            let p = choose h p_set com_cex non_com_cex in
+                refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
+                refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
+            end
+        end
+    end in
+  begin try refine (Conj []) []
+      with | Failure f -> print_string f; print_newline ()
+  end;
   !phi, !phi_tilde
