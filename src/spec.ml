@@ -22,6 +22,9 @@ type spec =
   ; methods  : method_spec list
   }
 
+
+let get_method spec mname = List.find (fun m -> m.name = mname) spec.methods 
+
 let exp_of_string (s : string) : exp =
   let lexbuf = Lexing.from_string s in
   Smt_lexer.reset_lexbuf s 0 lexbuf;
@@ -190,3 +193,4 @@ let spec_of_yaml (y : Yaml.value) : spec =
   in
 
   { name; state; methods; preds; state_eq }
+
