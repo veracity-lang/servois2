@@ -123,22 +123,30 @@ module RunPhi : Runner = struct
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
+module RunTemp : Runner = struct
+  let run () =
+    ignore @@ Provers.ProverCVC4.run "(set-logic ALL_SUPPORTED) (assert (= 1 1)) (check-sat)"
+
+end
 
 
 type command =
   | CmdHelp (* Show help info *)
   | CmdPhi (* Synthesize phi *)
   | CmdParse (* Parse YAML *)
+  | CmdTemp
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdPhi
   ; "parse",    CmdParse
+  ; "temp",     CmdTemp
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdPhi,    (module RunPhi)
   ; CmdParse,  (module RunParse)
+  ; CmdTemp,   (module RunTemp)
   ]
 
 let display_help_message exe_name = 
@@ -146,7 +154,8 @@ let display_help_message exe_name =
     "Commands:\n" ^
     "  help        Display this message\n" ^
     "  synth       Run inference\n" ^
-    "  parse       Parse yaml\n"
+    "  parse       Parse yaml\n" ^
+    "  temp        Do whatever the particular test implemented is\n"
   in Printf.eprintf "Usage: %s <command> [<flags>] [<args>]\n%s" exe_name details
 
 (* Check first argument for command *)

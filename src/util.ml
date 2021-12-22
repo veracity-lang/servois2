@@ -74,6 +74,27 @@ let time_exec (f : unit -> 'a) : float * 'a =
   let t1 = Unix.gettimeofday () in
   t1 -. t0, res
 
+(* Looks for an executable at provided locations,
+ * returns location where it exists.
+ * If not found, errors and shuts down program *)
+let find_exec (name : string) (progs : string list) : string =
+  match List.find_opt Sys.file_exists progs with
+  | Some s -> s
+  | None ->
+    Printf.eprintf "%s not found at locations %s\n" name @@
+      String.concat ", " progs;
+    exit 1
+
+
+let run_exec (prog : string) (args : string array) (output : string) =
+  let chan_out, chan_in, chan_err =
+    Unix.open_process_args_full prog args [||] in
+  output_string chan_in output; flush chan_in; close_out chan_in;
+  let _ = Unix.waitpid [] (-1) in
+  let sout = read_all_in chan_out in
+  let serr = read_all_in chan_err in
+  sout, serr
+
 
 (*** For printing colored strings in bash ***)
 module ColorPrint = struct

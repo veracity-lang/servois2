@@ -7,6 +7,7 @@ open Smt
 open Solve
 open Spec
 open Phi
+open Provers
 
 type counterex = exp bindlist
 
