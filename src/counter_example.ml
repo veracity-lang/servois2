@@ -69,49 +69,50 @@ predicates:
 let spec : spec =
   {name = "counter"; preds = [Pred ("=", [TInt; TInt])];
  state_eq =
-  EBop (Eq, EVar (Var {contents = "contents_1"}),
-   EVar (Var {contents = "contents_2"}));
- state = [(Var {contents = "contents"}, TInt)];
+  EBop (Eq, EVar (Var "contents"),
+   EVar (VarPost "contents"));
+ state = [(Var "contents", TInt)];
  methods =
   [{Spec.name = "increment"; args = [];
-    ret = [(Var {contents = "result"}, TBool)];
-    pre = EBop (Gte, EVar (Var {contents = "contents"}), EConst (CInt 0));
+    ret = [(Var "result", TBool)];
+    pre = EBop (Gte, EVar (Var "contents"), EConst (CInt 0));
     post =
      ELop (And,
-      [EBop (Eq, EVar (Var {contents = "contents_new"}),
-        ELop (Add, [EVar (Var {contents = "contents"}); EConst (CInt 1)]));
-       EBop (Eq, EVar (Var {contents = "result"}), EConst (CBool true))]);
+      [EBop (Eq, EVar (VarPost "contents"),
+        ELop (Add, [EVar (Var "contents"); EConst (CInt 1)]));
+       EBop (Eq, EVar (Var "result"), EConst (CBool true))]);
     terms =
      [(TInt,
-       [EVar (Var {contents = "contents"}); EConst (CInt 1);
-        ELop (Add, [EVar (Var {contents = "contents"}); EConst (CInt 1)])])]};
+       [EVar (Var "contents"); EConst (CInt 1);
+        ELop (Add, [EVar (Var "contents"); EConst (CInt 1)])])]};
    {Spec.name = "decrement"; args = [];
-    ret = [(Var {contents = "result"}, TBool)];
-    pre = EBop (Gte, EVar (Var {contents = "contents"}), EConst (CInt 1));
+    ret = [(Var "result", TBool)];
+    pre = EBop (Gte, EVar (Var "contents"), EConst (CInt 1));
     post =
      ELop (And,
-      [EBop (Eq, EVar (Var {contents = "contents_new"}),
-        EBop (Sub, EVar (Var {contents = "contents"}), EConst (CInt 1)));
-       EBop (Eq, EVar (Var {contents = "result"}), EConst (CBool true))]);
+      [EBop (Eq, EVar (VarPost "contents"),
+        EBop (Sub, EVar (Var "contents"), EConst (CInt 1)));
+       EBop (Eq, EVar (Var "result"), EConst (CBool true))]);
     terms =
      [(TInt,
-       [EVar (Var {contents = "contents"}); EConst (CInt 1);
-        EBop (Sub, EVar (Var {contents = "contents"}), EConst (CInt 1));
+       [EVar (Var "contents"); EConst (CInt 1);
+        EBop (Sub, EVar (Var "contents"), EConst (CInt 1));
         EConst (CInt 0)])]};
-   {Spec.name = "reset"; args = []; ret = [(Var {contents = "result"}, TBool)];
-    pre = EBop (Gte, EVar (Var {contents = "contents"}), EConst (CInt 0));
+   {Spec.name = "reset"; args = []; ret = [(Var "result", TBool)];
+    pre = EBop (Gte, EVar (Var "contents"), EConst (CInt 0));
     post =
      ELop (And,
-      [EBop (Eq, EVar (Var {contents = "contents_new"}), EConst (CInt 0));
-       EBop (Eq, EVar (Var {contents = "result"}), EConst (CBool true))]);
-    terms = [(TInt, [EVar (Var {contents = "contents"}); EConst (CInt 0)])]};
-   {Spec.name = "zero"; args = []; ret = [(Var {contents = "result"}, TBool)];
-    pre = EBop (Gte, EVar (Var {contents = "contents"}), EConst (CInt 0));
+      [EBop (Eq, EVar (VarPost "contents"), EConst (CInt 0));
+       EBop (Eq, EVar (Var "result"), EConst (CBool true))]);
+    terms = [(TInt, [EVar (Var "contents"); EConst (CInt 0)])]};
+   {Spec.name = "zero"; args = []; ret = [(Var "result", TBool)];
+    pre = EBop (Gte, EVar (Var "contents"), EConst (CInt 0));
     post =
      ELop (And,
-      [EBop (Eq, EVar (Var {contents = "contents_new"}),
-        EVar (Var {contents = "contents"}));
-       EBop (Eq, EVar (Var {contents = "result"}),
-        EBop (Eq, EVar (Var {contents = "contents"}), EConst (CInt 0)))]);
-    terms = [(TInt, [EVar (Var {contents = "contents"}); EConst (CInt 0)])]}]}
+      [EBop (Eq, EVar (VarPost "contents"),
+        EVar (Var "contents"));
+       EBop (Eq, EVar (Var "result"),
+        EBop (Eq, EVar (Var "contents"), EConst (CInt 0)))]);
+    terms = [(TInt, [EVar (Var "contents"); EConst (CInt 0)])]}
+  ]}
 

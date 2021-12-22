@@ -75,7 +75,7 @@ let binding_of_yaml (y : Yaml.value) : ty binding =
   let name = get_string f_name "'name' isn't string" in
   let ty = ty_of_yaml f_type in
 
-  Var (ref name), ty
+  Var name, ty
 
 let pred_of_yaml (y : Yaml.value) : pred =
   let d = get_dict y "Pred isn't dict" in

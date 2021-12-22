@@ -8,7 +8,8 @@
 open Util
 
 type var =
-  | Var of string ref
+  | Var of string
+  | VarPost of string
 
 type 'a binding = var * 'a
 type 'a bindlist = 'a binding list
@@ -105,17 +106,19 @@ module To_String = struct
     l |> List.map f |> String.concat " "
 
   let rec binding ((Var v),e : exp binding) =
-    sp "(%s %s)" !v (exp e)
+    sp "(%s %s)" v (exp e)
 
   and exp : exp -> string = function
-    | EVar (Var v)            -> !v
-    | EConst c                -> const c 
-    | EBop (o, e1, e2)        -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
-    | EUop (o, e)             -> sp "(%s %s)" (uop o) (exp e)
-    | ELop (o, el)            -> sp "(%s %s)" (lop o) (list exp el)
-    | ELet (bl, e)            -> sp "(let (%s) %s)" (list binding bl) (exp e)
-    | EITE (g, e1, e2)        -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
-    | EFunc (f, el)           -> sp "(%s %s)" f (list exp el)
+    | EVar (Var v)     -> v
+    | EVar (VarPost v) -> raise @@ NotImplemented "exp string of varpost"
+    | EConst c         -> const c 
+    | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
+    | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
+    | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
+    | ELet (bl, e)     -> sp "(let (%s) %s)" (list binding bl) (exp e)
+    | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
+    | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
+    | EForAll _        -> raise @@ NotImplemented "exp string of forall"
 end
 
 let string_of_smt = To_String.exp
