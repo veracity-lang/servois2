@@ -95,6 +95,10 @@ let run_exec (prog : string) (args : string array) (output : string) =
   let serr = read_all_in chan_err in
   sout, serr
 
+let print_exec_result (out : string list) (err : string list) =
+  Printf.printf "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
+    (String.concat "\n" out) (String.concat "\n" err);
+
 
 (*** For printing colored strings in bash ***)
 module ColorPrint = struct
