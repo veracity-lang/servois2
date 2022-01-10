@@ -30,13 +30,13 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let n_spec = get_method spec n in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
     begin match solve prover spec @@ commute (smt_of_conj h) spec m_spec n_spec with
-      | Valid -> phi := add_disjunct h !phi
+      | Sat -> phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
-      | Invalid s -> begin let com_cex = s in
+      | Unsat s -> begin let com_cex = s in
         match solve prover spec (EBop(Imp, smt_of_conj h, non_commute m_spec n_spec)) with
-          | Valid -> phi_tilde := add_disjunct h !phi_tilde
+          | Sat -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
-          | Invalid s -> begin let non_com_cex = s in
+          | Unsat s -> begin let non_com_cex = s in
             let p = choose h p_set com_cex non_com_cex in
                 refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
                 refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)

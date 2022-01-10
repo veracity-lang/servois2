@@ -136,8 +136,8 @@ module RunTemp : Runner = struct
     in
     let r = Provers.ProverCVC4.run s in
     match r with
-    | Provers.Valid -> print_string "Valid\n"
-    | Provers.Invalid m -> Printf.printf "Invalid: %s\n" m
+    | Provers.Sat -> print_string "Valid\n"
+    | Provers.Unsat m -> Printf.printf "Invalid: %s\n" m
     | Provers.Unknown -> print_string "Unknown\n"
 
 end
