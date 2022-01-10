@@ -4,6 +4,7 @@
 
 %token <float> FLOAT
 %token <string> SYMBOL
+%token <string> SYMBOL_NEW
 
 %token EOF
 %token LP RP
@@ -36,6 +37,7 @@ exp:
   | LP l=lop el=nonempty_list(exp) RP { ELop (l, el) }
   | LP f=SYMBOL el=nonempty_list(exp) RP { EFunc (f, el) }
   | v=SYMBOL { EVar (Var v) }
+  | v=SYMBOL_NEW { EVar (VarPost v) }
   | n=FLOAT  { EConst (CInt (int_of_float n)) }
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }

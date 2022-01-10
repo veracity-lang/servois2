@@ -8,7 +8,6 @@ exception BadInputFormat of string
 
 let sp = Printf.sprintf
 
-
 (*** Utility functions ***)
 
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
@@ -211,3 +210,10 @@ module Yaml_util = struct
     | _ -> raise @@ BadInputFormat msg
 
 end
+
+let loc_of_parse_error (buf : Lexing.lexbuf) =
+  let p1 = Lexing.lexeme_start_p buf in
+  let p2 = Lexing.lexeme_end_p buf in
+  let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
+  let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
+  Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)

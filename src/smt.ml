@@ -58,7 +58,7 @@ type exp =
   | EForAll of ty bindlist * exp
 
 (* Requires parsing *)
-let smt_of_string : string -> exp =
+let smt_of_string (_ : string) : exp =
   raise @@ NotImplemented "smt_of_string"
 
 
@@ -110,7 +110,7 @@ module To_String = struct
 
   and exp : exp -> string = function
     | EVar (Var v)     -> v
-    | EVar (VarPost v) -> raise @@ NotImplemented "exp string of varpost"
+    | EVar (VarPost v) -> sp "%s_new" v
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)

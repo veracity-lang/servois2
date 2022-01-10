@@ -63,6 +63,25 @@ rule read = parse
   | "let" { LET }
   | "ite" { ITE }
 
+  (* TODO: _1 _2 *)
+  | symbol "_new" {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 0 (String.length s - 4)
+    in SYMBOL_NEW s'
+  }
+
+  | symbol "_1" {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 0 (String.length s - 2)
+    in SYMBOL s'
+  }
+
+  | symbol "_2" {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 0 (String.length s - 2)
+    in SYMBOL_NEW s'
+  }
+
   (* Variable or function *)
   | symbol  { SYMBOL (lexeme lexbuf) }
   
