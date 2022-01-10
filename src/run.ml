@@ -125,7 +125,15 @@ end
 
 module RunTemp : Runner = struct
   let run () =
-    let s = "(set-logic ALL_SUPPORTED) (assert (= 1 1)) (check-sat)" in
+    let s = "
+      (set-logic ALL_SUPPORTED)
+      (declare-const x Int)
+      (declare-const y Int)
+      (assert (not (= x y)))
+      (check-sat)
+    "
+  
+    in
     let r = Provers.ProverCVC4.run s in
     match r with
     | Provers.Valid -> print_string "Valid\n"
