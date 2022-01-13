@@ -134,7 +134,7 @@ module RunTemp : Runner = struct
     "
   
     in
-    let r = Provers.ProverZ3.run s in
+    let r = Provers.ProverCVC5.run s in
     match r with
     | Provers.Sat -> print_string "Valid\n"
     | Provers.Unsat m -> Printf.printf "Invalid: %s\n" m
