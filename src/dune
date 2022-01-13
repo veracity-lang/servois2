@@ -1,14 +1,9 @@
-(include_subdirs unqualified)
-
 (library
  (name servois2)
  (public_name servois2)
  (libraries unix str yaml)
  (modules (:standard \ run))
- ;(preprocess (per_module
- ;   ((pps ppx_deriving_yaml) yaml_generator)))
  (wrapped false)
- ;(library_flags -linkall)
  (synopsis "Servois"))
 
 (ocamllex smt_lexer)

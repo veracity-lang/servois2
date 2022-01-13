@@ -126,7 +126,7 @@ end
 module RunTemp : Runner = struct
   let run () =
     let s = "
-      (set-logic ALL_SUPPORTED)
+      (set-logic ALL)
       (declare-const x Int)
       (declare-const y Int)
       (assert (not (= x y)))
@@ -134,7 +134,7 @@ module RunTemp : Runner = struct
     "
   
     in
-    let r = Provers.ProverCVC4.run s in
+    let r = Provers.ProverZ3.run s in
     match r with
     | Provers.Sat -> print_string "Valid\n"
     | Provers.Unsat m -> Printf.printf "Invalid: %s\n" m
