@@ -15,6 +15,8 @@ let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
 
 let swap (a,b) = b,a
 
+let flip f x y = f y x
+
 (* Randomize order of items in a list *)
 let shuffle =
   let randomize = fun c -> Random.bits (), c in

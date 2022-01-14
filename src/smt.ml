@@ -55,7 +55,6 @@ type exp =
   | ELet of exp bindlist * exp
   | EITE of exp * exp * exp
   | EFunc of string * exp list
-  | EForAll of ty bindlist * exp
 
 (* Requires parsing *)
 let smt_of_string (_ : string) : exp =
@@ -118,15 +117,26 @@ module To_String = struct
     | ELet (bl, e)     -> sp "(let (%s) %s)" (list binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
     | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
-    | EForAll _        -> raise @@ NotImplemented "exp string of forall"
 end
 
+let string_of_var = function
+    | Var s -> s
+    | VarPost s -> s ^ "_new"
+let name_of_binding ((v, ty) : ty binding) = string_of_var v
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
 
-type smt_query =
-  { vars     : ty bindlist
-  ; (* TODO: Other things? *)
-  }
+(* Possible don't need this
+(* Remove built-in defined SMT functions? *)
+let rec free_vars = function
+  | EVar(Var s) -> [!s]
+  | EConst(_) -> []
+  | EBop(_, e1, e2) -> free_vars e1 @ free_vars e2
+  | EUop(_, e) -> free_vars e
+  | ELop(_, es) -> List.flatten (List.map free_vars es)
+  | ELet(bindings, e) -> List.filter (fun s -> List.for_all (fun (Var s', _) -> s != !s') bindings) (free_vars e)
+  | EITE(e1, e2, e3) -> free_vars e1 @ free_vars e2 @ free_vars e3
+  | EFunc(fname, es) -> fname :: List.flatten (List.map free_vars es)
 
-let string_of_smt_query = Failure "Not Implemented"
+(* let func_of_exp fname e = "(define-func " ^ fname ^ "(" ^ List.fold_left () *)
+*)
