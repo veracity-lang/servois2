@@ -125,16 +125,19 @@ end
 
 module RunTemp : Runner = struct
   let run () =
-    let s = "
-      (set-logic ALL_SUPPORTED)
-      (declare-const x Int)
-      (declare-const y Int)
-      (assert (not (= x y)))
-      (check-sat)
-    "
-  
-    in
-    let r = Provers.ProverCVC4.run s in
+    let spec = Counter_example.spec in
+    let m1 = Spec.get_method spec "increment" in
+    let m2 = Spec.get_method spec "decrement" in
+    let open Smt in
+    let smt_exp = Synth.commute (Phi.smt_of_disj @@ Phi.Disj [Conj [EBop (Gt, EVar (Var "contents"), EConst (CInt 0))]]) in
+    let query = Solve.string_of_smt_query spec m1 m2 smt_exp in
+
+    let temp_out = open_out "../stuff/query.smt" in
+    output_string temp_out query;
+    close_out temp_out;
+
+    let r = Provers.ProverCVC4.run query in
+
     match r with
     | Provers.Sat -> print_string "Valid\n"
     | Provers.Unsat m -> Printf.printf "Invalid: %s\n" m
