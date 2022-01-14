@@ -91,6 +91,8 @@ let string_of_smt_query spec m1 m2 smt_exp = (* The query used in valid *)
     "(assert (not " ^ string_of_smt smt_exp ^ "))\n" ^
     "(check-sat)\n"
 
+let smt_bowtie = EVar(Var("bowtie"))
+
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 smt_exp in
   let module P = (val prover) in

@@ -19,8 +19,8 @@ let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
 
-let non_commute h = EBop(Imp, h, EUop(Not, EVar(Var("bowtie"))))
-let commute h = EBop(Imp, h, EVar(Var("bowtie")))
+let non_commute h = EBop(Imp, h, EUop(Not, smt_bowtie))
+let commute h = EBop(Imp, h, smt_bowtie)
 
 let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
