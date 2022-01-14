@@ -219,3 +219,9 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
   let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
   let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
   Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
+
+(* Global options *)
+let verbosity = ref true
+let if_verbose action = if !verbosity then action () else ()
+let print_verbose s = if_verbose (fun () -> print_string s)
+let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())

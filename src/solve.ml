@@ -94,5 +94,5 @@ let string_of_smt_query spec m1 m2 smt_exp = (* The query used in valid *)
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 smt_exp in
   let module P = (val prover) in
-  print_string s; print_newline ();
+  print_verbose_newline s;
   P.run s
