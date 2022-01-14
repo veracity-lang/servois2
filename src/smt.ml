@@ -104,6 +104,11 @@ module To_String = struct
   let list (f : 'a -> string) (l : 'a list) =
     l |> List.map f |> String.concat " "
 
+  let lop_id = function
+    | Add -> "0"
+    | And -> "true"
+    | Or  -> "false"
+
   let rec binding ((Var v),e : exp binding) =
     sp "(%s %s)" v (exp e)
 
@@ -113,6 +118,7 @@ module To_String = struct
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
+    | ELop (o, [])     -> sp "(%s %s)" (lop o) (lop_id o)
     | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
     | ELet (bl, e)     -> sp "(let (%s) %s)" (list binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
