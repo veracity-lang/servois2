@@ -39,8 +39,8 @@ type lop = (* List operation *)
   | Add
   | And | Or
 
-type pred = (* This may not be the ideal representation *)
-  | Pred of string * ty list
+type pred_sig = (* This may not be the ideal representation *)
+  | PredSig of string * ty list
 
 type func =
   | Select of ty
@@ -94,8 +94,8 @@ module To_String = struct
     | And -> "and"
     | Or  -> "or"
   
-  let pred : pred -> string = function
-    | Pred (p, _) -> p
+  let pred : pred_sig -> string = function
+    | PredSig (p, _) -> p
   
   let func : func -> string = function
     | Select _ -> "select"
@@ -146,3 +146,6 @@ let rec free_vars = function
 
 (* let func_of_exp fname e = "(define-func " ^ fname ^ "(" ^ List.fold_left () *)
 *)
+
+
+type pred = string * exp * exp

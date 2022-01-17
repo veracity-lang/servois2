@@ -67,7 +67,7 @@ predicates:
 *)
 
 let spec : spec =
-  {name = "counter"; preds = [Pred ("=", [TInt; TInt])];
+  {name = "counter"; preds = [PredSig ("=", [TInt; TInt])];
  state_eq =
   EBop (Eq, EVar (Var "contents"),
    EVar (VarPost "contents"));
