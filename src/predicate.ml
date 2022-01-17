@@ -59,7 +59,8 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
       fun left ->
       List.iter (
         fun right -> 
-         pred_list := (name,left,right) :: !pred_list
+          if not (List.mem (name,left,right) !pred_list) then
+            pred_list := (name,left,right) :: !pred_list
       ) (Hashtbl.find all_terms ty2)
     ) (Hashtbl.find all_terms ty1)
   ) spec.preds;
