@@ -17,7 +17,7 @@ type method_spec =
 
 type spec =
   { name     : string
-  ; preds    : pred list
+  ; preds    : pred_sig list
   ; state_eq : exp
   ; state    : ty bindlist
   ; methods  : method_spec list
@@ -63,7 +63,7 @@ let binding_of_yaml (y : Yaml.value) : ty binding =
 
   Var name, ty
 
-let pred_of_yaml (y : Yaml.value) : pred =
+let pred_of_yaml (y : Yaml.value) : pred_sig =
   let d = get_dict y "Pred isn't dict" in
   let get_field s =
     assoc_dict s d @@ sp "Pred is missing '%s' field" s
@@ -78,7 +78,7 @@ let pred_of_yaml (y : Yaml.value) : pred =
     List.map ty_of_yaml
   in
 
-  Pred (name, ty)
+  PredSig (name, ty)
 
 let exp_of_yaml (y : Yaml.value) : exp =
   let s =

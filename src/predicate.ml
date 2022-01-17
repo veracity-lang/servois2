@@ -6,8 +6,38 @@ open Smt
      List.fold_left (fun acc y -> (x * y) :: acc) acc l2
    ) [] l1 in
    List.rev res *)
-  
-type pred = string * exp * exp
+
+let string_of_binop = function
+  | Mul    -> "*"
+  | Div    -> "/"
+  | Sub    -> "-"
+  | Lt     -> "<"
+  | Lte    -> "<="
+  | Gt     -> ">"
+  | Gte    -> ">="
+  | Eq     -> "=="
+
+let string_of_lop = function
+  | Add -> "+"
+  | And -> "&&"
+  | Or -> "||"
+
+let rec string_of_exp (e: exp) =
+  match e with
+  | EVar (Var str) -> str
+  | EVar (VarPost str) -> str 
+  | EConst (CInt i) -> Int.to_string i
+  | EConst (CBool b) -> Bool.to_string b
+  | EBop (bop,exp1,exp2) -> "(" ^ string_of_binop bop ^ " "^ string_of_exp exp1 ^ " "^ string_of_exp exp2 ^ ")" 
+  | ELop (lop, [exp1; exp2]) ->  "(" ^ string_of_lop lop ^ " "^ string_of_exp exp1 ^ " "^ string_of_exp exp2 ^ ")" 
+  | _ -> "other exp"
+  (* | EBop of bop * exp * exp
+  | EUop of uop * exp
+  | ELop of lop * exp list
+  | ELet of exp bindlist * exp
+  | EITE of exp * exp * exp
+  | EFunc of string * exp list
+  | EForAll of ty bindlist * exp *)
 
 let add_terms (type_terms) (tl: term_list list) =
   List.iter (fun (ty, el) -> 
@@ -17,26 +47,23 @@ let add_terms (type_terms) (tl: term_list list) =
   ) tl;
   type_terms
 
-let generate_predicates (spec: spec) (m1: string) (m2: string) : pred list =
-  
+let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) : pred list =
+  Printf.printf "here\n";
   let type_terms = Hashtbl.create 100 in
 
-  let method1 = List.find (fun (m: method_spec) -> String.equal m.name m1) spec.methods in
-  let method2 = List.find (fun (m: method_spec) -> String.equal m.name m2) spec.methods in 
-  (* let all_terms = List.merge (fun (ty1, el1) (ty2, el2) -> ty1 == ty2) method1.terms method2.terms in
-    *)
   let all_terms = add_terms (add_terms type_terms method1.terms) method2.terms in
 
   let pred_list = ref [] in
-  List.iter (fun (Pred (name,tys)) ->
-    let ty1 = List.nth tys 0 in
-    let ty2 = List.nth tys 1 in
-    let left = List.hd (Hashtbl.find all_terms ty1) in
-    Hashtbl.replace all_terms ty1 (List.tl (Hashtbl.find all_terms ty1));
-    let right = List.hd (Hashtbl.find all_terms ty2) in
-    Hashtbl.replace all_terms ty2 (List.tl (Hashtbl.find all_terms ty2));
-
-    pred_list := (name,left,right) :: !pred_list
+  List.iter (fun (PredSig (name,[ty1;ty2])) ->
+    List.iter (
+      fun left ->
+      List.iter (
+        fun right -> 
+         pred_list := (name,left,right) :: !pred_list
+      ) (Hashtbl.find all_terms ty2)
+    ) (Hashtbl.find all_terms ty1)
   ) spec.preds;
+  (* List.iter (fun (name,left,right) -> Printf.printf "-> Preds: %s, %s, %s\n" name (string_of_exp left) (string_of_exp right) ) !pred_list; *)
 
   !pred_list
+
