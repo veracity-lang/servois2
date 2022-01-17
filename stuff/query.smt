@@ -91,4 +91,3 @@
 ))
 (assert (not (=> (or (and (> contents 0))) bowtie)))
 (check-sat)
-(get-model)

@@ -22,6 +22,7 @@ let smt_of_conj (Conj al) =
 
 let smt_of_disj (Disj cl) =
   ELop (Or, (List.map smt_of_conj cl))
+let string_of_disj d = smt_of_disj d |> string_of_smt
 
 let atom_of_pred (_ : Smt.pred) : atom = raise @@ Failure "atom_of_disj"
 

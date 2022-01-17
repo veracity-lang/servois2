@@ -23,6 +23,18 @@ type spec =
   ; methods  : method_spec list
   }
 
+let lift (spec : spec) : spec =
+    if List.exists (fun binding -> name_of_binding binding == "err") spec.state then spec
+    else let new_state = (Var "err", TBool) :: spec.state in
+    let new_state_eq = ELop(Or, [ELop (And, [EVar(Var "err"); EVar(VarPost "err")]); ELop(And, [EUop(Not, EVar(Var "err")); EUop(Not, EVar(VarPost "err")); spec.state_eq])]) in
+    let lift_method m = { m with pre = EConst(CBool(true)); post =
+        ELop(Or, [
+            ELop(And, [EVar(Var "err"); EVar(VarPost "err")]); 
+            ELop(And, [EUop(Not, EVar(Var "err")); EUop(Not, EVar(VarPost "err")); m.pre; m.post]);
+            ELop(And, [EUop(Not, EVar(Var "err")); EVar(VarPost "err"); EUop(Not, m.pre)])
+        ]) } in
+    let new_methods = List.map lift_method spec.methods in
+    { spec with state_eq = new_state_eq; state = new_state; methods = new_methods }
 
 let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
 

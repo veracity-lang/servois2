@@ -3,8 +3,8 @@ open Util
 exception SolverFailure of string list
 
 type solve_result =
-  | Sat
-  | Unsat of string
+  | Sat of string
+  | Unsat
   | Unknown
 
 
@@ -27,8 +27,8 @@ module ProverCVC4 : Prover = struct
 
   let parse_output (out : string list) =
     match out with
-    | ["sat"] -> Sat
-    | ["unsat"] -> Unsat ""
+    | ["sat"] -> Sat ""
+    | ["unsat"] -> Unsat
     | _ -> raise @@ SolverFailure out
 
   let run (smt : string) : solve_result =
