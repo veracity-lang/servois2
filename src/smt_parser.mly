@@ -19,11 +19,15 @@
 
 %start <ty> ty_top
 %start <exp> exp_top
+%start <(exp * exp) list> values_top
 
 %%
 
 exp_top: e=exp EOF { e }
 ty_top:  t=ty EOF  { t }
+values_top: LP l=list(value_pair) RP { l }
+
+value_pair: LP e1=exp e2=exp RP { (e1, e2) }
 
 ty:
   | INT  { TInt }
