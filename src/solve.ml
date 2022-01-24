@@ -90,18 +90,19 @@ let generate_bowtie spec m1 m2 =
     pre_args_list "12" [] ^ " " ^ pre_args_list "21" [] ^ ")\n" ^
     "))\n"
 
-let string_of_smt_query spec m1 m2 smt_exp = (* The query used in valid *)
+let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
     "(set-logic ALL_SUPPORTED)\n" ^
     smt_of_spec spec ^
     generate_bowtie spec m1 m2 ^
-    "(assert (not " ^ string_of_smt smt_exp ^ "))\n" ^
-    "(check-sat)\n"
+    sp "(assert (not %s))\n" (string_of_smt smt_exp) ^
+    "(check-sat)\n" ^
+    if null get_vals then "" else sp "(get-value (%s))\n" (String.concat " " @@ List.map string_of_smt get_vals)
 
 let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
-let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (smt_exp : exp) : solve_result =
-  let s = string_of_smt_query spec m1 m2 smt_exp in
+let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
+  let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
   let module P = (val prover) in
   print_verbose_newline s;
   P.run s

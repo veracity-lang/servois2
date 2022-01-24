@@ -27,8 +27,8 @@ module ProverCVC4 : Prover = struct
 
   let parse_output (out : string list) =
     match out with
-    | ["sat"] -> Sat ""
-    | ["unsat"] -> Unsat
+    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
+    | "unsat" :: _ -> Unsat
     | _ -> raise @@ SolverFailure out
 
   let run (smt : string) : solve_result =
