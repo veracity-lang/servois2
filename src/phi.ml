@@ -25,3 +25,6 @@ let smt_of_disj (Disj cl) =
 
 let atom_of_pred (_ : Smt.pred) : atom = raise @@ Failure "atom_of_disj"
 
+module ToString = struct
+  let t _ = "TODO Phi.ToString.t"
+end

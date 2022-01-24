@@ -180,3 +180,13 @@ let spec_of_yaml (y : Yaml.value) : spec =
 
   { name; state; methods; preds; state_eq }
 
+
+
+module ToString = struct
+  (*let pred =
+
+  let spec {name;preds;state_eq;state;methods} =
+    sp "{name=%s;preds=%s;state_eq=%s;state=%s;methods=%s}"
+    name
+*)
+end

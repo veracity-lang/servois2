@@ -57,9 +57,9 @@ module RunParse : Runner = struct
 end
 
 
-module RunPhi : Runner = struct
+module RunSynth : Runner = struct
   let usage_msg exe_name =
-    "Usage: " ^ exe_name ^ " phi [<flags>] <vcy program> <method 1> <method 2>"
+    "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
   
   let debug = ref false
 
@@ -69,57 +69,51 @@ module RunPhi : Runner = struct
     anons := v :: !anons
 
   let output_file = ref ""
-  let input_yaml = ref ""
 
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
-    ; "-y",      Arg.Set_string input_yaml, "<file> Use an existing YAML file. Uses vcy YAML generator by default"
     ] |>
     Arg.align
 
-  let generate_phi prog_name method1 method2 =
-    (* if !debug then begin
-      Printexc.record_backtrace true
+  let synth yaml method1 method2 =
+    if !debug then begin
+      Printexc.record_backtrace true;
+      ignore @@ Parsing.set_trace true
     end;
 
-    let prog = Driver.parse_oat_file prog_name in
-    let env = Interp.initialize_env prog false in
-
-    let yaml =
-      if !input_yaml = ""
-      then Yaml_generator.compile_file_to_yaml prog_name prog
-      else
-        let in_chan = open_in !input_yaml in
-        String.concat "\n" @@ read_all_in in_chan
+    let spec =
+      Yaml_util.yaml_of_file yaml |>
+      Spec.spec_of_yaml
     in
 
-    let res =
-      try
-        Analyze.invoke_servois yaml method1 method2 |>
-        Analyze.exp_of_servois_output env |>
-        Ast.no_loc |>
-        Astlib.AstPP.string_of_exp
-      with e ->
-        raise @@ Failure "Phi generation failed"
+    let phi_comm, phi_noncomm =
+      Synth.synth spec method1 method2 
+    in
+
+    let s_phi_comm    = Phi.ToString.t phi_comm in
+    let s_phi_noncomm = Phi.ToString.t phi_noncomm in
+
+    let out =
+      sp "phi = %s\nphi-tilde = %s\n" 
+      s_phi_comm s_phi_noncomm
     in
 
     if !output_file = ""
-    then Printf.printf "%s\n" res
+    then print_string out
     else
       let out_chan = open_out !output_file in
-      output_string out_chan res;
-      close_out out_chan *)
-      failwith "revise later!"
+      output_string out_chan out;
+      close_out out_chan
 
-  (* Assumes argc > 2 and argv[1] = "interface" *)
+  (* Assumes argc > 2 and argv[1] = "synth" *)
   let run () =
     Arg.current := 1;
     Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
     let anons = List.rev (!anons) in
     match anons with
-    | [prog;method1;method2] -> generate_phi prog method1 method2
+    | [prog;method1;method2] -> synth prog method1 method2
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
@@ -148,19 +142,19 @@ end
 
 type command =
   | CmdHelp (* Show help info *)
-  | CmdPhi (* Synthesize phi *)
+  | CmdSynth (* Synthesize phi *)
   | CmdParse (* Parse YAML *)
   | CmdTemp
 
 let command_map =
   [ "help",     CmdHelp
-  ; "synth",    CmdPhi
+  ; "synth",    CmdSynth
   ; "parse",    CmdParse
   ; "temp",     CmdTemp
   ]
 
 let runner_map : (command * (module Runner)) list =
-  [ CmdPhi,    (module RunPhi)
+  [ CmdSynth,    (module RunSynth)
   ; CmdParse,  (module RunParse)
   ; CmdTemp,   (module RunTemp)
   ]
