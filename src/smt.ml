@@ -149,3 +149,6 @@ let rec free_vars = function
 
 
 type pred = string * exp * exp
+
+let smt_of_pred (op, e1, e2) = EFunc(op, [e1; e2])
+let string_of_pred = compose string_of_smt smt_of_pred
