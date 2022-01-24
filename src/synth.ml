@@ -29,11 +29,12 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let m_spec = get_method spec_lifted m in
   let n_spec = get_method spec_lifted n in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
-    begin match solve prover spec_lifted m_spec n_spec @@ commute h with
+    let solve_inst = solve prover spec_lifted m_spec n_spec (List.map smt_of_pred p_set) in
+    begin match solve_inst @@ commute h with
       | Unsat -> phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
       | Sat s -> begin let com_cex = s in
-        match solve prover spec_lifted m_spec n_spec @@ non_commute h with
+        match solve_inst @@ non_commute h with
           | Unsat -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat s -> begin let non_com_cex = s in

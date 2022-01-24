@@ -17,6 +17,12 @@ let swap (a,b) = b,a
 
 let flip f x y = f y x
 
+let compose f g x = f (g x)
+
+let null = function 
+    | [] -> true
+    | _ -> false
+
 (* Randomize order of items in a list *)
 let shuffle =
   let randomize = fun c -> Random.bits (), c in
