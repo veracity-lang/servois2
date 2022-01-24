@@ -158,6 +158,11 @@ let () =
   | _ -> None
 
 
+module ToMLString = struct
+  let list f l = sp "[%s]" @@ String.concat "; " @@ List.map f l
+  let pair f g (a,b) = sp "(%s, %s)" (f a) (g b)
+  let str s = sp "\"%s\"" s
+end
 
 module Yaml_util = struct
     
@@ -168,11 +173,7 @@ module Yaml_util = struct
     | `Bool b -> sp "Bool %s" @@ string_of_bool b
     | `Float f -> sp "Float %s" @@ string_of_float f
     | `String s -> sp "String %s" s
-    | `A l ->
-      l |>
-      List.map string_of_value |>
-      String.concat " ; " |>
-      sp "A [ %s ]"
+    | `A l -> "A " ^ ToMLString.list string_of_value l
     | `O l ->
       l |>
       List.map (fun (k,v) -> sp "%s : %s" k @@ string_of_value v) |>
@@ -225,3 +226,4 @@ let verbosity = ref true
 let if_verbose action = if !verbosity then action () else ()
 let print_verbose s = if_verbose (fun () -> print_string s)
 let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())
+

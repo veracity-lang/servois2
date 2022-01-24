@@ -125,6 +125,19 @@ module To_String = struct
     | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
 end
 
+module Smt_ToMLString = struct
+  let rec ty = function
+    | TInt   -> "TInt"
+    | TBool  -> "TBool"
+    | TSet a -> sp "TSet (%s)" (ty a)
+    | TArray (a,b) -> 
+      "TArray " ^ ToMLString.pair ty ty (a,b)
+
+  let var = function
+    | Var v     -> "Var " ^ ToMLString.str v
+    | VarPost v -> "VarPost " ^ ToMLString.str v
+end
+
 let string_of_var = function
     | Var s -> s
     | VarPost s -> s ^ "_new"

@@ -35,7 +35,8 @@ module RunParse : Runner = struct
 
     let parsed =
       Yaml_util.yaml_of_file yaml |>
-      Yaml_util.string_of_value
+      Spec.spec_of_yaml |>
+      Spec.Spec_ToMLString.spec
     in
 
     if !output_file = ""

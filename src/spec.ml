@@ -194,11 +194,20 @@ let spec_of_yaml (y : Yaml.value) : spec =
 
 
 
-module ToString = struct
-  (*let pred =
+module Spec_ToMLString = struct
+  let pred_sig (PredSig (s, t)) =
+    "PredSig " ^
+    ToMLString.pair ToMLString.str (ToMLString.list Smt_ToMLString.ty) (s,t)
+
+  let method_spec {name;args;ret;pre;post;terms} =
+    "TODO"
 
   let spec {name;preds;state_eq;state;methods} =
     sp "{name=%s;preds=%s;state_eq=%s;state=%s;methods=%s}"
     name
-*)
+    (ToMLString.list pred_sig preds)
+    (Smt.string_of_smt state_eq)
+    (ToMLString.list (ToMLString.pair Smt_ToMLString.var Smt_ToMLString.ty) state)
+    (ToMLString.list method_spec methods)
+
 end
