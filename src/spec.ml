@@ -23,6 +23,18 @@ type spec =
   ; methods  : method_spec list
   }
 
+let lift (spec : spec) : spec =
+    if List.exists (fun binding -> name_of_binding binding == "err") spec.state then spec
+    else let new_state = (Var "err", TBool) :: spec.state in
+    let new_state_eq = ELop(Or, [ELop (And, [EVar(Var "err"); EVar(VarPost "err")]); ELop(And, [EUop(Not, EVar(Var "err")); EUop(Not, EVar(VarPost "err")); spec.state_eq])]) in
+    let lift_method m = { m with pre = EConst(CBool(true)); post =
+        ELop(Or, [
+            ELop(And, [EVar(Var "err"); EVar(VarPost "err")]); 
+            ELop(And, [EUop(Not, EVar(Var "err")); EUop(Not, EVar(VarPost "err")); m.pre; m.post]);
+            ELop(And, [EUop(Not, EVar(Var "err")); EVar(VarPost "err"); EUop(Not, m.pre)])
+        ]) } in
+    let new_methods = List.map lift_method spec.methods in
+    { spec with state_eq = new_state_eq; state = new_state; methods = new_methods }
 
 let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
 
@@ -180,3 +192,31 @@ let spec_of_yaml (y : Yaml.value) : spec =
 
   { name; state; methods; preds; state_eq }
 
+
+
+module Spec_ToMLString = struct
+  let pred_sig (PredSig (s, t)) =
+    "PredSig " ^
+    ToMLString.pair ToMLString.str (ToMLString.list Smt_ToMLString.ty) (s,t)
+
+  let term_list =
+    ToMLString.pair Smt_ToMLString.ty (ToMLString.list Smt_ToMLString.exp)
+
+  let method_spec {name;args;ret;pre;post;terms} =
+    sp "{name=%s;\nargs=%s;\nret=%s;\npre=%s;\npost=%s;\nterms=%s}"
+    (ToMLString.str name)
+    (Smt_ToMLString.ty_bindlist args)
+    (Smt_ToMLString.ty_bindlist ret)
+    (Smt_ToMLString.exp pre)
+    (Smt_ToMLString.exp post)
+    (ToMLString.list term_list terms)
+
+  let spec {name;preds;state_eq;state;methods} =
+    sp "{name=%s;\npreds=%s;\nstate_eq=%s;\nstate=%s;\nmethods=%s}"
+    (ToMLString.str name)
+    (ToMLString.list pred_sig preds)
+    (Smt_ToMLString.exp state_eq)
+    (Smt_ToMLString.ty_bindlist state)
+    (ToMLString.list method_spec methods)
+
+end

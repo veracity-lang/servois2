@@ -1,0 +1,5 @@
+let spec = Counter_example.spec;;
+let m1 = Spec.get_method spec "increment";;
+let m2 = Spec.get_method spec "decrement";;
+let smt_exp = Synth.commute (Phi.Conj []);;
+Solve.string_of_smt_query spec m1 m2 smt_exp |> print_string;;

@@ -15,6 +15,14 @@ let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
 
 let swap (a,b) = b,a
 
+let flip f x y = f y x
+
+let compose f g x = f (g x)
+
+let null = function 
+    | [] -> true
+    | _ -> false
+
 (* Randomize order of items in a list *)
 let shuffle =
   let randomize = fun c -> Random.bits (), c in
@@ -156,6 +164,13 @@ let () =
   | _ -> None
 
 
+module ToMLString = struct
+  let list f l = sp "[%s]" @@ String.concat "; " @@ List.map f l
+  let single f a = sp "(%s)" (f a)
+  let pair f g (a,b) = sp "(%s, %s)" (f a) (g b)
+  let triple f g h (a,b,c) = sp "(%s, %s, %s)" (f a) (g b) (h c)
+  let str s = sp "\"%s\"" s
+end
 
 module Yaml_util = struct
     
@@ -166,11 +181,7 @@ module Yaml_util = struct
     | `Bool b -> sp "Bool %s" @@ string_of_bool b
     | `Float f -> sp "Float %s" @@ string_of_float f
     | `String s -> sp "String %s" s
-    | `A l ->
-      l |>
-      List.map string_of_value |>
-      String.concat " ; " |>
-      sp "A [ %s ]"
+    | `A l -> "A " ^ ToMLString.list string_of_value l
     | `O l ->
       l |>
       List.map (fun (k,v) -> sp "%s : %s" k @@ string_of_value v) |>
@@ -217,3 +228,10 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
   let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
   let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
   Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
+
+(* Global options *)
+let verbosity = ref true
+let if_verbose action = if !verbosity then action () else ()
+let print_verbose s = if_verbose (fun () -> print_string s)
+let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())
+

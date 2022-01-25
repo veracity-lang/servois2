@@ -55,7 +55,6 @@ type exp =
   | ELet of exp bindlist * exp
   | EITE of exp * exp * exp
   | EFunc of string * exp list
-  | EForAll of ty bindlist * exp
 
 (* Requires parsing *)
 let smt_of_string (_ : string) : exp =
@@ -105,6 +104,11 @@ module To_String = struct
   let list (f : 'a -> string) (l : 'a list) =
     l |> List.map f |> String.concat " "
 
+  let lop_id = function
+    | Add -> "0"
+    | And -> "true"
+    | Or  -> "false"
+
   let rec binding ((Var v),e : exp binding) =
     sp "(%s %s)" v (exp e)
 
@@ -114,22 +118,90 @@ module To_String = struct
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
+    | ELop (o, [])     -> sp "(%s %s)" (lop o) (lop_id o)
     | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
     | ELet (bl, e)     -> sp "(let (%s) %s)" (list binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
     | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
-    | EForAll _        -> raise @@ NotImplemented "exp string of forall"
 end
 
+module Smt_ToMLString = struct
+  let rec ty = function
+    | TInt   -> "TInt"
+    | TBool  -> "TBool"
+    | TSet a -> "TSet " ^ ToMLString.single ty a
+    | TArray (a,b) -> 
+      "TArray " ^ ToMLString.pair ty ty (a,b)
+
+  let var = function
+    | Var v     -> "Var " ^ ToMLString.str v
+    | VarPost v -> "VarPost " ^ ToMLString.str v
+
+  let ty_bindlist = ToMLString.list (ToMLString.pair var ty)
+
+  let const = function
+    | CInt i  -> "CInt " ^ string_of_int i
+    | CBool b -> if b then "CBool true" else "CBool false"
+
+  let bop = function
+    | Sub -> "Sub"
+    | Mul -> "Mul"
+    | Mod -> "Mod"
+    | Div -> "Div"
+    | Imp -> "Imp"
+    | Eq  -> "Eq"
+    | Lt  -> "Lt"
+    | Gt  -> "Gt"
+    | Lte -> "Lte"
+    | Gte -> "Gte"
+    | Abs -> "Abs"
+
+  let uop = function
+    | Not -> "Not"
+    | Neg -> "Neg"
+
+  let lop = function
+    | Add -> "Add"
+    | And -> "And"
+    | Or  -> "Or"
+
+  let rec exp = function
+    | EVar v   -> "EVar " ^ ToMLString.single var v
+    | EConst c -> "EConst " ^ ToMLString.single const c
+    | EBop (o, e1, e2) -> "EBop " ^ ToMLString.triple bop exp exp (o,e1,e2)
+    | EUop (o, e)      -> "EUop " ^ ToMLString.pair uop exp (o,e)
+    | ELop (o, el)     -> "ELop " ^ ToMLString.pair lop (ToMLString.list exp) (o,el)
+    | ELet (bl, e)     -> "ELet " ^
+      ToMLString.pair (ToMLString.list (ToMLString.pair var exp)) exp (bl,e)
+    | EITE (g, e1, e2) -> "EITE " ^ ToMLString.triple exp exp exp (g,e1,e2)
+    | EFunc (f, el)    -> "EFunc " ^
+      ToMLString.pair ToMLString.str (ToMLString.list exp) (f,el)
+end
+
+let string_of_var = function
+    | Var s -> s
+    | VarPost s -> s ^ "_new"
+let name_of_binding ((v, ty) : ty binding) = string_of_var v
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
 
-type smt_query =
-  { vars     : ty bindlist
-  ; (* TODO: Other things? *)
-  }
+(* Possible don't need this
+(* Remove built-in defined SMT functions? *)
+let rec free_vars = function
+  | EVar(Var s) -> [!s]
+  | EConst(_) -> []
+  | EBop(_, e1, e2) -> free_vars e1 @ free_vars e2
+  | EUop(_, e) -> free_vars e
+  | ELop(_, es) -> List.flatten (List.map free_vars es)
+  | ELet(bindings, e) -> List.filter (fun s -> List.for_all (fun (Var s', _) -> s != !s') bindings) (free_vars e)
+  | EITE(e1, e2, e3) -> free_vars e1 @ free_vars e2 @ free_vars e3
+  | EFunc(fname, es) -> fname :: List.flatten (List.map free_vars es)
 
-let string_of_smt_query = Failure "Not Implemented"
+(* let func_of_exp fname e = "(define-func " ^ fname ^ "(" ^ List.fold_left () *)
+*)
 
 
 type pred = string * exp * exp
+
+let smt_of_pred (op, e1, e2) = EFunc(op, [e1; e2])
+let string_of_pred = compose string_of_smt smt_of_pred

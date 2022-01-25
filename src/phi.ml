@@ -1,7 +1,7 @@
 open Smt
 
 type atom = exp (* TODO: narrow this to just the kinds of atoms we want *)
-let not_atom (a : atom) : atom = raise @@ Failure "not_atom"
+let not_atom (a : atom) : atom = EUop(Not, a)
 
 type conjunction =
   Conj of atom list
@@ -22,6 +22,10 @@ let smt_of_conj (Conj al) =
 
 let smt_of_disj (Disj cl) =
   ELop (Or, (List.map smt_of_conj cl))
+let string_of_disj d = smt_of_disj d |> string_of_smt
 
-let atom_of_pred (_ : Smt.pred) : atom = raise @@ Failure "atom_of_disj"
+let atom_of_pred ((f, e1, e2) : Smt.pred) : atom = EFunc(f, [e1; e2])
 
+module ToString = struct
+  let t _ = "TODO Phi.ToString.t"
+end
