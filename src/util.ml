@@ -166,7 +166,9 @@ let () =
 
 module ToMLString = struct
   let list f l = sp "[%s]" @@ String.concat "; " @@ List.map f l
+  let single f a = sp "(%s)" (f a)
   let pair f g (a,b) = sp "(%s, %s)" (f a) (g b)
+  let triple f g h (a,b,c) = sp "(%s, %s, %s)" (f a) (g b) (h c)
   let str s = sp "\"%s\"" s
 end
 

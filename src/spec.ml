@@ -199,15 +199,24 @@ module Spec_ToMLString = struct
     "PredSig " ^
     ToMLString.pair ToMLString.str (ToMLString.list Smt_ToMLString.ty) (s,t)
 
+  let term_list =
+    ToMLString.pair Smt_ToMLString.ty (ToMLString.list Smt_ToMLString.exp)
+
   let method_spec {name;args;ret;pre;post;terms} =
-    "TODO"
+    sp "{name=%s;\nargs=%s;\nret=%s;\npre=%s;\npost=%s;\nterms=%s}"
+    (ToMLString.str name)
+    (Smt_ToMLString.ty_bindlist args)
+    (Smt_ToMLString.ty_bindlist ret)
+    (Smt_ToMLString.exp pre)
+    (Smt_ToMLString.exp post)
+    (ToMLString.list term_list terms)
 
   let spec {name;preds;state_eq;state;methods} =
-    sp "{name=%s;preds=%s;state_eq=%s;state=%s;methods=%s}"
-    name
+    sp "{name=%s;\npreds=%s;\nstate_eq=%s;\nstate=%s;\nmethods=%s}"
+    (ToMLString.str name)
     (ToMLString.list pred_sig preds)
-    (Smt.string_of_smt state_eq)
-    (ToMLString.list (ToMLString.pair Smt_ToMLString.var Smt_ToMLString.ty) state)
+    (Smt_ToMLString.exp state_eq)
+    (Smt_ToMLString.ty_bindlist state)
     (ToMLString.list method_spec methods)
 
 end

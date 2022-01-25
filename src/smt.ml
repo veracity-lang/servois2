@@ -129,13 +129,53 @@ module Smt_ToMLString = struct
   let rec ty = function
     | TInt   -> "TInt"
     | TBool  -> "TBool"
-    | TSet a -> sp "TSet (%s)" (ty a)
+    | TSet a -> "TSet " ^ ToMLString.single ty a
     | TArray (a,b) -> 
       "TArray " ^ ToMLString.pair ty ty (a,b)
 
   let var = function
     | Var v     -> "Var " ^ ToMLString.str v
     | VarPost v -> "VarPost " ^ ToMLString.str v
+
+  let ty_bindlist = ToMLString.list (ToMLString.pair var ty)
+
+  let const = function
+    | CInt i  -> "CInt " ^ string_of_int i
+    | CBool b -> if b then "CBool true" else "CBool false"
+
+  let bop = function
+    | Sub -> "Sub"
+    | Mul -> "Mul"
+    | Mod -> "Mod"
+    | Div -> "Div"
+    | Imp -> "Imp"
+    | Eq  -> "Eq"
+    | Lt  -> "Lt"
+    | Gt  -> "Gt"
+    | Lte -> "Lte"
+    | Gte -> "Gte"
+    | Abs -> "Abs"
+
+  let uop = function
+    | Not -> "Not"
+    | Neg -> "Neg"
+
+  let lop = function
+    | Add -> "Add"
+    | And -> "And"
+    | Or  -> "Or"
+
+  let rec exp = function
+    | EVar v   -> "EVar " ^ ToMLString.single var v
+    | EConst c -> "EConst " ^ ToMLString.single const c
+    | EBop (o, e1, e2) -> "EBop " ^ ToMLString.triple bop exp exp (o,e1,e2)
+    | EUop (o, e)      -> "EUop " ^ ToMLString.pair uop exp (o,e)
+    | ELop (o, el)     -> "ELop " ^ ToMLString.pair lop (ToMLString.list exp) (o,el)
+    | ELet (bl, e)     -> "ELet " ^
+      ToMLString.pair (ToMLString.list (ToMLString.pair var exp)) exp (bl,e)
+    | EITE (g, e1, e2) -> "EITE " ^ ToMLString.triple exp exp exp (g,e1,e2)
+    | EFunc (f, el)    -> "EFunc " ^
+      ToMLString.pair ToMLString.str (ToMLString.list exp) (f,el)
 end
 
 let string_of_var = function
