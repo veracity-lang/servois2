@@ -23,6 +23,13 @@ let null = function
     | [] -> true
     | _ -> false
 
+let memoize f =
+    let memo = ref [] in
+    fun x -> begin match List.assoc_opt x !memo with
+        | Some v -> v
+        | None -> let res = f x in memo := (x, res) :: !memo; res
+    end
+
 (* Randomize order of items in a list *)
 let shuffle =
   let randomize = fun c -> Random.bits (), c in
@@ -31,6 +38,14 @@ let shuffle =
     List.map randomize |>
     List.sort compare |>
     List.map snd
+
+(* Get the minimum of a list, ordered by given predicate. If the minimum is not unique, gives the first such element in the list *)
+let list_min p = function
+    | [] -> raise @@ Failure "list_min"
+    | x :: xs -> List.fold_left (fun a e -> if p e < p e then a else e) x xs
+
+(* Sum a list of numbers *)
+let list_sum = List.fold_left (fun a e -> a + e) 0
 
 (* Reads lines from an in_channel until EOF.
  * Closes channel at the end *)

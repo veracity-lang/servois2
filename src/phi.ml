@@ -1,7 +1,9 @@
 open Smt
 
 type atom = exp (* TODO: narrow this to just the kinds of atoms we want *)
-let not_atom (a : atom) : atom = EUop(Not, a)
+let not_atom = function 
+    | EUop(Not, a) -> a
+    | a -> EUop(Not, a)
 
 type conjunction =
   Conj of atom list

@@ -8,16 +8,15 @@ open Solve
 open Spec
 open Phi
 open Provers
+open Choose
 
 type counterex = exp bindlist
 
 let prover : (module Prover) = (module ProverCVC4)
 
-(* TODO *)
-let choose _ ps _ _ = List.hd ps (* raise @@ Failure "choose" *)
-
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
+let parse_pred_data x = failwith "parse_pred_data"
 
 let non_commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), EUop(Not, smt_bowtie))
 let commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), smt_bowtie)
@@ -33,11 +32,11 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
     begin match solve_inst @@ commute h with
       | Unsat -> phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
-      | Sat s -> begin let com_cex = s in
+      | Sat s -> begin let com_cex = parse_pred_data s in
         match solve_inst @@ non_commute h with
           | Unsat -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
-          | Sat s -> begin let non_com_cex = s in
+          | Sat s -> begin let non_com_cex = parse_pred_data s in
             let p = choose h p_set com_cex non_com_cex in
                 refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
                 refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
