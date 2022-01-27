@@ -16,7 +16,11 @@ let prover : (module Prover) = (module ProverCVC4)
 
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
-let parse_pred_data x = failwith "parse_pred_data"
+let bool_of_exp = function (* TODO *)
+    | EConst(CBool t) -> t
+    | _ -> failwith "bool_of_exp"
+
+let parse_pred_data = compose (List.map (compose bool_of_exp snd)) values_of_string
 
 let non_commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), EUop(Not, smt_bowtie))
 let commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), smt_bowtie)

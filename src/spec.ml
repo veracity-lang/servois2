@@ -54,6 +54,13 @@ let ty_of_string (s : string) : ty =
   with Smt_parser.Error ->
     raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)
 
+let values_of_string (s : string) : (exp * exp) list =
+  let lexbuf = Lexing.from_string s in
+  Smt_lexer.reset_lexbuf s 0 lexbuf;
+  try
+    Smt_parser.values_top Smt_lexer.read lexbuf
+  with Smt_parser.Error ->
+    raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)
 
 (*** Methods for converting Yaml ADT to spec ***)
 
