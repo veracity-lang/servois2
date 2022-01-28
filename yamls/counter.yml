@@ -9,6 +9,9 @@ state:
 states_equal:
   definition: (= contents_1 contents_2)
 
+precondition:
+   definition: (>= contents 0)
+
 methods:
   - name: increment
     args: []

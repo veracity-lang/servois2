@@ -21,6 +21,7 @@ type spec =
   ; preamble : string option
   ; preds    : pred_sig list
   ; state_eq : exp
+  ; precond  : exp
   ; state    : ty bindlist
   ; methods  : method_spec list
   }
@@ -177,6 +178,7 @@ let spec_of_yaml (y : Yaml.value) : spec =
   let f_methods      = get_field "methods" in
   let f_predicates   = get_field "predicates" in
   let f_states_equal = get_field "states_equal" in
+  let f_precondition = get_field "precondition" in
 
   (* Name *)
   let name = get_string f_name "'name' isn't string" in
@@ -209,7 +211,14 @@ let spec_of_yaml (y : Yaml.value) : spec =
     exp_of_yaml
   in
 
-  { name; preamble; state; methods; preds; state_eq }
+  (* Precondition *)
+  let precond =
+    let d = get_dict f_states_equal "'states_equal' isn't dict" in
+    assoc_dict "definition" d "Missing 'defintion' field" |>
+    exp_of_yaml
+  in
+
+  { name; preamble; state; methods; preds; state_eq; precond } (* *** THE ORDER HERE LOOKS STRANGE *** *)
 
 
 
@@ -231,11 +240,12 @@ module Spec_ToMLString = struct
     (ToMLString.list term_list terms)
 
   let spec {name;preamble;preds;state_eq;state;methods} =
-    sp "{name=%s;\n%spreds=%s;\nstate_eq=%s;\nstate=%s;\nmethods=%s}"
+    sp "{name=%s;\n%spreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
     (ToMLString.str name)
     begin match preamble with Some s -> sp "%s preamble" (ToMLString.str s) | None -> "" end
     (ToMLString.list pred_sig preds)
     (Smt_ToMLString.exp state_eq)
+    (Smt_ToMLString.exp precond)
     (Smt_ToMLString.ty_bindlist state)
     (ToMLString.list method_spec methods)
 
