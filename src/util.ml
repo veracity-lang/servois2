@@ -4,18 +4,6 @@ exception UnreachableFailure of string
 exception NotImplemented of string
 exception BadInputFormat of string
 
-(* Global options *)
-let verbosity = ref false
-let if_verbose action = if !verbosity then action () else ()
-let print_verbose s = if_verbose (fun () -> print_string s)
-let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())
-let print_err_verbose s = if_verbose (fun () -> Printf.eprintf "%s" s)
-let print_err_verbose_newline s = if_verbose (fun () -> Printf.eprintf "%s\n" s)
-
-(*** Shorthands ***)
-
-let sp = Printf.sprintf
-
 (*** Utility functions ***)
 
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
@@ -37,6 +25,18 @@ let memoize f =
         | Some v -> v
         | None -> let res = f x in memo := (x, res) :: !memo; res
     end
+
+(* Global options *)
+let verbosity = ref false
+let if_verbose action = if !verbosity then action () else ()
+let printf_verbose fmt = if !verbosity then Printf.printf fmt else Printf.ifprintf stdout fmt
+let eprintf_verbose fmt = if !verbosity then Printf.eprintf fmt else Printf.ifprintf stderr fmt
+
+(*** Shorthands ***)
+
+let sp = Printf.sprintf
+let pfv fmt = printf_verbose fmt
+let epfv fmt = eprintf_verbose fmt
 
 (* Randomize order of items in a list *)
 let shuffle =
@@ -126,8 +126,8 @@ let run_exec (prog : string) (args : string array) (output : string) =
   sout, serr
 
 let print_exec_result (out : string list) (err : string list) =
-  if_verbose (fun () -> Printf.eprintf "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
-    (String.concat "\n" out) (String.concat "\n" err))
+  epfv "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
+    (String.concat "\n" out) (String.concat "\n" err)
 
 
 (*** For printing colored strings in bash ***)

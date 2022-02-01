@@ -107,5 +107,5 @@ let smt_oper = EVar(Var("oper"))
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
   let module P = (val prover) in
-  print_err_verbose_newline s;
+  epfv "%s\n" s;
   P.run s
