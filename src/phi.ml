@@ -19,11 +19,15 @@ let un_disj ds = match ds with Disj ds' -> ds'
 let add_disjunct d ds = Disj (d :: un_disj ds)
 
 (* TODO: SMT expr. of conjunction and disjunction *)
-let smt_of_conj (Conj al) =
-  ELop (And, al)
+let smt_of_conj = function
+  | Conj [] -> EConst (CBool false)
+  | Conj (x :: []) -> x
+  | Conj al -> ELop (And, al)
 
-let smt_of_disj (Disj cl) =
-  ELop (Or, (List.map smt_of_conj cl))
+let smt_of_disj = function
+  | Disj [] -> EConst(CBool true)
+  | Disj (x :: []) -> smt_of_conj x
+  | Disj cl -> ELop (Or, (List.map smt_of_conj cl))
 let string_of_disj d = smt_of_disj d |> string_of_smt
 
 let atom_of_pred ((f, e1, e2) : Smt.pred) : atom = EFunc(f, [e1; e2])

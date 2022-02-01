@@ -76,6 +76,7 @@ let generate_bowtie spec m1 m2 =
     oper_xy "" "2" m2.name m2args_name ^
     oper_xy "1" "12" m2.name m2args_name ^
     (* TODO: if err_state *)
+    "  (or (not err12) (not err21))" ^
     "))\n" ^
     (* TODO: deterministic, complete *)
     "(define-fun bowtie () Bool (and  \n   " ^ 
