@@ -1,4 +1,6 @@
 open Util
+open Smt
+open Spec
 
 exception SolverFailure of string list
 
@@ -7,8 +9,11 @@ type solve_result =
   | Unsat
   | Unknown
 
+let bool_of_exp = function (* TODO *)
+    | EConst(CBool t) -> t
+    | _ -> failwith "bool_of_exp"
 
-
+let parse_pred_data = compose (List.map (compose bool_of_exp snd)) values_of_string
 
 (* We instantiate the module with specific provers, e.g. CVC4, Z3 *)
 module type Prover = sig
