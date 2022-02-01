@@ -19,6 +19,5 @@ let complexity = memoize @@ fun (_, left, right) -> size left + size right
 
 let choose h ps com n_com : pred =
     let diff_preds = differentiating_predicates ps com n_com in
-    (* print_string (ToMLString.list string_of_pred diff_preds); *)
     list_min complexity diff_preds
 

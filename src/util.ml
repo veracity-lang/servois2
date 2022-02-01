@@ -4,6 +4,14 @@ exception UnreachableFailure of string
 exception NotImplemented of string
 exception BadInputFormat of string
 
+(* Global options *)
+let verbosity = ref false
+let if_verbose action = if !verbosity then action () else ()
+let print_verbose s = if_verbose (fun () -> print_string s)
+let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())
+let print_err_verbose s = if_verbose (fun () -> Printf.eprintf "%s" s)
+let print_err_verbose_newline s = if_verbose (fun () -> Printf.eprintf "%s\n" s)
+
 (*** Shorthands ***)
 
 let sp = Printf.sprintf
@@ -118,8 +126,8 @@ let run_exec (prog : string) (args : string array) (output : string) =
   sout, serr
 
 let print_exec_result (out : string list) (err : string list) =
-  Printf.printf "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
-    (String.concat "\n" out) (String.concat "\n" err);
+  if_verbose (fun () -> Printf.eprintf "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
+    (String.concat "\n" out) (String.concat "\n" err))
 
 
 (*** For printing colored strings in bash ***)
@@ -243,10 +251,3 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
   let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
   let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
   Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
-
-(* Global options *)
-let verbosity = ref true
-let if_verbose action = if !verbosity then action () else ()
-let print_verbose s = if_verbose (fun () -> print_string s)
-let print_verbose_newline s = if_verbose (fun () -> print_string s; print_newline ())
-

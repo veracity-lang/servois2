@@ -47,7 +47,7 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
             end
         end
     end in
-  begin try refine (Conj [(* Explicit true necessary? *)]) (Predicate.generate_predicates spec m_spec n_spec) 
+  begin try refine (Conj []) (Predicate.generate_predicates spec m_spec n_spec) 
       with | Failure f -> print_string f; print_newline ()
   end;
   !phi, !phi_tilde
