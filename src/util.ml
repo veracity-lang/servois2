@@ -21,6 +21,9 @@ let null = function
     | [] -> true
     | _ -> false
 
+let fst4 = function
+    | (w, _, _, _) -> w
+
 let memoize f =
     let memo = ref [] in
     fun x -> begin match List.assoc_opt x !memo with

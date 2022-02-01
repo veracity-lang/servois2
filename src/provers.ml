@@ -4,6 +4,8 @@ open Spec
 
 exception SolverFailure of string list
 
+let n_queries = ref 0
+
 type solve_result =
   | Sat of string
   | Unsat
@@ -40,6 +42,7 @@ module ProverCVC4 : Prover = struct
     let exec = find_exec "CVC4" exec_paths in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
+    n_queries := !n_queries + 1;
     (* TODO handle any errors *)
     parse_output sout
 
