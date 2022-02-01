@@ -32,7 +32,7 @@ let poke solver h ps com n_com : pred =
     (let h' = add_conjunct ((if cov then id else not_atom) @@ atom_of_pred p) h in
     let h'' = add_conjunct ((if cov then not_atom else id) @@ atom_of_pred p) h in
     match solver smt_diff_preds @@ commute h' with (* TODO: Possibly cache these results as synth also uses them? *)
-      | Unsat -> -1
+      | Unsat -> -1 (* TODO: Short circuit on an unsat? *)
       | Unknown -> max_int (* TODO: Better way to encode this? *)
       | Sat s -> begin let com_cex = parse_pred_data s in
         match solver smt_diff_preds @@ non_commute h'' with
