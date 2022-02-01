@@ -44,4 +44,5 @@ let poke solver h ps com n_com : pred =
         end
     ), complexity p) next
 
-let choose = simple
+(* let choose _ = simple *)
+let choose = poke
