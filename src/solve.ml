@@ -44,8 +44,8 @@ let smt_of_spec spec = (* TODO: Preamble? *)
     define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq ^ "\n" ^
     String.concat "" (List.map (fun (m : method_spec) ->
         let s_old = s in let s_new = make_new_bindings s in
-        define_fun (m.name ^ "_pre_condition") (s @ m.args) TBool m.pre ^ "\n" ^
-        define_fun (m.name ^ "_post_condition") (s @ m.args @ s_new @ m.ret) TBool m.post ^ "\n"
+        define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre ^ "\n" ^
+        define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post ^ "\n"
     ) spec.methods) ^
     ";; END: smt_of_spec " ^ spec.name ^ "\n"
 
@@ -53,16 +53,17 @@ let generate_bowtie spec m1 m2 =
     let (datanames : string list) = List.map name_of_binding spec.state in
     let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
-    let post_args_list old_postfix new_postfix argslist = String.concat " "
+    let post_args_list old_postfix new_postfix argslist ret = String.concat " "
         (
          List.map (fun a -> a ^ old_postfix) datanames @
          argslist @
          List.map (fun a -> a ^ new_postfix) datanames @
-         [("result_0_" ^ new_postfix)] (* TODO: parameterize the 0 *)) in
+         List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
     let m1args_name = List.map (fun e -> "x" ^ string_of_int (e + 1)) (flip List.init succ @@ List.length m1.args) in (* TODO: What if we want to use x ...*)
     let m2args_name = List.map (fun e -> "y" ^ string_of_int (e + 1)) (flip List.init succ @@ List.length m2.args) in (* TODO: y ...*)
-    let oper_xy x y mname args = "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
-        "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args ^ ")\n" in
+    let err_state = has_err_state spec in
+    let oper_xy x y (m : method_spec) args = let mname = m.name in "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
+        "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args m.ret ^ ")\n" in
     List.fold_left (fun acc_outer databinding -> 
         acc_outer ^ List.fold_left (fun acc_inner e ->
             acc_inner ^ mk_var (name_of_binding databinding ^ e) (snd databinding)) "" [""; "1"; "2"; "12"; "21"]
@@ -71,12 +72,13 @@ let generate_bowtie spec m1 m2 =
     (let tmp = ref "" in List.iteri (fun i ret -> tmp := !tmp ^ mk_var ("result_" ^ string_of_int i ^ "_1") (snd ret) ^ mk_var ("result_" ^ string_of_int i ^ "_21") (snd ret)) m1.ret; !tmp) ^
     (let tmp = ref "" in List.iteri (fun i ret -> tmp := !tmp ^ mk_var ("result_" ^ string_of_int i ^ "_2") (snd ret) ^ mk_var ("result_" ^ string_of_int i ^ "_12") (snd ret)) m2.ret; !tmp) ^
     "(define-fun oper () Bool (and \n" ^
-    oper_xy "" "1" m1.name m1args_name ^
-    oper_xy "2" "21" m1.name m1args_name ^
-    oper_xy "" "2" m2.name m2args_name ^
-    oper_xy "1" "12" m2.name m2args_name ^
-    (* TODO: if err_state *)
-    "  (or (not err12) (not err21))" ^
+    oper_xy "" "1" m1 m1args_name ^
+    oper_xy "2" "21" m1 m1args_name ^
+    oper_xy "" "2" m2 m2args_name ^
+    oper_xy "1" "12" m2 m2args_name ^
+    begin if err_state (* TODO: bowtie vs left/right movers *) 
+        then "  (or (not err12) (not err21))"
+        else "" end ^
     "))\n" ^
     (* TODO: deterministic, complete *)
     "(define-fun bowtie () Bool (and  \n   " ^ 

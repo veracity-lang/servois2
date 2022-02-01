@@ -23,8 +23,10 @@ type spec =
   ; methods  : method_spec list
   }
 
+let has_err_state spec = List.exists (fun binding -> name_of_binding binding = "err") spec.state
+
 let lift (spec : spec) : spec =
-    if List.exists (fun binding -> name_of_binding binding == "err") spec.state then spec
+    if has_err_state spec then spec
     else let new_state = (Var "err", TBool) :: spec.state in
     let new_state_eq = ELop(Or, [ELop (And, [EVar(Var "err"); EVar(VarPost "err")]); ELop(And, [EUop(Not, EVar(Var "err")); EUop(Not, EVar(VarPost "err")); spec.state_eq])]) in
     let lift_method m = { m with pre = EConst(CBool(true)); post =

@@ -20,12 +20,12 @@ let add_disjunct d ds = Disj (d :: un_disj ds)
 
 (* TODO: SMT expr. of conjunction and disjunction *)
 let smt_of_conj = function
-  | Conj [] -> EConst (CBool false)
+  | Conj [] -> EConst (CBool true)
   | Conj (x :: []) -> x
   | Conj al -> ELop (And, al)
 
 let smt_of_disj = function
-  | Disj [] -> EConst(CBool true)
+  | Disj [] -> EConst(CBool false)
   | Disj (x :: []) -> smt_of_conj x
   | Disj cl -> ELop (Or, (List.map smt_of_conj cl))
 let string_of_disj d = smt_of_disj d |> string_of_smt
