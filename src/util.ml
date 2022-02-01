@@ -42,7 +42,7 @@ let shuffle =
 (* Get the minimum of a list, ordered by given predicate. If the minimum is not unique, gives the first such element in the list *)
 let list_min p = function
     | [] -> raise @@ Failure "list_min"
-    | x :: xs -> List.fold_left (fun a e -> if p e < p e then a else e) x xs
+    | x :: xs -> List.fold_left (fun a e -> if p e < p a then e else a) x xs
 
 (* Sum a list of numbers *)
 let list_sum = List.fold_left (fun a e -> a + e) 0
