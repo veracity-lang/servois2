@@ -3,12 +3,13 @@
 %}
 
 %token <float> FLOAT
+%token <string> STR
 %token <string> SYMBOL
 %token <string> SYMBOL_NEW
 
 %token EOF
 %token LP RP
-%token INT BOOL ARRAY SET
+%token INT BOOL ARRAY SET STRING
 %token TRUE FALSE
 %token SUB MUL MOD DIV ABS
 %token IMP EQ
@@ -32,6 +33,7 @@ value_pair: LP e1=exp e2=exp RP { (e1, e2) }
 ty:
   | INT  { TInt }
   | BOOL { TBool }
+  | STRING { TString }
   | LP ARRAY k=ty v=ty RP { TArray (k, v) }
   | LP SET k=ty RP { TSet k }
 
@@ -45,6 +47,7 @@ exp:
   | n=FLOAT  { EConst (CInt (int_of_float n)) }
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }
+  | s=STR { EConst (CString s) }
   | LP LET LP bl=nonempty_list(binding) RP e=exp RP { ELet (bl, e) }
   | LP ITE e1=exp e2=exp e3=exp { EITE (e1, e2, e3) }
 

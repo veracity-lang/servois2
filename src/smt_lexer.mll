@@ -15,8 +15,13 @@
 let wsp = [' ' '\t' '\n']+
 let digit = ['0'-'9']
 let float = ['+' '-']? ((digit* '.' digit+) | (digit+ '.' digit*) | digit+)
-(*let int = ['+' '-']? digit+*)
+
+(* TODO: technically a subset of valid SMT symbols *)
 let symbol = ['a'-'z' 'A'-'Z']+ ['a'-'z' 'A'-'Z' '0'-'9' '_']*
+
+(* TODO: technically a subset of valid SMT strings *)
+let str_char = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-' ' ']
+
 
 rule read = parse
   | wsp     { read lexbuf }
@@ -26,10 +31,11 @@ rule read = parse
   | ")" { RP }
 
   (* Type *)
-  | "Int"   { INT }
-  | "Bool"  { BOOL }
-  | "Array" { ARRAY }
-  | "Set"   { SET }
+  | "Int"    { INT }
+  | "Bool"   { BOOL }
+  | "Array"  { ARRAY }
+  | "Set"    { SET }
+  | "String" { STRING }
 
   (* Bool *)
   | "true"  { TRUE }
@@ -62,6 +68,12 @@ rule read = parse
 
   | "let" { LET }
   | "ite" { ITE }
+
+  | '\"' str_char* '\"' {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 1 (String.length s - 2)
+    in STR s'
+  }
 
   (* TODO: _1 _2 *)
   | symbol "_new" {

@@ -19,12 +19,14 @@ type 'a bindlist = 'a binding list
 type ty =
   | TInt
   | TBool
+  | TString
   | TArray of ty * ty
   | TSet of ty
 
 type const =
   | CInt of int
   | CBool of bool
+  | CString of string
 
 type bop =
   | Sub | Mul | Mod | Div
@@ -58,21 +60,18 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of string * exp list
 
-(* Requires parsing *)
-let smt_of_string (_ : string) : exp =
-  raise @@ NotImplemented "smt_of_string"
-
-
 module To_String = struct
   let rec ty : ty -> string = function
     | TInt  -> "Int"
     | TBool -> "Bool"
+    | TString -> "String"
     | TArray (k,v) -> sp "(Array %s %s)" (ty k) (ty v)
     | TSet t -> sp "(Set %s)" (ty t)
   
   let const : const -> string = function
     | CInt i  -> string_of_int i
     | CBool b -> if b then "true" else "false"
+    | CString s -> sp "\"%s\"" s
 
   let bop : bop -> string = function
     | Sub -> "-"
@@ -131,6 +130,7 @@ module Smt_ToMLString = struct
   let rec ty = function
     | TInt   -> "TInt"
     | TBool  -> "TBool"
+    | TString -> "TString"
     | TSet a -> "TSet " ^ ToMLString.single ty a
     | TArray (a,b) -> 
       "TArray " ^ ToMLString.pair ty ty (a,b)
@@ -144,6 +144,7 @@ module Smt_ToMLString = struct
   let const = function
     | CInt i  -> "CInt " ^ string_of_int i
     | CBool b -> if b then "CBool true" else "CBool false"
+    | CString s -> "CString " ^ ToMLString.str s
 
   let bop = function
     | Sub -> "Sub"
@@ -181,8 +182,8 @@ module Smt_ToMLString = struct
 end
 
 let string_of_var = function
-    | Var s -> s
-    | VarPost s -> s ^ "_new"
+  | Var s -> s
+  | VarPost s -> s ^ "_new"
 let name_of_binding ((v, ty) : ty binding) = string_of_var v
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
