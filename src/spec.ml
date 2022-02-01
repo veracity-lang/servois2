@@ -2,6 +2,7 @@ open Util
 open Yaml_util
 open Smt
 open Yaml
+open Smt_parsing
 
 
 type term_list = ty * (exp list)
@@ -39,33 +40,6 @@ let lift (spec : spec) : spec =
     { spec with state_eq = new_state_eq; state = new_state; methods = new_methods }
 
 let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
-
-let exp_of_string (s : string) : exp =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.exp_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ SmtParseException (s, loc_of_parse_error lexbuf)
-    (*raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)*)
-
-let ty_of_string (s : string) : ty =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.ty_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ SmtParseException (s, loc_of_parse_error lexbuf)
-    (*raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)*)
-
-let values_of_string (s : string) : (exp * exp) list =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.values_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ SmtParseException (s, loc_of_parse_error lexbuf)
-    (*raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)*)
 
 (*** Methods for converting Yaml ADT to spec ***)
 

@@ -9,6 +9,7 @@ open Spec
 open Phi
 open Provers
 open Choose
+open Smt_parsing
 
 type counterex = exp bindlist
 

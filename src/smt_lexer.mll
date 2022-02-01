@@ -85,6 +85,4 @@ rule read = parse
   (* Variable or function *)
   | symbol  { SYMBOL (lexeme lexbuf) }
   
-  | _ { raise (Error (Printf.sprintf
-                        "At offset %d: unexpected character."
-                        (lexeme_start lexbuf))) }
+  | _ { raise (Smt.SmtLexExceptionProto (lexeme_start lexbuf)) }

@@ -7,6 +7,8 @@
 
 open Util
 
+exception SmtLexExceptionProto of int
+
 type var =
   | Var of string
   | VarPost of string
@@ -205,13 +207,3 @@ type pred = string * exp * exp
 
 let smt_of_pred (op, e1, e2) = EFunc(op, [e1; e2])
 let string_of_pred = compose string_of_smt smt_of_pred
-
-
-exception SmtParseException of string * string
-
-let () =
-  Printexc.register_printer @@
-  function
-  | SmtParseException (s, l) -> 
-    Some (sp "SMT parse failure at %s of '%s'" l s)
-  | _ -> None
