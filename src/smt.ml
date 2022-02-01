@@ -58,11 +58,6 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of string * exp list
 
-(* Requires parsing *)
-let smt_of_string (_ : string) : exp =
-  raise @@ NotImplemented "smt_of_string"
-
-
 module To_String = struct
   let rec ty : ty -> string = function
     | TInt  -> "Int"

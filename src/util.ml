@@ -6,6 +6,8 @@ exception BadInputFormat of string
 
 (*** Utility functions ***)
 
+let id x = x
+
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
@@ -18,6 +20,9 @@ let compose f g x = f (g x)
 let null = function 
     | [] -> true
     | _ -> false
+
+let fst4 = function
+    | (w, _, _, _) -> w
 
 let memoize f =
     let memo = ref [] in
@@ -48,9 +53,12 @@ let shuffle =
     List.map snd
 
 (* Get the minimum of a list, ordered by given predicate. If the minimum is not unique, gives the first such element in the list *)
-let list_min p = function
+let list_min comp p = function
     | [] -> raise @@ Failure "list_min"
-    | x :: xs -> List.fold_left (fun a e -> if p e < p a then e else a) x xs
+    | x :: xs -> fst @@ List.fold_left (fun (a, cached_val) e -> let e_val = p e in if comp e_val cached_val then (e, e_val) else (a, cached_val)) (x, p x) xs
+
+let int_comp x y = x < y
+let lex_comp (x1, y1) (x2, y2) = x1 < x2 || x1 = x2 && y1 < y2
 
 (* Sum a list of numbers *)
 let list_sum = List.fold_left (fun a e -> a + e) 0
