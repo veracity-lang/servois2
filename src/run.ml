@@ -108,6 +108,7 @@ module RunSynth : Runner = struct
       output_string out_chan out;
       close_out out_chan
 
+      
   (* Assumes argc > 2 and argv[1] = "synth" *)
   let run () =
     Arg.current := 1;
@@ -119,12 +120,42 @@ module RunSynth : Runner = struct
 end
 
 module RunTemp : Runner = struct
+
+  let usage_msg exe_name =
+    "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
+  
+  let debug = ref false
+  let poke = ref false
+
+  let anons = ref []
+  let anon_fun (v : string) =
+    anons := v :: !anons
+
+  let speclist =
+    [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "--poke", Arg.Set poke, " Use the poke heuristic"
+    ; "--verbose", Arg.Set (Util.verbosity), " Verbose!" 
+    ] |>
+    Arg.align
+
   let run () =
-    Util.verbosity := true;
-    let spec = Counter_example.spec in
-    let phi, phi_tilde = Synth.synth spec "increment" "decrement" in
-    print_string (Phi.string_of_disj phi); print_newline ();
-    print_string (Phi.string_of_disj phi_tilde); print_newline()
+    Arg.current := 1;
+    Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+    let anons = List.rev (!anons) in
+    match anons with
+    | [] -> 
+        if !debug then begin
+            Printexc.record_backtrace true;
+            ignore @@ Parsing.set_trace true end
+            else ();
+        if !poke then Choose.choose := Choose.poke else ();
+        let spec = Counter_example.spec in
+        let phi, phi_tilde = Synth.synth spec "increment" "decrement" in
+        print_string (Phi.string_of_disj phi); print_newline ();
+        print_string (Phi.string_of_disj phi_tilde); print_newline();
+        epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries)
+    | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
 
