@@ -109,8 +109,8 @@ let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid
 let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
-let non_commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), EUop(Not, smt_bowtie))
-let commute h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper h), smt_bowtie)
+let non_commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_conjunct precond h), EUop(Not, smt_bowtie))
+let commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_conjunct precond h), smt_bowtie)
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in

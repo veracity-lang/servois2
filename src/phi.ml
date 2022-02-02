@@ -9,14 +9,18 @@ type conjunction =
   Conj of atom list
 
 let un_conj cs = match cs with Conj cs' -> cs'
-let add_conjunct c cs = Conj (c :: un_conj cs)
+let add_conjunct c cs = match c with
+    | EConst (CBool true) -> cs
+    | _ -> Conj (c :: un_conj cs)
 
 type t = Disj of conjunction list
 
 
 
 let un_disj ds = match ds with Disj ds' -> ds'
-let add_disjunct d ds = Disj (d :: un_disj ds)
+let add_disjunct d ds = match d with
+    | Conj [] -> begin match ds with | Disj [] -> Disj [Conj []] | _ -> ds end
+    | _ -> Disj (d :: un_disj ds)
 
 (* TODO: SMT expr. of conjunction and disjunction *)
 let smt_of_conj = function

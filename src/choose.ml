@@ -3,6 +3,7 @@ open Util
 open Solve
 open Provers
 open Phi
+open Spec
 
 (* Assume that all predicate lists are sorted by complexity *)
 
@@ -23,21 +24,21 @@ let rec size = function
 
 let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
 
-let simple _ h ps com n_com : pred =
+let simple _ _ h ps com n_com : pred =
     differentiating_predicates ps com n_com |> List.hd |> fst
 
-let poke solver h ps com n_com : pred =
+let poke solver spec h ps com n_com : pred =
     let next = differentiating_predicates ps com n_com in
     let diff_preds = List.map fst next in (* TODO: if ps is large, avoid multiple maps *)
     let smt_diff_preds = List.map smt_of_pred diff_preds in
     let weight_fn p cov =
         let h'  = add_conjunct ((if cov then id else not_atom) @@ atom_of_pred p) h in
         let h'' = add_conjunct ((if cov then not_atom else id) @@ atom_of_pred p) h in
-        match solver smt_diff_preds @@ commute h' with (* TODO: Possibly cache these results as synth also uses them? *)
+        match solver smt_diff_preds @@ commute spec.precond h' with (* TODO: Possibly cache these results as synth also uses them? *)
         | Unsat -> -1
         | Unknown -> max_int (* TODO: Better way to encode this? *)
         | Sat s -> begin let com_cex = parse_pred_data s in
-            match solver smt_diff_preds @@ non_commute h'' with
+            match solver smt_diff_preds @@ non_commute spec.precond h'' with
             | Unsat -> -1
             | Unknown -> max_int
             | Sat s -> begin let non_com_cex = parse_pred_data s in
@@ -53,4 +54,4 @@ let poke solver h ps com n_com : pred =
         if e_weight < weight then (e, e_cov, e_weight, false) else
         (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
 
-let choose : ((exp list -> exp -> solve_result) -> conjunction -> pred list -> bool list -> bool list -> pred) ref = ref simple
+let choose : ((exp list -> exp -> solve_result) -> spec -> conjunction -> pred list -> bool list -> bool list -> pred) ref = ref simple
