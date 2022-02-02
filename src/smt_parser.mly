@@ -32,6 +32,7 @@ value_pair: LP e1=exp e2=exp RP { (e1, e2) }
 ty:
   | INT  { TInt }
   | BOOL { TBool }
+  | s=SYMBOL { TGeneric s }
   | LP ARRAY k=ty v=ty RP { TArray (k, v) }
   | LP SET k=ty RP { TSet k }
 

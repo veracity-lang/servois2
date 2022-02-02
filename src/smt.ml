@@ -21,6 +21,7 @@ type ty =
   | TBool
   | TArray of ty * ty
   | TSet of ty
+  | TGeneric of string
 
 type const =
   | CInt of int
@@ -64,6 +65,7 @@ module To_String = struct
     | TBool -> "Bool"
     | TArray (k,v) -> sp "(Array %s %s)" (ty k) (ty v)
     | TSet t -> sp "(Set %s)" (ty t)
+    | TGeneric g -> g
   
   let const : const -> string = function
     | CInt i  -> string_of_int i
@@ -129,6 +131,7 @@ module Smt_ToMLString = struct
     | TSet a -> "TSet " ^ ToMLString.single ty a
     | TArray (a,b) -> 
       "TArray " ^ ToMLString.pair ty ty (a,b)
+    | TGeneric g -> "TGeneric " ^ ToMLString.str g
 
   let var = function
     | Var v     -> "Var " ^ ToMLString.str v
