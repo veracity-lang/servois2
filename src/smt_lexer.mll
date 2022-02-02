@@ -38,6 +38,13 @@ rule read = parse
   (* Float *)
   | float { FLOAT (float_of_string (lexeme lexbuf)) }
 
+  | "$" digit* { 
+    let s = lexeme lexbuf in
+    let s' = String.sub s 1 (String.length s - 1) in
+    let n = int_of_string s' in
+    ARG n
+  }
+
   (* Bop *)
   | "-"   { SUB }
   | "*"   { MUL }

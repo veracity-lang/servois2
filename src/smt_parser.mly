@@ -5,6 +5,7 @@
 %token <float> FLOAT
 %token <string> SYMBOL
 %token <string> SYMBOL_NEW
+%token <int> ARG
 
 %token EOF
 %token LP RP
@@ -44,6 +45,7 @@ exp:
   | v=SYMBOL { EVar (Var v) }
   | v=SYMBOL_NEW { EVar (VarPost v) }
   | n=FLOAT  { EConst (CInt (int_of_float n)) }
+  | n=ARG { EArg n }
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }
   | LP LET LP bl=nonempty_list(binding) RP e=exp RP { ELet (bl, e) }

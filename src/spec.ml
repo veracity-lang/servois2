@@ -135,6 +135,33 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
     List.map binding_of_yaml
   in
 
+  (* Convert an indexed argument to a named variable *)
+  let bake_arg (index : int) : exp =
+    match List.nth_opt args (index + 1) with
+    | Some (v_name, _) -> EVar v_name
+    | None -> raise @@ Failure (sp "Invalid argument index $%d in method '%s'" index name)
+  in
+
+  (* Bake all arguments in an expression *)
+  let rec bake_args (exp : exp) : exp =
+    match exp with
+    | EVar _ | EConst _ -> exp
+    | EArg n -> bake_arg n
+    | EBop (b, e1, e2) -> 
+      EBop (b, bake_args e1, bake_args e2)
+    | EUop (u, e) ->
+      EUop (u, bake_args e)
+    | ELop (l, el) ->
+      ELop (l, List.map bake_args el)
+    | ELet (el, e) ->
+      ELet ( List.map (fun (s,e) -> s, bake_args e) el, 
+             bake_args e )
+    | EITE (b, t, f) ->
+      EITE (bake_args b, bake_args t, bake_args f)
+    | EFunc (s, el) ->
+      EFunc (s, List.map bake_args el)
+  in
+
   (* Return *)
   let ret = 
     get_list f_return "'return' isn't list" |>
@@ -142,10 +169,10 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
   in
 
   (* Requires *)
-  let pre = exp_of_yaml f_requires in
+  let pre = exp_of_yaml f_requires |> bake_args in
 
   (* Ensures *)
-  let post = exp_of_yaml f_ensures in
+  let post = exp_of_yaml f_ensures |> bake_args in
 
   let terms =
     get_dict f_terms "'terms' isn't dict" |>
@@ -153,7 +180,8 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
     fun (s,v) ->
       ty_of_string s,
       get_list v "terms aren't list" |>
-      List.map exp_of_yaml
+      List.map exp_of_yaml |>
+      List.map bake_args
   in
 
   { name; args; ret; pre; post; terms }

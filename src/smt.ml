@@ -51,6 +51,7 @@ type func =
 
 type exp =
   | EVar of var
+  | EArg of int
   | EConst of const
   | EBop of bop * exp * exp
   | EUop of uop * exp
@@ -113,6 +114,7 @@ module To_String = struct
 
   and exp : exp -> string = function
     | EVar (Var v)     -> v
+    | EArg n           -> sp "$%d" n
     | EVar (VarPost v) -> sp "%s_new" v
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
@@ -167,6 +169,7 @@ module Smt_ToMLString = struct
 
   let rec exp = function
     | EVar v   -> "EVar " ^ ToMLString.single var v
+    | EArg n   -> "EArg " ^ string_of_int n
     | EConst c -> "EConst " ^ ToMLString.single const c
     | EBop (o, e1, e2) -> "EBop " ^ ToMLString.triple bop exp exp (o,e1,e2)
     | EUop (o, e)      -> "EUop " ^ ToMLString.pair uop exp (o,e)
