@@ -35,7 +35,7 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
           | Unsat -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat s -> begin let non_com_cex = parse_pred_data s in
-            let p = !choose solve_inst spec_lifted h p_set com_cex non_com_cex in
+            let p = !choose { solver = solve_inst; spec = spec_lifted; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
                 refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
                 refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
             end

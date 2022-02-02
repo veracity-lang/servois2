@@ -5,6 +5,14 @@ open Provers
 open Phi
 open Spec
 
+type choose_env =
+  { solver : (exp list -> exp -> solve_result)
+  ; spec : spec
+  ; h : conjunction
+  ; choose_from : pred list
+  ; cex_ncex : bool list * bool list
+  }
+
 (* Assume that all predicate lists are sorted by complexity *)
 
 let differentiating_predicates (ps : pred list) (a : bool list) b : ((pred * bool) list) = (* The bool should be true if the predicate is true in the commute (first list) case *)
@@ -24,21 +32,22 @@ let rec size = function
 
 let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
 
-let simple _ _ h ps com n_com : pred =
-    differentiating_predicates ps com n_com |> List.hd |> fst
+let simple env : pred =
+    differentiating_predicates env.choose_from (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
 
-let poke solver spec h ps com n_com : pred =
-    let next = differentiating_predicates ps com n_com in
-    let diff_preds = List.map fst next in (* TODO: if ps is large, avoid multiple maps *)
+let poke env : pred =
+    let com, n_com = env.cex_ncex in
+    let next = differentiating_predicates env.choose_from com n_com in
+    let diff_preds = List.map fst next in (* TODO: if list is large, avoid multiple maps *)
     let smt_diff_preds = List.map smt_of_pred diff_preds in
     let weight_fn p cov =
-        let h'  = add_conjunct ((if cov then id else not_atom) @@ atom_of_pred p) h in
-        let h'' = add_conjunct ((if cov then not_atom else id) @@ atom_of_pred p) h in
-        match solver smt_diff_preds @@ commute spec.precond h' with (* TODO: Possibly cache these results as synth also uses them? *)
+        let h'  = add_conjunct ((if cov then id else not_atom) @@ atom_of_pred p) env.h in
+        let h'' = add_conjunct ((if cov then not_atom else id) @@ atom_of_pred p) env.h in
+        match env.solver smt_diff_preds @@ commute env.spec.precond h' with (* TODO: Possibly cache these results as synth also uses them? *)
         | Unsat -> -1
         | Unknown -> max_int (* TODO: Better way to encode this? *)
         | Sat s -> begin let com_cex = parse_pred_data s in
-            match solver smt_diff_preds @@ non_commute spec.precond h'' with
+            match env.solver smt_diff_preds @@ non_commute env.spec.precond h'' with
             | Unsat -> -1
             | Unknown -> max_int
             | Sat s -> begin let non_com_cex = parse_pred_data s in
@@ -54,4 +63,4 @@ let poke solver spec h ps com n_com : pred =
         if e_weight < weight then (e, e_cov, e_weight, false) else
         (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
 
-let choose : ((exp list -> exp -> solve_result) -> spec -> conjunction -> pred list -> bool list -> bool list -> pred) ref = ref simple
+let choose : (choose_env -> pred) ref = ref simple
