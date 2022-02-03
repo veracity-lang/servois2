@@ -41,31 +41,6 @@ let lift (spec : spec) : spec =
 
 let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
 
-(* TODO: Move to own file? *)
-let exp_of_string (s : string) : exp =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.exp_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)
-
-let ty_of_string (s : string) : ty =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.ty_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)
-
-let values_of_string (s : string) : (exp * exp) list =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
-  try
-    Smt_parser.values_top Smt_lexer.read lexbuf
-  with Smt_parser.Error ->
-    raise @@ Failure ("Parse error at: " ^ loc_of_parse_error lexbuf)
-
 (*** Methods for converting Yaml ADT to spec ***)
 
 let ty_of_yaml (y : Yaml.value) : ty =
@@ -137,7 +112,7 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
 
   (* Convert an indexed argument to a named variable *)
   let bake_arg (index : int) : exp =
-    match List.nth_opt args (index + 1) with
+    match List.nth_opt args (index - 1) with
     | Some (v_name, _) -> EVar v_name
     | None -> raise @@ Failure (sp "Invalid argument index $%d in method '%s'" index name)
   in
