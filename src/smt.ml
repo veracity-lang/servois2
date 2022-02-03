@@ -19,12 +19,15 @@ type 'a bindlist = 'a binding list
 type ty =
   | TInt
   | TBool
+  | TString
   | TArray of ty * ty
   | TSet of ty
+  | TGeneric of string
 
 type const =
   | CInt of int
   | CBool of bool
+  | CString of string
 
 type bop =
   | Sub | Mul | Mod | Div
@@ -50,6 +53,7 @@ type func =
 
 type exp =
   | EVar of var
+  | EArg of int
   | EConst of const
   | EBop of bop * exp * exp
   | EUop of uop * exp
@@ -67,12 +71,15 @@ module To_String = struct
   let rec ty : ty -> string = function
     | TInt  -> "Int"
     | TBool -> "Bool"
+    | TString -> "String"
     | TArray (k,v) -> sp "(Array %s %s)" (ty k) (ty v)
     | TSet t -> sp "(Set %s)" (ty t)
+    | TGeneric g -> g
   
   let const : const -> string = function
     | CInt i  -> string_of_int i
     | CBool b -> if b then "true" else "false"
+    | CString s -> sp "\"%s\"" s
 
   let bop : bop -> string = function
     | Sub -> "-"
@@ -116,6 +123,7 @@ module To_String = struct
 
   and exp : exp -> string = function
     | EVar (Var v)     -> v
+    | EArg n           -> sp "$%d" n
     | EVar (VarPost v) -> sp "%s_new" v
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
@@ -131,9 +139,11 @@ module Smt_ToMLString = struct
   let rec ty = function
     | TInt   -> "TInt"
     | TBool  -> "TBool"
+    | TString -> "TString"
     | TSet a -> "TSet " ^ ToMLString.single ty a
     | TArray (a,b) -> 
       "TArray " ^ ToMLString.pair ty ty (a,b)
+    | TGeneric g -> "TGeneric " ^ ToMLString.str g
 
   let var = function
     | Var v     -> "Var " ^ ToMLString.str v
@@ -144,6 +154,7 @@ module Smt_ToMLString = struct
   let const = function
     | CInt i  -> "CInt " ^ string_of_int i
     | CBool b -> if b then "CBool true" else "CBool false"
+    | CString s -> "CString " ^ ToMLString.str s
 
   let bop = function
     | Sub -> "Sub"
@@ -169,6 +180,7 @@ module Smt_ToMLString = struct
 
   let rec exp = function
     | EVar v   -> "EVar " ^ ToMLString.single var v
+    | EArg n   -> "EArg " ^ string_of_int n
     | EConst c -> "EConst " ^ ToMLString.single const c
     | EBop (o, e1, e2) -> "EBop " ^ ToMLString.triple bop exp exp (o,e1,e2)
     | EUop (o, e)      -> "EUop " ^ ToMLString.pair uop exp (o,e)
@@ -180,6 +192,10 @@ module Smt_ToMLString = struct
       ToMLString.pair ToMLString.str (ToMLString.list exp) (f,el)
 end
 
+let string_of_var = function
+  | Var s -> s
+  | VarPost s -> s ^ "_new"
+let name_of_binding ((v, ty) : ty binding) = string_of_var v
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
 

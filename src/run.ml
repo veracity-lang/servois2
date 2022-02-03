@@ -13,6 +13,8 @@ module RunParse : Runner = struct
   
   let debug = ref false
 
+  let just_yaml = ref false 
+
   let anons = ref []
 
   let anon_fun (v : string) =
@@ -23,6 +25,7 @@ module RunParse : Runner = struct
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "-y",      Arg.Set just_yaml, " Just parse YAML; don't convert to a spec"
     ; "-o",      Arg.Set_string output_file, "<file> Output parsing to file (defaults to stdout)"
     ] |>
     Arg.align
@@ -34,9 +37,14 @@ module RunParse : Runner = struct
     end;
 
     let parsed =
-      Yaml_util.yaml_of_file yaml |>
-      Spec.spec_of_yaml |>
-      Spec.Spec_ToMLString.spec
+      if !just_yaml
+      then
+        Yaml_util.yaml_of_file yaml |>
+        Yaml_util.string_of_value
+      else
+        Yaml_util.yaml_of_file yaml |>
+        Spec.spec_of_yaml |>
+        Spec.Spec_ToMLString.spec
     in
 
     if !output_file = ""

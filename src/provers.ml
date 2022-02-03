@@ -1,6 +1,7 @@
 open Util
 open Smt
 open Spec
+open Smt_parsing
 
 exception SolverFailure of string list
 
