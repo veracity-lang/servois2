@@ -12,6 +12,7 @@ let differentiating_predicates (ps : pred list) (a : bool list) b : ((pred * boo
 
 let rec size = function
   | EVar _ -> 1
+  | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
   | EConst _ -> 1
   | EBop(_, e1, e2) -> 1 + size e1 + size e2
   | EUop(_, e) -> 1 + size e
