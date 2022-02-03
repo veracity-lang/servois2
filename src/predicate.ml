@@ -4,13 +4,16 @@ open Smt
 
 let string_of_binop = function
   | Mul    -> "*"
-  | Div    -> "/"
+  | Div    -> "/" (* TODO: I think smtlib2 actually uses "div"? *)
   | Sub    -> "-"
   | Lt     -> "<"
   | Lte    -> "<="
   | Gt     -> ">"
   | Gte    -> ">="
   | Eq     -> "=="
+  | Mod    -> "mod"
+  | Abs    -> "abs"
+  | Imp    -> "=>"
 
 let string_of_lop = function
   | Add -> "+"

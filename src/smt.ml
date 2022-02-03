@@ -58,6 +58,11 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of string * exp list
 
+let string_of_var = function
+    | Var s -> s
+    | VarPost s -> s ^ "_new"
+let name_of_binding ((v, ty) : ty binding) = string_of_var v
+
 module To_String = struct
   let rec ty : ty -> string = function
     | TInt  -> "Int"
@@ -106,8 +111,8 @@ module To_String = struct
     | And -> "true"
     | Or  -> "false"
 
-  let rec binding ((Var v),e : exp binding) =
-    sp "(%s %s)" v (exp e)
+  let rec binding (v, e : exp binding) =
+    sp "(%s %s)" (string_of_var v) (exp e)
 
   and exp : exp -> string = function
     | EVar (Var v)     -> v
@@ -175,10 +180,6 @@ module Smt_ToMLString = struct
       ToMLString.pair ToMLString.str (ToMLString.list exp) (f,el)
 end
 
-let string_of_var = function
-    | Var s -> s
-    | VarPost s -> s ^ "_new"
-let name_of_binding ((v, ty) : ty binding) = string_of_var v
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
 

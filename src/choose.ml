@@ -44,6 +44,7 @@ let poke solver h ps com n_com : pred =
                 end
             end in
     fst4 @@ match next with 
+        | [] -> failwith "poke"
         | (p, b) :: next' -> List.fold_left (fun (p, cov, weight, shortcircuit) (e, e_cov) ->
         if shortcircuit then (p, cov, weight, shortcircuit) else
         let e_weight = weight_fn e e_cov  in 
