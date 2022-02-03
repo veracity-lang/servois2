@@ -19,7 +19,7 @@ methods:
       (>= contents 0)
     ensures: |
       (and (= contents_new (+ contents 1))
-           (= result true))
+           (= result "true"))
     terms:
       Int: [contents, 1, (+ contents 1)]
   - name: decrement
