@@ -18,12 +18,13 @@ let prover : (module Prover) = (module ProverCVC4)
 
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
-let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
+let synth ?(preds = []) (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
   let spec_lifted = lift spec in
   let m_spec = get_method spec_lifted m in
   let n_spec = get_method spec_lifted n in
+  let preds = if null preds then generate_predicates spec_lifted m_spec n_spec else preds in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
     let solve_inst = solve prover spec_lifted m_spec n_spec in
     let pred_smt = List.map smt_of_pred p_set in
@@ -41,7 +42,7 @@ let synth (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
             end
         end
     end in
-  begin try refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ generate_predicates spec m_spec n_spec) 
+  begin try refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds) 
       with | Failure f -> print_string f; print_newline ()
   end;
   !phi, !phi_tilde
