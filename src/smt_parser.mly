@@ -49,7 +49,7 @@ exp:
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }
   | LP LET LP bl=nonempty_list(binding) RP e=exp RP { ELet (bl, e) }
-  | LP ITE e1=exp e2=exp e3=exp { EITE (e1, e2, e3) }
+  | LP ITE e1=exp e2=exp e3=exp RP { EITE (e1, e2, e3) }
 
 bop:
   | SUB { Sub }

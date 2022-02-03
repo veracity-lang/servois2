@@ -47,7 +47,15 @@ methods:
     requires: |
       true
     ensures: |
-      true
+      (ite (member v keys)
+           (and (= keys_new (setminus keys (singleton v)))
+                (= size_new (- size 1))
+                (= H_new H)
+                result)
+           (and (= keys_new keys)
+                (= size_new size)
+                (= H_new H)
+                (not result)))
     terms:
       Int: [size, 1, (- size 1)]
       E: [$1]
@@ -65,7 +73,18 @@ methods:
     requires: |
       true
     ensures: |
-      true
+      (ite (member k0 keys)
+           (and (= keys_new keys)
+                (= size_new size)
+                (ite (= v0 (select H k0))
+                     (and (not result)
+                          (= H_new H))
+                     (and result
+                          (= H_new (store H k0 v0)))))
+           (and (= keys_new (insert k0 keys))
+                (= size_new (+ size 1))
+                result
+                (= H_new (store H k0 v0))))
     terms:
       Int: [size, 1, (+ size 1)]
       E: [$1]
