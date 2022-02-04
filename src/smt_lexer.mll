@@ -36,6 +36,7 @@ rule read = parse
   | "Array"  { ARRAY }
   | "Set"    { SET }
   | "String" { STRING }
+  | "BitVec" { BITVECTOR }
 
   (* Bool *)
   | "true"  { TRUE }
