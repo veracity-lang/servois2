@@ -64,6 +64,20 @@ type exp =
   | EITE of exp * exp * exp
   | EFunc of string * exp list
 
+let rec make_recursive (f : exp -> exp) (* f only needs to work on EVar, EArg, EConst *) = function
+  | EVar v -> f (EVar v)
+  | EArg i -> f (EArg i)
+  | EConst c -> f (EConst c)
+  | EBop(b, el, er) -> EBop(b, make_recursive f el, make_recursive f er)
+  | EUop(u, e) -> EUop(u, make_recursive f e)
+  | ELop(lop, es) -> ELop(lop, List.map (make_recursive f) es)
+  | ELet(binds, e) -> ELet(binds, make_recursive f e)
+  | EITE(i, t, e) -> EITE(make_recursive f i, make_recursive f t, make_recursive f e)
+  | EFunc(s, es) -> EFunc(s, List.map (make_recursive f) es)
+
+
+let name_arguments (f : int -> string) = make_recursive (function | EArg i -> EVar (Var (f i)) | x -> x)
+
 module To_String = struct
   let var : var -> string = function
     | Var s     -> s
