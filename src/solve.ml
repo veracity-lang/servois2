@@ -54,14 +54,13 @@ let generate_bowtie spec m1 m2 =
     let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
     let post_args_list old_postfix new_postfix argslist ret = String.concat " "
-        (
-         List.map (fun a -> a ^ old_postfix) datanames @
+        (List.map (fun a -> a ^ old_postfix) datanames @
          argslist @
          List.map (fun a -> a ^ new_postfix) datanames @
          List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
-    let m1args_binding = List.map (first string_of_var) m1.args in (* List.mapi (fun i (_, ty) -> "x" ^ string_of_int (i + 1), ty) m1.args in (* TODO: What if we want to use x ...*) *)
+    let m1args_binding = List.map (first string_of_var) m1.args in
     let m1args_name = List.map fst m1args_binding in
-    let m2args_binding = List.map (first string_of_var) m2.args in (* List.mapi (fun i (_, ty) -> "y" ^ string_of_int (i + 1), ty) m2.args in (* TODO: y ...*) *)
+    let m2args_binding = List.map (first string_of_var) m2.args in (* TODO: If m1, m2 have the same arg names? *)
     let m2args_name = List.map fst m2args_binding in
     (uncurry mk_var |> flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
     let err_state = has_err_state spec in
