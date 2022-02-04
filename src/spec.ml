@@ -178,7 +178,6 @@ let spec_of_yaml (y : Yaml.value) : spec =
   let f_methods      = get_field "methods" in
   let f_predicates   = get_field "predicates" in
   let f_states_equal = get_field "states_equal" in
-  let f_precondition = get_field "precondition" in
 
   (* Name *)
   let name = get_string f_name "'name' isn't string" in
@@ -212,10 +211,8 @@ let spec_of_yaml (y : Yaml.value) : spec =
   in
 
   (* Precondition *)
-  let precond =
-    let d = get_dict f_states_equal "'states_equal' isn't dict" in
-    assoc_dict "definition" d "Missing 'defintion' field" |>
-    exp_of_yaml
+  let precond = try let f_precond = get_field "precondition" in exp_of_yaml f_precond with 
+      | BadInputFormat _ -> EConst (CBool true)
   in
 
   { name = name
