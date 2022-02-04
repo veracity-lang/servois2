@@ -10,7 +10,7 @@
 %token <int> LITERAL
 
 %token EOF
-%token LP RP
+%token LP RP UNDERSCORE
 %token INT BOOL ARRAY SET STRING BITVEC
 %token TRUE FALSE
 %token SUB MUL MOD DIV ABS
@@ -39,7 +39,7 @@ ty:
   | STRING { TString }
   | LP ARRAY k=ty v=ty RP { TArray (k, v) }
   | LP SET k=ty RP { TSet k }
-  | LP BITVEC w=lit RP { TBitVector w }
+  | LP UNDERSCORE BITVEC w=lit RP { TBitVector w }
 
 lit:
   | d=LITERAL { d }

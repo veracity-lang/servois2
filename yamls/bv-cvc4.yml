@@ -7,14 +7,16 @@ name: bv
 
 state:
   - name: b
-    type: (BitVec 32)
+    type: (_ BitVec 32)
 
 states_equal:
-  definition: (bvcomp b_1 b_2 bit1)
+  definition: (bvcomp b_1 b_2)
 
 precondition: "true"
 
-preamble: "(set-logic QF_BV) (define-fun bveq ((bA (BitVec 32)) (bB (BitVec 32))) (bvcomp bA bB bit1))"
+#(set-logic QF_BV) 
+preamble: ""
+#preamble: "(define-fun bveq ((bA (_ BitVec 32)) (bB (_ BitVec 32))) Bool (bvcomp bA bB))"
 
 methods:
   - name: negate
@@ -28,11 +30,11 @@ methods:
       (and (bvneg b b_new)
            (= result true))
     terms:
-      (BitVec 32): [b, (bvneg b)]
+      (_ BitVec 32): [b, (bvneg b)]
 
 predicates:
-  - name: "bveq"
-    type: [(BitVec 32), (BitVec 32)]
+  - name: "bvcomp"
+    type: [(_ BitVec 32), (_ BitVec 32)]
 
 
 # (set-logic QF_BV) 

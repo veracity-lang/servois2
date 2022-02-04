@@ -3,7 +3,7 @@ open Smt
 open Spec
 open Smt_parsing
 
-exception SolverFailure of string list
+exception SolverFailure of string
 
 let n_queries = ref 0
 
@@ -37,7 +37,7 @@ module ProverCVC4 : Prover = struct
     match out with
     | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
     | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure out
+    | _ -> raise @@ SolverFailure (String.concat "" out)
 
   let run (smt : string) : solve_result =
     let exec = find_exec "CVC4" exec_paths in
@@ -63,7 +63,7 @@ module ProverZ3 : Prover = struct
     match out with
     | ["sat"] -> Sat ""
     | ["unsat"] -> Unsat
-    | _ -> raise @@ SolverFailure out
+    | _ -> raise @@ SolverFailure (String.concat "" out)
 
   let run (smt : string) : solve_result =
     let exec = find_exec "Z3" exec_paths in
@@ -89,7 +89,7 @@ module ProverCVC5 : Prover = struct
     match out with
     | ["sat"] -> Sat ""
     | ["unsat"] -> Unsat
-    | _ -> raise @@ SolverFailure out
+    | _ -> raise @@ SolverFailure (String.concat "" out)
 
   let run (smt : string) : solve_result =
     let exec = find_exec "CVC5" exec_paths in

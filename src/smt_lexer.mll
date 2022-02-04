@@ -30,6 +30,7 @@ rule read = parse
 
   | "(" { LP }
   | ")" { RP }
+  | "_" { UNDERSCORE }
 
   (* Type *)
   | "Int"    { INT }

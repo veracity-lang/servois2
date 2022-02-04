@@ -75,7 +75,7 @@ module To_String = struct
     | TString -> "String"
     | TArray (k,v) -> sp "(Array %s %s)" (ty k) (ty v)
     | TSet t -> sp "(Set %s)" (ty t)
-    | TBitVector w -> sp "(BitVec %d)" w
+    | TBitVector w -> sp "(_ BitVec %d)" w
     | TGeneric g -> g
   
   let const : const -> string = function
