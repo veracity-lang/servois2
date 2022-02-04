@@ -80,7 +80,8 @@ module RunSynth : Runner = struct
   let output_file = ref ""
 
   let speclist =
-    [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use poke heuristic (default: simple)"
+    [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
+    ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
     ; "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
