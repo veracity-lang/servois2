@@ -75,7 +75,7 @@ module To_String = struct
     | TString -> "String"
     | TArray (k,v) -> sp "(Array %s %s)" (ty k) (ty v)
     | TSet t -> sp "(Set %s)" (ty t)
-    | TBitVector w -> sp "(BitVector %d)" w
+    | TBitVector w -> sp "(BitVec %d)" w
     | TGeneric g -> g
   
   let const : const -> string = function
@@ -143,6 +143,7 @@ module Smt_ToMLString = struct
     | TBool  -> "TBool"
     | TString -> "TString"
     | TSet a -> "TSet " ^ ToMLString.single ty a
+    | TBitVector w -> "TBitVector " ^ (string_of_int w)
     | TArray (a,b) -> 
       "TArray " ^ ToMLString.pair ty ty (a,b)
     | TGeneric g -> "TGeneric " ^ ToMLString.str g

@@ -7,11 +7,11 @@
 %token <string> SYMBOL
 %token <string> SYMBOL_NEW
 %token <int> ARG
-%token <int> DIGIT
+%token <int> LITERAL
 
 %token EOF
 %token LP RP
-%token INT BOOL ARRAY SET STRING BITVECTOR
+%token INT BOOL ARRAY SET STRING BITVEC
 %token TRUE FALSE
 %token SUB MUL MOD DIV ABS
 %token IMP EQ
@@ -39,7 +39,10 @@ ty:
   | STRING { TString }
   | LP ARRAY k=ty v=ty RP { TArray (k, v) }
   | LP SET k=ty RP { TSet k }
-  | LP BITVECTOR w=DIGIT RP { TBitVector w }
+  | LP BITVEC w=lit RP { TBitVector w }
+
+lit:
+  | d=LITERAL { d }
 
 exp:
   | LP b=bop e1=exp e2=exp RP { EBop (b, e1, e2) }
