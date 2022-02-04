@@ -41,6 +41,9 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
 let smt_of_spec spec = (* TODO: Preamble? *)
     let s = spec.state in
     ";; BEGIN: smt_of_spec " ^ spec.name ^ "\n\n" ^
+    begin match spec.preamble with
+        | Some s -> s ^ "\n"
+        | None -> "" end ^
     define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq ^ "\n" ^
     String.concat "" (List.map (fun (m : method_spec) ->
         let s_old = s in let s_new = make_new_bindings s in
