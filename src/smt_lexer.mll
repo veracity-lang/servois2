@@ -15,7 +15,6 @@
 let wsp = [' ' '\t' '\n']+
 let digit = ['0'-'9']
 let literalint = digit+
-let float = ['+' '-']? ((digit* '.' digit+) | (digit+ '.' digit*) | digit+)
 
 (* TODO: technically a subset of valid SMT symbols *)
 let symbol = ['a'-'z' 'A'-'Z']+ ['a'-'z' 'A'-'Z' '0'-'9' '_']*
@@ -43,11 +42,8 @@ rule read = parse
   | "true"  { TRUE }
   | "false" { FALSE }
 
-  (* Literal integers. Used for BitVec *)
+  (* Integer literals *)
   | literalint { LITERAL (int_of_string (lexeme lexbuf)) }
-
-  (* Float *)
-  | float { FLOAT (float_of_string (lexeme lexbuf)) }
 
   (* Arguments *)
   | "$" digit* { 
