@@ -17,6 +17,11 @@ let flip f x y = f y x
 
 let compose f g x = f (g x)
 
+let uncurry f (x, y) = f x y
+
+let first (f : 'a -> 'b) : ('a * 'c -> 'b * 'c) = fun (x, y) -> (f x, y)
+let second (g : 'c -> 'd) : ('a * 'c -> 'a * 'd) = fun (x, y) -> (x, g y)
+
 let null = function 
     | [] -> true
     | _ -> false

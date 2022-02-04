@@ -82,6 +82,8 @@ module RunSynth : Runner = struct
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "--verbose", Arg.Set Util.verbosity, " Verbose intermediate and error output"
+    ; "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use poke heuristic (default: simple)"
     ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
     ] |>
     Arg.align

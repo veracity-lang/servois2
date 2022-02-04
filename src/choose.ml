@@ -41,7 +41,7 @@ let poke solver h ps com n_com : pred =
             | Unsat -> -1
             | Unknown -> max_int
             | Sat s -> begin let non_com_cex = parse_pred_data s in
-                let l = (differentiating_predicates diff_preds com_cex non_com_cex) in print_string (ToMLString.list (compose string_of_pred fst) l); List.length l
+                differentiating_predicates diff_preds com_cex non_com_cex |> List.length
                 end
             end in
     fst4 @@ match next with 

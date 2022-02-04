@@ -59,8 +59,11 @@ let generate_bowtie spec m1 m2 =
          argslist @
          List.map (fun a -> a ^ new_postfix) datanames @
          List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
-    let m1args_name = List.map (fun e -> "x" ^ string_of_int (e + 1)) (flip List.init succ @@ List.length m1.args) in (* TODO: What if we want to use x ...*)
-    let m2args_name = List.map (fun e -> "y" ^ string_of_int (e + 1)) (flip List.init succ @@ List.length m2.args) in (* TODO: y ...*)
+    let m1args_binding = List.map (first string_of_var) m1.args in (* List.mapi (fun i (_, ty) -> "x" ^ string_of_int (i + 1), ty) m1.args in (* TODO: What if we want to use x ...*) *)
+    let m1args_name = List.map fst m1args_binding in
+    let m2args_binding = List.map (first string_of_var) m2.args in (* List.mapi (fun i (_, ty) -> "y" ^ string_of_int (i + 1), ty) m2.args in (* TODO: y ...*) *)
+    let m2args_name = List.map fst m2args_binding in
+    (uncurry mk_var |> flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
     let err_state = has_err_state spec in
     let oper_xy x y (m : method_spec) args = let mname = m.name in "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
         "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args m.ret ^ ")\n" in

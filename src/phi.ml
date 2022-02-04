@@ -33,5 +33,5 @@ let string_of_disj d = smt_of_disj d |> string_of_smt
 let atom_of_pred ((f, e1, e2) : Smt.pred) : atom = EFunc(f, [e1; e2])
 
 module ToString = struct
-  let t _ = "TODO Phi.ToString.t"
+  let t = string_of_disj
 end

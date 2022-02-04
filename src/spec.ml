@@ -39,7 +39,8 @@ let lift (spec : spec) : spec =
     let new_methods = List.map lift_method spec.methods in
     { spec with state_eq = new_state_eq; state = new_state; methods = new_methods }
 
-let get_method (spec : spec) mname : method_spec = List.find (fun (m : method_spec) -> m.name = mname) (spec.methods) 
+let get_method (spec : spec) mname : method_spec = try List.find (fun (m : method_spec) -> m.name = mname) (spec.methods)
+    with Not_found -> failwith @@ sp "Could not find method %s." mname
 
 (*** Methods for converting Yaml ADT to spec ***)
 
