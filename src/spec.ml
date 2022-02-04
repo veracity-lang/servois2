@@ -218,7 +218,13 @@ let spec_of_yaml (y : Yaml.value) : spec =
     exp_of_yaml
   in
 
-  { name; preamble; state; methods; preds; state_eq; precond } (* *** THE ORDER HERE LOOKS STRANGE *** *)
+  { name = name
+  ; preamble = preamble
+  ; preds = preds
+  ; state_eq = state_eq
+  ; precond = precond
+  ; state = state
+  ; methods = methods }
 
 
 
@@ -239,13 +245,8 @@ module Spec_ToMLString = struct
     (Smt_ToMLString.exp post)
     (ToMLString.list term_list terms)
 
-<<<<<<< HEAD
-  let spec {name;preamble;preds;state_eq;state;methods} =
+  let spec {name;preamble;preds;state_eq;precond;state;methods} =
     sp "{name=%s;\n%spreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
-=======
-  let spec {name;preds;state_eq;precond;state;methods} =
-    sp "{name=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
->>>>>>> 889e070 (ifixesw)
     (ToMLString.str name)
     begin match preamble with Some s -> sp "%s preamble" (ToMLString.str s) | None -> "" end
     (ToMLString.list pred_sig preds)
