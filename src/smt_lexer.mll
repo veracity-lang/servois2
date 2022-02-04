@@ -43,14 +43,11 @@ rule read = parse
   | "true"  { TRUE }
   | "false" { FALSE }
 
+  (* Literal integers. Used for BitVec *)
+  | literalint { LITERAL (int_of_string (lexeme lexbuf)) }
+
   (* Float *)
   | float { FLOAT (float_of_string (lexeme lexbuf)) }
-
-  (* Literal integers. Used for BitVec *)
-  | literalint {
-    print_endline "parsed a literalint";
-    LITERAL (int_of_string (lexeme lexbuf))
-  }
 
   (* Arguments *)
   | "$" digit* { 
