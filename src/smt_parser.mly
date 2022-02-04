@@ -2,7 +2,6 @@
   open Smt
 %}
 
-%token <float> FLOAT
 %token <string> STR
 %token <string> SYMBOL
 %token <string> SYMBOL_NEW
@@ -51,7 +50,7 @@ exp:
   | LP f=SYMBOL el=nonempty_list(exp) RP { EFunc (f, el) }
   | v=SYMBOL { EVar (Var v) }
   | v=SYMBOL_NEW { EVar (VarPost v) }
-  | n=FLOAT  { EConst (CInt (int_of_float n)) }
+  | n=LITERAL  { EConst (CInt n) }
   | n=ARG { EArg n }
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }
