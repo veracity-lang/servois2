@@ -44,6 +44,8 @@ let lift (spec : spec) : spec =
 let get_method (spec : spec) mname : method_spec = try List.find (fun (m : method_spec) -> m.name = mname) (spec.methods)
     with Not_found -> failwith @@ sp "Could not find method %s." mname
 
+let name_method_args (m : method_spec) (is_left : bool) = name_arguments (fun i -> sp "m%d_%s" (if is_left then 1 else 2) (name_of_binding @@ List.nth m.args i))
+
 (*** Methods for converting Yaml ADT to spec ***)
 
 let ty_of_yaml (y : Yaml.value) : ty =
