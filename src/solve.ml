@@ -99,7 +99,7 @@ let generate_bowtie spec m1 m2 =
     "))\n"
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
-    "(set-logic ALL_SUPPORTED)\n" ^
+    "(set-logic ALL)\n" ^
     smt_of_spec spec ^
     generate_bowtie spec m1 m2 ^
     sp "(assert (not %s))\n" (string_of_smt smt_exp) ^

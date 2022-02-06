@@ -5,6 +5,14 @@ open Smt_parsing
 
 exception SolverFailure of string list
 
+let () =
+  Printexc.register_printer @@
+  function
+  | SolverFailure sl -> 
+    Some (sp "Solver failure: \n%s\n" @@ String.concat "\n" sl)
+  | _ -> None
+
+
 let n_queries = ref 0
 
 type solve_result =
@@ -61,20 +69,19 @@ module ProverZ3 : Prover = struct
 
   let parse_output (out : string list) =
     match out with
-    | ["sat"] -> Sat ""
-    | ["unsat"] -> Unsat
+    | "sat" :: models -> Sat (String.concat "" models)
+    | "unsat" :: _ -> Unsat
     | _ -> raise @@ SolverFailure out
 
   let run (smt : string) : solve_result =
     let exec = find_exec "Z3" exec_paths in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
+    n_queries := !n_queries + 1;
     (* TODO handle any errors *)
     parse_output sout
 
 end
-
-
 
 module ProverCVC5 : Prover = struct
   let exec_paths =
@@ -87,14 +94,15 @@ module ProverCVC5 : Prover = struct
 
   let parse_output (out : string list) =
     match out with
-    | ["sat"] -> Sat ""
-    | ["unsat"] -> Unsat
+    | "sat" :: models -> Sat (String.concat "" models)
+    | "unsat" :: _ -> Unsat
     | _ -> raise @@ SolverFailure out
 
   let run (smt : string) : solve_result =
     let exec = find_exec "CVC5" exec_paths in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
+    n_queries := !n_queries + 1;
     (* TODO handle any errors *)
     parse_output sout
 

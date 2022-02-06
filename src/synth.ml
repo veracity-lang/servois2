@@ -14,11 +14,9 @@ open Predicate
 
 type counterex = exp bindlist
 
-let prover : (module Prover) = (module ProverCVC4)
-
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
-let synth ?(preds = []) (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
+let synth ?(preds = []) (prover : (module Prover)) (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
   let spec_lifted = lift spec in
