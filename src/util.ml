@@ -45,6 +45,7 @@ let eprintf_verbose fmt = if !verbosity then Printf.eprintf fmt else Printf.ifpr
 (*** Shorthands ***)
 
 let sp = Printf.sprintf
+let epf = Printf.eprintf
 let pfv fmt = printf_verbose fmt
 let epfv fmt = eprintf_verbose fmt
 
