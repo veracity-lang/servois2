@@ -9,7 +9,7 @@ let () =
   Printexc.register_printer @@
   function
   | SolverFailure sl -> 
-    Some (sp "Solver failure: \n%s\n" @@ String.concat "\n" sl)
+    Some (sp "Solver failure: \n%s\n" sl)
   | _ -> None
 
 
@@ -71,7 +71,7 @@ module ProverZ3 : Prover = struct
     match out with
     | "sat" :: models -> Sat (String.concat "" models)
     | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure out
+    | _ -> raise @@ SolverFailure (String.concat "\n" out)
 
   let run (smt : string) : solve_result =
     let exec = find_exec "Z3" exec_paths in
@@ -96,7 +96,7 @@ module ProverCVC5 : Prover = struct
     match out with
     | "sat" :: models -> Sat (String.concat "" models)
     | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure out
+    | _ -> raise @@ SolverFailure (String.concat "\n" out)
 
   let run (smt : string) : solve_result =
     let exec = find_exec "CVC5" exec_paths in
