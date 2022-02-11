@@ -79,9 +79,13 @@ module RunSynth : Runner = struct
 
   let output_file = ref ""
 
+  let prover_name = ref ""
+
   let speclist =
-    [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use poke heuristic (default: simple)"
+    [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
+    ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
+    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
     ; "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose intermediate and error output"
@@ -99,8 +103,17 @@ module RunSynth : Runner = struct
       Spec.spec_of_yaml
     in
 
+    let prover : (module Provers.Prover) =
+      match !prover_name |> String.lowercase_ascii with
+      | "cvc4" -> (module Provers.ProverCVC4)
+      | "cvc5" -> (module Provers.ProverCVC5)
+      | "z3"   -> (module Provers.ProverZ3)
+      | ""     -> (module Provers.ProverCVC4)
+      | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
+    in
+
     let phi_comm, phi_noncomm =
-      Synth.synth spec method1 method2 
+      Synth.synth prover spec method1 method2 
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
@@ -161,7 +174,7 @@ module RunTemp : Runner = struct
             else ();
         if !poke then Choose.choose := Choose.poke else ();
         let spec = Counter_example.spec in
-        let phi, phi_tilde = Synth.synth spec "increment" "decrement" in
+        let phi, phi_tilde = Synth.synth (module Provers.ProverCVC4) spec "increment" "decrement" in
         print_string (Phi.string_of_disj phi); print_newline ();
         print_string (Phi.string_of_disj phi_tilde); print_newline();
         epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries)

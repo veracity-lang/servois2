@@ -17,19 +17,6 @@ type smt_query = {
 This allows for extensions like determinism etc. Currently assumes we always need the spec and bowtie.
 *)
 
-(* This will create the entire SMT string to send to a prover.
- * It will engage with lots of features of SMT which are
- * abstracted away from the actual "smt" module.
- * It'll include the variable declarations, function declarations, etc. *)
-let smt_string_of_spec (spec : spec) (state_constraints : exp) : string =
-  raise @@ Failure "smt_string_of_spec"
-
-
-let make_new = function
-    | (Var s, ty) -> (VarPost s, ty)
-    | (VarPost _, _) -> raise @@ Failure "New-ing a post variable."
-let make_new_bindings = List.map make_new
-
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     "(define-fun " ^
     name ^ "\n" ^
@@ -99,7 +86,7 @@ let generate_bowtie spec m1 m2 =
     "))\n"
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
-    "(set-logic ALL_SUPPORTED)\n" ^
+    "(set-logic ALL)\n" ^
     smt_of_spec spec ^
     generate_bowtie spec m1 m2 ^
     sp "(assert (not %s))\n" (string_of_smt smt_exp) ^

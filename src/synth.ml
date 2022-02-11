@@ -14,29 +14,27 @@ open Predicate
 
 type counterex = exp bindlist
 
-let prover : (module Prover) = (module ProverCVC4)
-
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
-let synth ?(preds = []) (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
+let synth ?(preds = []) (prover : (module Prover)) (spec : spec) (m : string) (n : string) : Phi.t * Phi.t =
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
-  let spec_lifted = lift spec in
-  let m_spec = get_method spec_lifted m in
-  let n_spec = get_method spec_lifted n in
-  let preds = if null preds then generate_predicates spec_lifted m_spec n_spec else preds in
+  let spec' = lift spec in (* TODO: Do this outside the main synth call? *)
+  let m_spec = get_method spec' m in
+  let n_spec = get_method spec' n in
+  let preds = if null preds then generate_predicates spec' m_spec n_spec else preds in
   let rec refine (h : conjunction) (p_set : pred list) : unit =
-    let solve_inst = solve prover spec_lifted m_spec n_spec in
+    let solve_inst = solve prover spec' m_spec n_spec in
     let pred_smt = List.map smt_of_pred p_set in
-    begin match solve_inst pred_smt @@ commute (spec_lifted.precond) h with
+    begin match solve_inst pred_smt @@ commute (spec'.precond) h with
       | Unsat -> phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure" (* TODO: Better error behavior? Backtracking? *)
       | Sat s -> begin let com_cex = parse_pred_data s in
-        match solve_inst pred_smt @@ non_commute (spec_lifted.precond) h with
+        match solve_inst pred_smt @@ non_commute (spec'.precond) h with
           | Unsat -> phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat s -> begin let non_com_cex = parse_pred_data s in
-            let p = !choose { solver = solve_inst; spec = spec_lifted; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
+            let p = !choose { solver = solve_inst; spec = spec'; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
                 refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
                 refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
             end
