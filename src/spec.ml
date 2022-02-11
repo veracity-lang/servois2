@@ -85,7 +85,7 @@ let exp_of_yaml (y : Yaml.value) : exp =
   let s =
     match y with
     | `String s -> s
-    | `Float f  -> string_of_float f
+    | `Float f  -> int_of_float f |> string_of_int
     | _ -> raise @@ BadInputFormat "Exp isn't float or string"
   in exp_of_string s
 
