@@ -86,7 +86,6 @@ rule read = parse
     in STR s'
   }
 
-  (* TODO: _1 _2 *)
   | symbol "_new" {
     let s = lexeme lexbuf in
     let s' = String.sub s 0 (String.length s - 4)
