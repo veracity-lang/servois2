@@ -42,6 +42,12 @@ type counterex = exp bindlist
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
 let synth ?(options = default_synth_options) spec m n =
+    let spec' = if options.lift then lift spec else spec in
+    let m_spec = get_method spec m in
+    let n_spec = get_method spec n in
+    let preds = match options.preds with None -> generate_predicates spec' m_spec n_spec | Some x -> x in
+    (* TODO: do predicate filtering *)
+    let bench = ref { !last_benchmarks with predicates = List.length preds; predicates_filtered = List.length preds } in
     let synth_inner preds prover (timelimit : float option) spec m_spec n_spec =
       let phi = ref @@ Disj [] in
       let phi_tilde = ref @@ Disj [] in
@@ -66,15 +72,14 @@ let synth ?(options = default_synth_options) spec m n =
                 end
             end
         end in
+      let init_smt_queries = !Provers.n_queries in
       begin try refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds) 
           with | Failure f -> print_string f; print_newline () (* TODO: Make this error handling better? *)
       end;
-      (* TODO: actually fill in the other benches *)
-      last_benchmarks := { predicates = 0; predicates_filtered = 0; smtqueries = 0; time = Float.sub (Sys.time ()) init_time };
+      bench := { !bench with
+          smtqueries = !Provers.n_queries - init_smt_queries;
+          time = Float.sub (Sys.time ()) init_time };
       !phi, !phi_tilde in
-    let spec' = if options.lift then lift spec else spec in
-    let m_spec = get_method spec m in
-    let n_spec = get_method spec n in
-    let preds = match options.preds with None -> generate_predicates spec' m_spec n_spec | Some x -> x in
-    synth_inner preds options.prover options.timeout spec' m_spec n_spec
+    let ret = synth_inner preds options.prover options.timeout spec' m_spec n_spec in
+    last_benchmarks := !bench; ret
   

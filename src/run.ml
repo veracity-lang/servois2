@@ -71,6 +71,7 @@ module RunSynth : Runner = struct
     "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
   
   let debug = ref false
+  let timeout = ref None
 
   let anons = ref []
 
@@ -84,7 +85,8 @@ module RunSynth : Runner = struct
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
-    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
+    ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
+    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout"
     ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
     ; "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
@@ -113,7 +115,10 @@ module RunSynth : Runner = struct
     in
 
     let phi_comm, phi_noncomm =
-      let synth_options = { Synth.default_synth_options with prover = prover } in
+      let synth_options = {
+          Synth.default_synth_options with prover = prover;
+          timeout = !timeout
+          } in
       Synth.synth ~options:synth_options spec method1 method2 
     in
 
@@ -125,12 +130,14 @@ module RunSynth : Runner = struct
       s_phi_comm s_phi_noncomm
     in
 
-    if !output_file = ""
+    begin if !output_file = ""
     then print_string out
     else
       let out_chan = open_out !output_file in
       output_string out_chan out;
       close_out out_chan
+    end;
+    epf "%s\n" (Synth.string_of_benches !Synth.last_benchmarks)
 
       
   (* Assumes argc > 2 and argv[1] = "synth" *)
@@ -181,7 +188,6 @@ module RunTemp : Runner = struct
         let phi, phi_tilde = Synth.synth ~options:options spec "increment" "decrement" in
         print_string (Phi.string_of_disj phi); print_newline ();
         print_string (Phi.string_of_disj phi_tilde); print_newline();
-        epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries);
         epf "Last benches:\n%s\n" @@ Synth.string_of_benches !Synth.last_benchmarks
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
