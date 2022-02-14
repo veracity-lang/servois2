@@ -17,6 +17,10 @@ type smt_query = {
 This allows for extensions like determinism etc. Currently assumes we always need the spec and bowtie.
 *)
 
+type mode = Bowtie | LeftMover | RightMover
+
+let mode = ref Bowtie
+
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     "(define-fun " ^
     name ^ "\n" ^
@@ -52,7 +56,7 @@ let generate_bowtie spec m1 m2 =
     let m1args_name = List.map fst m1args_binding in
     let m2args_binding = List.map (first string_of_var) m2.args in (* TODO: If m1, m2 have the same arg names? *)
     let m2args_name = List.map fst m2args_binding in
-    (uncurry mk_var |> flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
+    (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
     let err_state = has_err_state spec in
     let oper_xy x y (m : method_spec) args = let mname = m.name in "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
         "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args m.ret ^ ")\n" in
@@ -69,7 +73,11 @@ let generate_bowtie spec m1 m2 =
     oper_xy "" "2" m2 m2args_name ^
     oper_xy "1" "12" m2 m2args_name ^
     begin if err_state (* TODO: bowtie vs left/right movers *) 
-        then "  (or (not err12) (not err21))"
+        then begin match !mode with
+            | Bowtie -> "  (or (not err12) (not err21))"
+            | LeftMover -> "  (not err21)"
+            | RightMover -> "  (not err12)"
+            end
         else "" end ^
     "))\n" ^
     (* TODO: deterministic, complete *)
@@ -102,5 +110,6 @@ let commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_c
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
   let module P = (val prover) in
-  epfv "%s\n" s;
+  pfv ";; SMT QUERY: %s\n" (string_of_smt smt_exp);
+  pfvv "\n%s\n" s;
   P.run s
