@@ -37,16 +37,17 @@ let memoize f =
 
 (* Global options *)
 let verbosity = ref false
-let if_verbose action = if !verbosity then action () else ()
-let printf_verbose fmt = if !verbosity then Printf.printf fmt else Printf.ifprintf stdout fmt
-let eprintf_verbose fmt = if !verbosity then Printf.eprintf fmt else Printf.ifprintf stderr fmt
+let very_verbose = ref false
+let if_verbose action = if !verbosity || !very_verbose then action () else ()
+let printf_verbose fmt = if !verbosity || !very_verbose then Printf.printf fmt else Printf.ifprintf stdout fmt
+let printf_very_verbose fmt = if !very_verbose then Printf.printf fmt else Printf.ifprintf stdout fmt
 
 (*** Shorthands ***)
 
 let sp = Printf.sprintf
 let epf = Printf.eprintf
 let pfv fmt = printf_verbose fmt
-let epfv fmt = eprintf_verbose fmt
+let pfvv fmt = printf_very_verbose fmt
 
 (* Randomize order of items in a list *)
 let shuffle =
@@ -139,7 +140,7 @@ let run_exec (prog : string) (args : string array) (output : string) =
   sout, serr
 
 let print_exec_result (out : string list) (err : string list) =
-  epfv "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
+  pfv "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
     (String.concat "\n" out) (String.concat "\n" err)
 
 
