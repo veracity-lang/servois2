@@ -84,11 +84,13 @@ module RunSynth : Runner = struct
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
-    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout."
+    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout"
     ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
     ; "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose intermediate and error output"
+    ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
+    ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
     ] |>
     Arg.align
 
