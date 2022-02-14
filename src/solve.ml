@@ -52,7 +52,7 @@ let generate_bowtie spec m1 m2 =
     let m1args_name = List.map fst m1args_binding in
     let m2args_binding = List.map (first string_of_var) m2.args in (* TODO: If m1, m2 have the same arg names? *)
     let m2args_name = List.map fst m2args_binding in
-    (uncurry mk_var |> flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
+    (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
     let err_state = has_err_state spec in
     let oper_xy x y (m : method_spec) args = let mname = m.name in "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
         "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args m.ret ^ ")\n" in

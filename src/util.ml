@@ -6,14 +6,10 @@ exception BadInputFormat of string
 
 (*** Utility functions ***)
 
-let id x = x
-
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
 let swap (a,b) = b,a
-
-let flip f x y = f y x
 
 let compose f g x = f (g x)
 
@@ -25,6 +21,9 @@ let second (g : 'c -> 'd) : ('a * 'c -> 'a * 'd) = fun (x, y) -> (x, g y)
 let null = function 
     | [] -> true
     | _ -> false
+
+let fst3 = function
+    | (x, _, _) -> x
 
 let fst4 = function
     | (w, _, _, _) -> w
