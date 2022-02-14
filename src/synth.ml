@@ -77,8 +77,7 @@ let mangle_method_vars (index : int) {name;args;ret;pre;post;terms} : method_spe
     | ELop (l, el) ->
       ELop (l, List.map mangle_exp el)
     | ELet (el, e) ->
-      ELet ( List.map (fun (s,e) -> s, mangle_exp e) el, 
-              mangle_exp e )
+      ELet (List.map (second mangle_exp) el, mangle_exp e)
     | EITE (b, t, f) ->
       EITE (mangle_exp b, mangle_exp t, mangle_exp f)
     | EFunc (s, el) ->
@@ -86,12 +85,11 @@ let mangle_method_vars (index : int) {name;args;ret;pre;post;terms} : method_spe
   in
   
   (* Mangle variables in appropriate fields of method spec *)
-  let pre = mangle_exp pre in
-  let post = mangle_exp post in
-  let terms =
-    List.map (fun (ty, el) -> ty, List.map mangle_exp el)
-      terms
-  in
+  let args  = List.map (first mangle_var) args in
+  let ret   = List.map (first mangle_var) ret in
+  let pre   = mangle_exp pre in
+  let post  = mangle_exp post in
+  let terms = List.map (second @@ List.map mangle_exp) terms in
 
   {name;args;ret;pre;post;terms}
 
