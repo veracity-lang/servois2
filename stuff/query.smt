@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 ;; BEGIN: smt_of_spec counter
 
 (define-fun states_equal

@@ -58,6 +58,33 @@ module ProverCVC4 : Prover = struct
 end
 
 
+
+module ProverCVC5 : Prover = struct
+  let exec_paths =
+    [ "/usr/local/bin/cvc5"
+    ; "/usr/bin/cvc5"
+    ]
+
+  let args =
+    [| ""; "--lang"; "smt2"; "--produce-models" |]
+
+  let parse_output (out : string list) =
+    match out with
+    | "sat" :: models -> Sat (String.concat "" models)
+    | "unsat" :: _ -> Unsat
+    | _ -> raise @@ SolverFailure (String.concat "\n" out)
+
+  let run (smt : string) : solve_result =
+    let exec = find_exec "CVC5" exec_paths in
+    let sout, serr = run_exec exec args smt in
+    print_exec_result sout serr;
+    n_queries := !n_queries + 1;
+    (* TODO handle any errors *)
+    parse_output sout
+
+end
+
+
 module ProverZ3 : Prover = struct
   let exec_paths =
     [ "/usr/local/bin/z3"
@@ -83,14 +110,16 @@ module ProverZ3 : Prover = struct
 
 end
 
-module ProverCVC5 : Prover = struct
+
+
+module ProverMathSAT : Prover = struct
   let exec_paths =
-    [ "/usr/local/bin/cvc5"
-    ; "/usr/bin/cvc5"
+    [ "/usr/local/bin/mathsat"
+    ; "/usr/bin/mathsat"
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models" |]
+    [| ""; "-input=smt2" |]
 
   let parse_output (out : string list) =
     match out with
@@ -99,7 +128,7 @@ module ProverCVC5 : Prover = struct
     | _ -> raise @@ SolverFailure (String.concat "\n" out)
 
   let run (smt : string) : solve_result =
-    let exec = find_exec "CVC5" exec_paths in
+    let exec = find_exec "Z3" exec_paths in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
