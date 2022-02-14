@@ -5,6 +5,10 @@
 %token <string> STR
 %token <string> SYMBOL
 %token <string> SYMBOL_NEW
+%token <string> SYMBOL_M1
+%token <string> SYMBOL_M1_NEW
+%token <string> SYMBOL_M2
+%token <string> SYMBOL_M2_NEW
 %token <int> ARG
 %token <int> LITERAL
 
@@ -48,8 +52,14 @@ exp:
   | LP u=uop e=exp RP { EUop (u, e) }
   | LP l=lop el=nonempty_list(exp) RP { ELop (l, el) }
   | LP f=SYMBOL el=nonempty_list(exp) RP { EFunc (f, el) }
+
   | v=SYMBOL { EVar (Var v) }
   | v=SYMBOL_NEW { EVar (VarPost v) }
+  | v=SYMBOL_M1 { EVar (VarM (v, 1)) }
+  | v=SYMBOL_M1_NEW { EVar (VarMPost (v, 1)) }
+  | v=SYMBOL_M2 { EVar (VarM (v, 2)) }
+  | v=SYMBOL_M2_NEW { EVar (VarMPost (v, 2)) }
+
   | n=LITERAL  { EConst (CInt n) }
   | n=ARG { EArg n }
   | TRUE  { EConst (CBool true) }

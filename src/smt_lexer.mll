@@ -86,6 +86,28 @@ rule read = parse
     in STR s'
   }
 
+  | "m1_" symbol "_new" {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 3 (String.length s - 7)
+    in SYMBOL_M1_NEW s'
+  }
+  | "m2_" symbol "_new" {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 3 (String.length s - 7)
+    in SYMBOL_M2_NEW s'
+  }
+
+  | "m1_" symbol {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 3 (String.length s - 4)
+    in SYMBOL_M1 s'
+  }
+  | "m2_" symbol {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 3 (String.length s - 4)
+    in SYMBOL_M2 s'
+  }
+
   | symbol "_new" {
     let s = lexeme lexbuf in
     let s' = String.sub s 0 (String.length s - 4)
