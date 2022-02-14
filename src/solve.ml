@@ -17,6 +17,10 @@ type smt_query = {
 This allows for extensions like determinism etc. Currently assumes we always need the spec and bowtie.
 *)
 
+type mode = Bowtie | LeftMover | RightMover
+
+let mode = ref Bowtie
+
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     "(define-fun " ^
     name ^ "\n" ^
@@ -69,7 +73,11 @@ let generate_bowtie spec m1 m2 =
     oper_xy "" "2" m2 m2args_name ^
     oper_xy "1" "12" m2 m2args_name ^
     begin if err_state (* TODO: bowtie vs left/right movers *) 
-        then "  (or (not err12) (not err21))"
+        then begin match !mode with
+            | Bowtie -> "  (or (not err12) (not err21))"
+            | LeftMover -> "  (not err21)"
+            | RightMover -> "  (not err12)"
+            end
         else "" end ^
     "))\n" ^
     (* TODO: deterministic, complete *)
