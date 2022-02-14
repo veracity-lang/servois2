@@ -13,7 +13,7 @@ module RunParse : Runner = struct
   
   let debug = ref false
 
-  let just_yaml = ref false 
+  let just_yaml = ref false
 
   let anons = ref []
 
@@ -150,7 +150,8 @@ module RunTemp : Runner = struct
   
   let debug = ref false
   let poke = ref false
-
+  let timelimit = ref None
+  
   let anons = ref []
   let anon_fun (v : string) =
     anons := v :: !anons
@@ -160,6 +161,7 @@ module RunTemp : Runner = struct
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--poke", Arg.Set poke, " Use the poke heuristic"
     ; "--verbose", Arg.Set (Util.verbosity), " Verbose!" 
+    ; "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
     ] |>
     Arg.align
 
@@ -175,10 +177,12 @@ module RunTemp : Runner = struct
             else ();
         if !poke then Choose.choose := Choose.poke else ();
         let spec = Counter_example.spec in
-        let phi, phi_tilde = Synth.synth spec "increment" "decrement" in
+        let options = { Synth.default_synth_options with timeout = !timelimit } in
+        let phi, phi_tilde = Synth.synth ~options:options spec "increment" "decrement" in
         print_string (Phi.string_of_disj phi); print_newline ();
         print_string (Phi.string_of_disj phi_tilde); print_newline();
-        epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries)
+        epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries);
+        epf "Last benches:\n%s\n" @@ Synth.string_of_benches !Synth.last_benchmarks
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
