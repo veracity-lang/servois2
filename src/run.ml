@@ -113,7 +113,8 @@ module RunSynth : Runner = struct
     in
 
     let phi_comm, phi_noncomm =
-      Synth.synth prover spec method1 method2 
+      let synth_options = { Synth.default_synth_options with prover = prover } in
+      Synth.synth ~options:synth_options spec method1 method2 
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
@@ -174,7 +175,7 @@ module RunTemp : Runner = struct
             else ();
         if !poke then Choose.choose := Choose.poke else ();
         let spec = Counter_example.spec in
-        let phi, phi_tilde = Synth.synth (module Provers.ProverCVC4) spec "increment" "decrement" in
+        let phi, phi_tilde = Synth.synth spec "increment" "decrement" in
         print_string (Phi.string_of_disj phi); print_newline ();
         print_string (Phi.string_of_disj phi_tilde); print_newline();
         epfv "Total SMT Solver Queries: %d\n" (!Provers.n_queries)
