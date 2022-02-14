@@ -12,6 +12,8 @@ exception SmtLexExceptionProto of int
 type var =
   | Var of string
   | VarPost of string
+  | VarM of string * int
+  | VarMPost of string * int
 
 type 'a binding = var * 'a
 type 'a bindlist = 'a binding list
@@ -65,8 +67,10 @@ type exp =
 
 module To_String = struct
   let var : var -> string = function
-    | Var s -> s
+    | Var s     -> s
     | VarPost s -> s ^ "_new"
+    | VarM (s, i)     -> sp "m%d_%s" i s
+    | VarMPost (s, i) -> sp "m%d_%s_new" i s
 
   let rec ty : ty -> string = function
     | TInt  -> "Int"
@@ -123,9 +127,8 @@ module To_String = struct
     sp "(%s %s)" (var v) (exp e)
 
   and exp : exp -> string = function
-    | EVar (Var v)     -> v
+    | EVar v           -> var v
     | EArg n           -> sp "$%d" n
-    | EVar (VarPost v) -> sp "%s_new" v
     | EConst c         -> const c 
     | EBop (o, e1, e2) -> sp "(%s %s %s)" (bop o) (exp e1) (exp e2)
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
@@ -150,6 +153,8 @@ module Smt_ToMLString = struct
   let var = function
     | Var v     -> "Var " ^ ToMLString.str v
     | VarPost v -> "VarPost " ^ ToMLString.str v
+    | VarM (s, i) -> "VarM " ^ ToMLString.pair ToMLString.str string_of_int (s, i)
+    | VarMPost (s, i) -> "VarMPost " ^ ToMLString.pair ToMLString.str string_of_int (s, i)
 
   let ty_bindlist = ToMLString.list (ToMLString.pair var ty)
 
@@ -200,8 +205,11 @@ let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
 
 let make_new : ty binding -> ty binding = function
-    | (Var s, ty) -> (VarPost s, ty)
-    | (VarPost _, _) -> raise @@ Failure "New-ing a post variable."
+    | Var s, ty      -> VarPost s, ty
+    | VarM (s,i), ty -> VarMPost (s,i), ty
+    | VarPost _, _ | VarMPost _, _ ->
+      raise @@ Failure "New-ing a post variable."
+
 let make_new_bindings = List.map make_new
 
 

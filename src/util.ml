@@ -15,6 +15,8 @@ let compose f g x = f (g x)
 
 let uncurry f (x, y) = f x y
 
+let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
+
 let first (f : 'a -> 'b) : ('a * 'c -> 'b * 'c) = fun (x, y) -> (f x, y)
 let second (g : 'c -> 'd) : ('a * 'c -> 'a * 'd) = fun (x, y) -> (x, g y)
 
@@ -67,7 +69,7 @@ let int_comp x y = x < y
 let lex_comp (x1, y1) (x2, y2) = x1 < x2 || x1 = x2 && y1 < y2
 
 (* Sum a list of numbers *)
-let list_sum = List.fold_left (fun a e -> a + e) 0
+let list_sum = List.fold_left ( + ) 0
 
 (* Reads lines from an in_channel until EOF.
  * Closes channel at the end *)

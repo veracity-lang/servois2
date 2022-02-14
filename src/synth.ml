@@ -39,12 +39,69 @@ let string_of_benches benches = sp "predicates, %d\npredicates_filtered, %d\nsmt
 
 type counterex = exp bindlist
 
-let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
+
+(* Assumes there are no EArgs *)
+let mangle_method_vars (index : int) {name;args;ret;pre;post;terms} : method_spec =
+  
+  (* Get names of arguments and returns *)
+  let name_of_var = function
+    | Var s, _ -> s
+    | _     -> raise @@ UnreachableFailure "Unexpected var variant"
+  in let local_names = List.map name_of_var args @ List.map name_of_var ret in
+
+  (* Convert Var and VarPost to VarM and VarMPost respectively,
+   * so long as variable is local to method *)
+  let mangle_var = function
+    | Var v ->
+      if List.mem v local_names
+      then VarM (v, index)
+      else Var v
+    | VarPost v ->
+      if List.mem v local_names
+      then VarMPost (v, index)
+      else VarPost v
+    | VarM _ | VarMPost _ ->
+      raise @@ UnreachableFailure "Variable is already mangled"
+  in
+
+  (* Recurse down expression, mangling variables *)
+  let rec mangle_exp = function
+    | EConst c -> EConst c
+    | EVar v -> EVar (mangle_var v)
+    | EArg n ->
+      raise @@ UnreachableFailure "EArg in mangling stage"
+    | EBop (b, e1, e2) -> 
+      EBop (b, mangle_exp e1, mangle_exp e2)
+    | EUop (u, e) ->
+      EUop (u, mangle_exp e)
+    | ELop (l, el) ->
+      ELop (l, List.map mangle_exp el)
+    | ELet (el, e) ->
+      ELet ( List.map (fun (s,e) -> s, mangle_exp e) el, 
+              mangle_exp e )
+    | EITE (b, t, f) ->
+      EITE (mangle_exp b, mangle_exp t, mangle_exp f)
+    | EFunc (s, el) ->
+      EFunc (s, List.map mangle_exp el)
+  in
+  
+  (* Mangle variables in appropriate fields of method spec *)
+  let pre = mangle_exp pre in
+  let post = mangle_exp post in
+  let terms =
+    List.map (fun (ty, el) -> ty, List.map mangle_exp el)
+      terms
+  in
+
+  {name;args;ret;pre;post;terms}
+
 
 let synth ?(options = default_synth_options) spec m n =
     let spec' = if options.lift then lift spec else spec in
-    let m_spec = get_method spec m in
-    let n_spec = get_method spec n in
+
+    let m_spec = get_method spec m |> mangle_method_vars 1 in
+    let n_spec = get_method spec n |> mangle_method_vars 2 in
+
     let preds = match options.preds with None -> generate_predicates spec' m_spec n_spec | Some x -> x in
     (* TODO: do predicate filtering *)
     let bench = ref { !last_benchmarks with predicates = List.length preds; predicates_filtered = List.length preds } in
