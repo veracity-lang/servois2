@@ -54,7 +54,7 @@ let generate_bowtie spec m1 m2 =
          List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
     let m1args_binding = List.map (first string_of_var) m1.args in
     let m1args_name = List.map fst m1args_binding in
-    let m2args_binding = List.map (first string_of_var) m2.args in (* TODO: If m1, m2 have the same arg names? *)
+    let m2args_binding = List.map (first string_of_var) m2.args in
     let m2args_name = List.map fst m2args_binding in
     (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
     let err_state = has_err_state spec in

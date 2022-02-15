@@ -12,7 +12,7 @@ exception SmtLexExceptionProto of int
 type var =
   | Var of string
   | VarPost of string
-  | VarM of string * int
+  | VarM of bool * string (* bool represents whether it is the first/left method *)
 
 type 'a binding = var * 'a
 type 'a bindlist = 'a binding list
@@ -82,7 +82,7 @@ module To_String = struct
   let var : var -> string = function
     | Var s     -> s
     | VarPost s -> s ^ "_new"
-    | VarM (s, i)     -> sp "m%d_%s" i s
+    | VarM (b, s)     -> sp "m%d_%s" (if b then 1 else 2) s
 
   let rec ty : ty -> string = function
     | TInt  -> "Int"
@@ -165,7 +165,7 @@ module Smt_ToMLString = struct
   let var = function
     | Var v     -> "Var " ^ ToMLString.str v
     | VarPost v -> "VarPost " ^ ToMLString.str v
-    | VarM (s, i) -> "VarM " ^ ToMLString.pair ToMLString.str string_of_int (s, i)
+    | VarM (b, s) -> "VarM " ^ ToMLString.pair (fun b -> if b then "1" else "2") ToMLString.str (b, s)
 
   let ty_bindlist = ToMLString.list (ToMLString.pair var ty)
 

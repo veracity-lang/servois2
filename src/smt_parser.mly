@@ -53,8 +53,8 @@ exp:
 
   | v=SYMBOL { EVar (Var v) }
   | v=SYMBOL_NEW { EVar (VarPost v) }
-  | v=SYMBOL_M1 { EVar (VarM (v, 1)) }
-  | v=SYMBOL_M2 { EVar (VarM (v, 2)) }
+  | v=SYMBOL_M1 { EVar (VarM (true, v)) }
+  | v=SYMBOL_M2 { EVar (VarM (false, v)) }
 
   | n=LITERAL  { EConst (CInt n) }
   | n=ARG { EArg n }
