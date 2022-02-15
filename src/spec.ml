@@ -44,6 +44,41 @@ let lift (spec : spec) : spec =
 let get_method (spec : spec) mname : method_spec = try List.find (fun (m : method_spec) -> m.name = mname) (spec.methods)
     with Not_found -> failwith @@ sp "Could not find method %s." mname
 
+(* Assumes there are no EArgs *)
+let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_spec =
+  
+  (* Get names of arguments and returns *)
+  (* TODO: Linting spec to ensure there are no VarPosts/VarMs *)
+  let local_names = List.map name_of_binding (args @ ret) in
+
+  (* Convert Var and VarPost to VarM and VarMPost respectively,
+   * so long as variable is local to method *)
+  let mangle_var = function
+    | Var v ->
+      if List.mem v local_names
+      then VarM (is_left, v)
+      else Var v
+    | VarPost v ->
+      if List.mem v local_names
+      then raise @@ Failure "Cannot 'new' a method argument"
+      else VarPost v
+    | VarM _ ->
+      raise @@ UnreachableFailure "Variable is already mangled"
+  in
+
+  (* Recurse down expression, mangling variables *)
+  let mangle_exp : exp -> exp = make_recursive (function | EArg i -> raise @@ UnreachableFailure "EArg in mangling stage" | EVar v -> EVar (mangle_var v) | x -> x)
+  in
+  
+  (* Mangle variables in appropriate fields of method spec *)
+  let args  = List.map (first mangle_var) args in
+  let ret   = List.map (first mangle_var) ret in
+  let pre   = mangle_exp pre in
+  let post  = mangle_exp post in
+  let terms = List.map (second @@ List.map mangle_exp) terms in
+
+  {name;args;ret;pre;post;terms}
+
 (*** Methods for converting Yaml ADT to spec ***)
 
 let ty_of_yaml (y : Yaml.value) : ty =

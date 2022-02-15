@@ -39,43 +39,6 @@ let string_of_benches benches = sp "predicates, %d\npredicates_filtered, %d\nsmt
 
 type counterex = exp bindlist
 
-
-(* Assumes there are no EArgs *)
-let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_spec =
-  
-  (* Get names of arguments and returns *)
-  (* TODO: Linting spec to ensure there are no VarPosts/VarMs *)
-  let local_names = List.map name_of_binding (args @ ret) in
-
-  (* Convert Var and VarPost to VarM and VarMPost respectively,
-   * so long as variable is local to method *)
-  let mangle_var = function
-    | Var v ->
-      if List.mem v local_names
-      then VarM (is_left, v)
-      else Var v
-    | VarPost v ->
-      if List.mem v local_names
-      then raise @@ Failure "Cannot 'new' a method argument"
-      else VarPost v
-    | VarM _ ->
-      raise @@ UnreachableFailure "Variable is already mangled"
-  in
-
-  (* Recurse down expression, mangling variables *)
-  let mangle_exp : exp -> exp = make_recursive (function | EArg i -> raise @@ UnreachableFailure "EArg in mangling stage" | EVar v -> EVar (mangle_var v) | x -> x)
-  in
-  
-  (* Mangle variables in appropriate fields of method spec *)
-  let args  = List.map (first mangle_var) args in
-  let ret   = List.map (first mangle_var) ret in
-  let pre   = mangle_exp pre in
-  let post  = mangle_exp post in
-  let terms = List.map (second @@ List.map mangle_exp) terms in
-
-  {name;args;ret;pre;post;terms}
-
-
 let synth ?(options = default_synth_options) spec m n =
     let spec' = if options.lift then lift spec else spec in
 
