@@ -89,10 +89,10 @@ let synth ?(options = default_synth_options) spec m n =
       let phi = ref @@ Disj [] in
       let phi_tilde = ref @@ Disj [] in
       (* I'm pretty sure this is preferable to carrying it around in an option: *)
-      let init_time = Sys.time () in
+      let init_time = Unix.gettimeofday () in
       let final_time = match timelimit with None -> Float.infinity | Some s -> Float.add init_time s in
       let rec refine (h : conjunction) (p_set : pred list) : unit =
-        if Float.compare (Sys.time ()) final_time > 0 then raise (Failure "timeout failure") else
+        if Float.compare (Unix.gettimeofday ()) final_time > 0 then raise (Failure "timeout failure") else
         let solve_inst = solve prover spec m_spec n_spec in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute (spec.precond) h with
@@ -115,7 +115,7 @@ let synth ?(options = default_synth_options) spec m n =
       end;
       bench := { !bench with
           smtqueries = !Provers.n_queries - init_smt_queries;
-          time = Float.sub (Sys.time ()) init_time };
+          time = Float.sub (Unix.gettimeofday ()) init_time };
       !phi, !phi_tilde in
     let ret = synth_inner preds options.prover options.timeout spec' m_spec n_spec in
     last_benchmarks := !bench; ret
