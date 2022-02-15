@@ -58,9 +58,9 @@ let mangle_method_vars (index : int) {name;args;ret;pre;post;terms} : method_spe
       else Var v
     | VarPost v ->
       if List.mem v local_names
-      then VarMPost (v, index)
+      then raise @@ Failure "Cannot 'new' a method argument"
       else VarPost v
-    | VarM _ | VarMPost _ ->
+    | VarM _ ->
       raise @@ UnreachableFailure "Variable is already mangled"
   in
 
