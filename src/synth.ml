@@ -90,9 +90,7 @@ let synth ?(options = default_synth_options) spec m n =
       let phi_tilde = ref @@ Disj [] in
       (* I'm pretty sure this is preferable to carrying it around in an option: *)
       let init_time = Unix.gettimeofday () in
-      let final_time = match timelimit with None -> Float.infinity | Some s -> Float.add init_time s in
       let rec refine (h : conjunction) (p_set : pred list) : unit =
-        if Float.compare (Unix.gettimeofday ()) final_time > 0 then raise (Failure "timeout failure") else
         let solve_inst = solve prover spec m_spec n_spec in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute (spec.precond) h with
@@ -110,8 +108,10 @@ let synth ?(options = default_synth_options) spec m n =
             end
         end in
       let init_smt_queries = !Provers.n_queries in
-      begin try refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds) 
-          with | Failure f -> print_string f; print_newline () (* TODO: Make this error handling better? *)
+      begin try begin match timelimit with None -> run | Some f -> run_with_time_limit f end (fun () -> refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)) 
+          with
+              | Failure f -> print_string f; print_newline () (* TODO: Make this error handling better? *)
+              | Timeout f -> print_string @@ sp "Time limit exceeded: %.6f\n" f
       end;
       bench := { !bench with
           smtqueries = !Provers.n_queries - init_smt_queries;

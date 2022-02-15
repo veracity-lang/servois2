@@ -20,6 +20,8 @@ let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 let first (f : 'a -> 'b) : ('a * 'c -> 'b * 'c) = fun (x, y) -> (f x, y)
 let second (g : 'c -> 'd) : ('a * 'c -> 'a * 'd) = fun (x, y) -> (x, g y)
 
+let run f = f ()
+
 let null = function 
     | [] -> true
     | _ -> false
@@ -267,3 +269,23 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
   let l1,c1 = p1.pos_lnum, p1.pos_cnum - p1.pos_bol in
   let l2,c2 = p2.pos_lnum, p2.pos_cnum - p2.pos_bol in
   Printf.sprintf "[%d.%d-%d.%d]" (l1+1) (c1+1) (l2+1) (c2+1)
+
+(* 
+   Pre-emptive runtime bound on a function, modified from:
+   https://discuss.ocaml.org/t/todays-trick-memory-limits-with-gc-alarms/4431/2
+*)
+exception Timeout of float
+
+let run_with_time_limit limit f =
+  (* create a Unix timer timer *)
+  let _ = Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = limit; it_interval = 0.000001 } in
+  (* The Unix.timer works by sending a Sys.sigalrm, so in order to use it,
+     we catch it and raise the Out_of_time exception. *)
+  let () =
+    Sys.set_signal Sys.sigalrm (
+      Sys.Signal_handle (fun _ ->
+          raise (Timeout limit))
+      ) in
+  Fun.protect f ~finally:(fun () ->
+    Fun.const () @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }
+  )
