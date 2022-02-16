@@ -173,7 +173,10 @@ module RunTemp : Runner = struct
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--poke", Arg.Set poke, " Use the poke heuristic"
-    ; "--verbose", Arg.Set (Util.verbosity), " Verbose!" 
+    ; "--verbose", Arg.Set (Util.verbosity), " Verbose!"
+    ; "-v", Arg.Set (Util.verbosity), " --verbose" 
+    ; "--very-verbose", Arg.Set (Util.very_verbose), " Very verbose!"
+    ; "-vv", Arg.Set (Util.very_verbose), " --very-verbose" 
     ; "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
     ] |>
     Arg.align
