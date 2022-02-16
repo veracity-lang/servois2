@@ -162,7 +162,6 @@ module RunTemp : Runner = struct
     "Usage: " ^ exe_name ^ " temp [<flags>]\n    Synths commutativity conditions for OCaml representation of an object."
   
   let debug = ref false
-  let poke = ref false
   let timelimit = ref None
   
   let anons = ref []
@@ -172,7 +171,8 @@ module RunTemp : Runner = struct
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "--poke", Arg.Set poke, " Use the poke heuristic"
+    ; "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use the poke heuristic"
+    ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use the poke2 heuristic"
     ; "--verbose", Arg.Set (Util.verbosity), " Verbose!"
     ; "-v", Arg.Set (Util.verbosity), " --verbose" 
     ; "--very-verbose", Arg.Set (Util.very_verbose), " Very verbose!"
@@ -191,10 +191,11 @@ module RunTemp : Runner = struct
             Printexc.record_backtrace true;
             ignore @@ Parsing.set_trace true end
             else ();
-        if !poke then Choose.choose := Choose.poke else ();
-        let spec = Counter_example.spec in
+        let spec = Poke2_fail_example.spec in
+        let m1_name = "dummyMethod_1" in
+        let m2_name = "dummyMethod_2" in
         let options = { Synth.default_synth_options with timeout = !timelimit } in
-        let phi, phi_tilde = Synth.synth ~options:options spec "increment" "decrement" in
+        let phi, phi_tilde = Synth.synth ~options:options spec m1_name m2_name in
         print_string (Phi.string_of_disj phi); print_newline ();
         print_string (Phi.string_of_disj phi_tilde); print_newline();
         epf "Last benches:\n%s\n" @@ Synth.string_of_benches !Synth.last_benchmarks
