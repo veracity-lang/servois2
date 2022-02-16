@@ -1,0 +1,85 @@
+name: test
+state:
+- name: u
+  type: Int
+- name: z
+  type: Int
+- name: 'y'
+  type: Int
+- name: x
+  type: Int
+- name: tbl
+  type: (Array Int Int)
+- name: tbl_keys
+  type: (Set Int)
+- name: tbl_size
+  type: Int
+- name: argc
+  type: Int
+- name: argv
+  type: (Array Int String)
+states_equal:
+  definition:  |
+
+    (and (= u_1 u_2)(= z_1 z_2)(= y_1 y_2)(= x_1 x_2)(= tbl_1 tbl_2)(= tbl_keys_1
+    tbl_keys_2)(= tbl_size_1 tbl_size_2)(= argc_1 argc_2)(= argv_1 argv_2))
+methods:
+- name: dummyMethod_1
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires:  |
+
+    true
+  ensures:  |
+
+    (and (let ((tbl_1 tbl)(tbl_keys_1 tbl_keys)(tbl_size_1 tbl_size)) (let ((tbl_2
+    tbl_1)(tbl_keys_2 tbl_keys_1)(tbl_size_2 tbl_size_1)) (ite (member x tbl_keys_1)(let
+    ( (tbl_3 tbl_2)(tbl_keys_3 tbl_keys_2)(tbl_size_3 tbl_size_2) ) (let ((y_1 (select
+    tbl_2 x)))(and (and (= tbl_new tbl_3) (= tbl_keys_new tbl_keys_3) (= tbl_size_new
+    tbl_size_3))(= y_new y_1))))(and (and (= tbl_new tbl_2) (= tbl_keys_new tbl_keys_2)
+    (= tbl_size_new tbl_size_2))(= y_new y)))))(= u_new u)(= z_new z)(= x_new x)(=
+    argc_new argc)(= argv_new argv)(= result true))
+  terms:  
+
+    Int: [0, 1, y, tbl_size, x, (select tbl x)]
+
+    (Set Int): [tbl_keys]
+
+    (Array Int Int): [tbl]
+- name: dummyMethod_2
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires:  |
+
+    true
+  ensures:  |
+
+    (and (let ((tbl_1 tbl)(tbl_keys_1 tbl_keys)(tbl_size_1 tbl_size)) (let ( (tbl_2
+    tbl_1)(tbl_keys_2 tbl_keys_1)(tbl_size_2 tbl_size_1) ) (let ((y_1 (select tbl_1
+    z)))(and (and (= tbl_new tbl_2) (= tbl_keys_new tbl_keys_2) (= tbl_size_new tbl_size_2))(=
+    y_new y_1)))))(= u_new u)(= z_new z)(= x_new x)(= argc_new argc)(= argv_new argv)(=
+    result true))
+  terms:  
+
+    Int: [0, 1, y, tbl_size, z, (select tbl z)]
+
+    (Set Int): [tbl_keys]
+
+    (Array Int Int): [tbl]
+predicates:
+- name:  "="
+  type:  [(Array Int String), (Array Int String)]
+- name:  "="
+  type:  [(Set Int), (Set Int)]
+- name:  "="
+  type:  [(Array Int Int), (Array Int Int)]
+- name:  ">"
+  type:  [Int, Int]
+- name:  "="
+  type:  [Int, Int]
+- name:  "member"
+  type:  [Int, (Set Int)]
