@@ -1,6 +1,6 @@
 open Spec
 open Smt
-
+open Util
 
 let is_reflx (op: string) (exp1: exp) (exp2: exp) : bool =
   match op with
@@ -63,6 +63,7 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
       ) (Hashtbl.find all_terms ty2)
     ) (Hashtbl.find all_terms ty1)
   ) spec.preds;
-  (* List.iter (fun p -> Printf.printf "-> Preds: %s\n" (string_of_pred p)) !pred_list; *)
+  
+  pfv "Preds: %s\n" @@ ToMLString.list (string_of_pred) !pred_list;
 
   !pred_list
