@@ -15,6 +15,8 @@ type smt_query = {
     smt_exp : exp
 }
 This allows for extensions like determinism etc. Currently assumes we always need the spec and bowtie.
+
+Currently this is handled by these local refs (eg see mode)
 *)
 
 type mode = Bowtie | LeftMover | RightMover
@@ -112,7 +114,6 @@ let commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_c
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
-  let module P = (val prover) in
   pfv ";; SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
-  P.run s
+  run_prover prover s

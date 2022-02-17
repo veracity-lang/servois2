@@ -75,6 +75,8 @@ let lex_comp (x1, y1) (x2, y2) = x1 < x2 || x1 = x2 && y1 < y2
 (* Sum a list of numbers *)
 let list_sum = List.fold_left ( + ) 0
 
+let iter2 f l1 l2 = List.iter (fun e1 -> List.iter (fun e2 -> f e1 e2) l2) l1
+
 (* Reads lines from an in_channel until EOF.
  * Closes channel at the end *)
 let read_all_in (chan : in_channel) : string list =
@@ -215,6 +217,9 @@ module ToMLString = struct
   let pair f g (a,b) = sp "(%s, %s)" (f a) (g b)
   let triple f g h (a,b,c) = sp "(%s, %s, %s)" (f a) (g b) (h c)
   let str s = sp "\"%s\"" s
+  let option f = function
+    | Some s -> sp "Some %s" (f s)
+    | None -> "None"
 end
 
 module Yaml_util = struct

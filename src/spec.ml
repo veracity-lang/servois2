@@ -278,9 +278,9 @@ module Spec_ToMLString = struct
     (ToMLString.list term_list terms)
 
   let spec {name;preamble;preds;state_eq;precond;state;methods} =
-    sp "{name=%s;\n%spreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
+    sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
     (ToMLString.str name)
-    begin match preamble with Some s -> sp "%s preamble" (ToMLString.str s) | None -> "" end
+    (ToMLString.option ToMLString.str preamble)
     (ToMLString.list pred_sig preds)
     (Smt_ToMLString.exp state_eq)
     (Smt_ToMLString.exp precond)

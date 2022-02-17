@@ -1,6 +1,5 @@
 open Util
 open Smt
-open Spec
 open Smt_parsing
 
 exception SolverFailure of string
@@ -22,11 +21,30 @@ type solve_result =
 
 (* We instantiate the module with specific provers, e.g. CVC4, Z3 *)
 module type Prover = sig
-  val run : string -> solve_result
+  val name : string
+  val exec_paths : string list
+  val args : string array
+  val parse_output : string list -> solve_result
 end
 
+let default_parse_output = function
+    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
+    | "unsat" :: _ -> Unsat
+    | "unknown" :: _ -> Unknown
+    | out -> raise @@ SolverFailure (String.concat "" out)
+
+let run_prover (prover : (module Prover)) (smt : string) : solve_result =
+    let module P = (val prover) in
+    let exec = find_exec P.name P.exec_paths in
+    let sout, serr = run_exec exec P.args smt in
+    print_exec_result sout serr;
+    n_queries := !n_queries + 1;
+    (* TODO handle any errors *)
+    P.parse_output sout
 
 module ProverCVC4 : Prover = struct
+  let name = "CVC4"
+
   let exec_paths =
     [ "/usr/local/bin/cvc4"
     ; "/usr/bin/cvc4"
@@ -35,26 +53,15 @@ module ProverCVC4 : Prover = struct
   let args =
     [| ""; "--lang"; "smt2"; "--produce-models" |]
 
-  let parse_output (out : string list) =
-    match out with
-    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
-    | "unsat" :: _ -> Unsat
-    | "unknown" :: _ -> Unknown
-    | _ -> raise @@ SolverFailure (String.concat "" out)
-
-  let run (smt : string) : solve_result =
-    let exec = find_exec "CVC4" exec_paths in
-    let sout, serr = run_exec exec args smt in
-    print_exec_result sout serr;
-    n_queries := !n_queries + 1;
-    (* TODO handle any errors *)
-    parse_output sout
+  let parse_output = default_parse_output
 
 end
 
 
 
 module ProverCVC5 : Prover = struct
+  let name = "CVC5"
+
   let exec_paths =
     [ "/usr/local/bin/cvc5"
     ; "/usr/bin/cvc5"
@@ -63,24 +70,14 @@ module ProverCVC5 : Prover = struct
   let args =
     [| ""; "--lang"; "smt2"; "--produce-models" |]
 
-  let parse_output (out : string list) =
-    match out with
-    | "sat" :: models -> Sat (String.concat "" models)
-    | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure (String.concat "\n" out)
-
-  let run (smt : string) : solve_result =
-    let exec = find_exec "CVC5" exec_paths in
-    let sout, serr = run_exec exec args smt in
-    print_exec_result sout serr;
-    n_queries := !n_queries + 1;
-    (* TODO handle any errors *)
-    parse_output sout
+  let parse_output = default_parse_output
 
 end
 
 
 module ProverZ3 : Prover = struct
+  let name = "Z3"
+
   let exec_paths =
     [ "/usr/local/bin/z3"
     ; "/usr/bin/z3"
@@ -89,25 +86,15 @@ module ProverZ3 : Prover = struct
   let args =
     [| ""; "-smt2"; "-in" |]
 
-  let parse_output (out : string list) =
-    match out with
-    | "sat" :: models -> Sat (String.concat "" models)
-    | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure (String.concat "\n" out)
-
-  let run (smt : string) : solve_result =
-    let exec = find_exec "Z3" exec_paths in
-    let sout, serr = run_exec exec args smt in
-    print_exec_result sout serr;
-    n_queries := !n_queries + 1;
-    (* TODO handle any errors *)
-    parse_output sout
+  let parse_output = default_parse_output
 
 end
 
 
 
 module ProverMathSAT : Prover = struct
+  let name = "Z3" (* TODO: Is this correct? *)
+
   let exec_paths =
     [ "/usr/local/bin/mathsat"
     ; "/usr/bin/mathsat"
@@ -121,13 +108,5 @@ module ProverMathSAT : Prover = struct
     | "sat" :: models -> Sat (String.concat "" models)
     | "unsat" :: _ -> Unsat
     | _ -> raise @@ SolverFailure (String.concat "\n" out)
-
-  let run (smt : string) : solve_result =
-    let exec = find_exec "Z3" exec_paths in
-    let sout, serr = run_exec exec args smt in
-    print_exec_result sout serr;
-    n_queries := !n_queries + 1;
-    (* TODO handle any errors *)
-    parse_output sout
 
 end
