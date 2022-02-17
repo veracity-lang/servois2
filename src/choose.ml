@@ -4,6 +4,7 @@ open Solve
 open Provers
 open Phi
 open Spec
+open Smt_parsing
 
 type choose_env =
   { solver : (exp list -> exp -> solve_result)

@@ -20,12 +20,6 @@ type solve_result =
   | Unsat
   | Unknown
 
-let bool_of_exp = function (* TODO *)
-    | EConst(CBool t) -> t
-    | _ -> failwith "bool_of_exp"
-
-let parse_pred_data = compose (List.map (compose bool_of_exp snd)) values_of_string
-
 (* We instantiate the module with specific provers, e.g. CVC4, Z3 *)
 module type Prover = sig
   val run : string -> solve_result
@@ -45,6 +39,7 @@ module ProverCVC4 : Prover = struct
     match out with
     | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
     | "unsat" :: _ -> Unsat
+    | "unknown" :: _ -> Unknown
     | _ -> raise @@ SolverFailure (String.concat "" out)
 
   let run (smt : string) : solve_result =

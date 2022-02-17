@@ -25,6 +25,11 @@ let parse p (s : string) =
     | SmtLexExceptionProto i ->
       raise @@ SmtLexException (s, i)
 
+let bool_of_exp = function (* TODO *)
+    | EConst(CBool t) -> t
+    | _ -> failwith "bool_of_exp"
+
 let exp_of_string = parse Smt_parser.exp_top
 let ty_of_string = parse Smt_parser.ty_top
 let values_of_string = parse Smt_parser.values_top
+let parse_pred_data s = (match s with "" -> [] | s -> List.map (compose bool_of_exp snd) @@ values_of_string s)
