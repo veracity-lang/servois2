@@ -103,10 +103,6 @@ module ProverMathSAT : Prover = struct
   let args =
     [| ""; "-input=smt2" |]
 
-  let parse_output (out : string list) =
-    match out with
-    | "sat" :: models -> Sat (String.concat "" models)
-    | "unsat" :: _ -> Unsat
-    | _ -> raise @@ SolverFailure (String.concat "\n" out)
+  let parse_output = default_parse_output
 
 end

@@ -51,14 +51,13 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
     match (Hashtbl.find_opt all_terms ty1), (Hashtbl.find_opt all_terms ty2) with
     | None, _ | _, None -> ()
     | Some ty1_terms, Some ty2_terms ->  
-    iter2 (
-      fun left right ->
+    iter2 (fun left right ->
         if not (List.mem (name,left,right) !pred_list ||
           is_reflx name left right ||
           is_symm name left right !pred_list || 
           is_const name left right)
         then pred_list := (name,left,right) :: !pred_list
-      ) (Hashtbl.find all_terms ty1) (Hashtbl.find all_terms ty2)
+    ) (Hashtbl.find all_terms ty1) (Hashtbl.find all_terms ty2)
   ) spec.preds;
   
   pfv "Preds: %s\n" @@ ToMLString.list (string_of_pred) !pred_list;
