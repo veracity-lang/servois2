@@ -31,17 +31,20 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
 
 let smt_of_spec spec = (* TODO: Preamble? *)
     let s = spec.state in
-    ";; BEGIN: smt_of_spec " ^ spec.name ^ "\n\n" ^
-    begin match spec.preamble with
-        | Some s -> s ^ "\n"
-        | None -> "" end ^
-    define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq ^ "\n" ^
-    String.concat "" (List.map (fun (m : method_spec) ->
-        let s_old = s in let s_new = make_new_bindings s in
-        define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre ^ "\n" ^
-        define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post ^ "\n"
-    ) spec.methods) ^
-    ";; END: smt_of_spec " ^ spec.name ^ "\n"
+    unlines @@ [
+        sp ";; BEGIN: smt_of_spec " ^ spec.name;
+        ""] @
+        begin match spec.preamble with
+            | Some s -> [s]
+            | None -> [] end @ [
+        define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq] @
+        (List.map (fun (m : method_spec) ->
+            let s_old = s in let s_new = make_new_bindings s in
+            unlines @@ [
+                define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre;
+            define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post
+            ]) spec.methods) @ [
+        ";; END: smt_of_spec " ^ spec.name]
 
 let generate_bowtie spec m1 m2 = 
     let (datanames : string list) = List.map name_of_binding spec.state in
