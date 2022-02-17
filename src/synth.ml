@@ -73,7 +73,7 @@ let synth ?(options = default_synth_options) spec m n =
             end
         end in
       let init_smt_queries = !Provers.n_queries in
-      begin try begin match timelimit with None -> run | Some f -> run_with_time_limit f end (fun () -> refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)) 
+      begin try begin match timelimit with None -> run | Some f -> run_with_time_limit f end (fun () -> refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)) 
           with
               | Timeout f -> pfv "Time limit of %.6fs exceeded.\n" f; answer_incomplete := true
       end;
