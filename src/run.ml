@@ -71,6 +71,7 @@ module RunSynth : Runner = struct
     "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
   
   let debug = ref false
+  let quiet = ref false
   let timeout = ref None
 
   let anons = ref []
@@ -90,6 +91,8 @@ module RunSynth : Runner = struct
     ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
     ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "-d",      Arg.Set debug, " Short for --debug"
+    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
+    ; "-q", Arg.Set quiet, " Short for --quiet"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
     ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
     ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
@@ -132,6 +135,7 @@ module RunSynth : Runner = struct
     let s_phi_noncomm = Phi.ToString.t phi_noncomm in
 
     let out =
+      if !quiet then s_phi_comm ^ "\n" else
       sp "phi = %s\nphi-tilde = %s\n" 
       s_phi_comm s_phi_noncomm
     in
