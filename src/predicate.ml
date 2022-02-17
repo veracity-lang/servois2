@@ -53,10 +53,10 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
     | Some ty1_terms, Some ty2_terms ->  
     iter2 (
       fun left right ->
-        if not @@ List.mem (name,left,right) !pred_list ||
+        if not (List.mem (name,left,right) !pred_list ||
           is_reflx name left right ||
           is_symm name left right !pred_list || 
-          is_const name left right
+          is_const name left right)
         then pred_list := (name,left,right) :: !pred_list
       ) (Hashtbl.find all_terms ty1) (Hashtbl.find all_terms ty2)
   ) spec.preds;
