@@ -93,6 +93,9 @@ module To_String = struct
     | TBitVector w -> sp "(_ BitVec %d)" w
     | TGeneric g -> g
   
+  let ty_binding : ty binding -> string = function
+    | (v, t) -> sp "(%s %s)" (var v) (ty t)
+  
   let const : const -> string = function
     | CInt i  -> string_of_int i
     | CBool b -> if b then "true" else "false"
@@ -135,7 +138,7 @@ module To_String = struct
     | And -> "true"
     | Or  -> "false"
 
-  let rec binding (v, e : exp binding) =
+  let rec exp_binding (v, e : exp binding) =
     sp "(%s %s)" (var v) (exp e)
 
   and exp : exp -> string = function
@@ -146,7 +149,7 @@ module To_String = struct
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
     | ELop (o, [])     -> sp "(%s %s)" (lop o) (lop_id o)
     | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
-    | ELet (bl, e)     -> sp "(let (%s) %s)" (list binding bl) (exp e)
+    | ELet (bl, e)     -> sp "(let (%s) %s)" (list exp_binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
     | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
 end
@@ -214,6 +217,7 @@ let string_of_var = To_String.var
 let name_of_binding : ty binding -> string = compose string_of_var fst
 let string_of_smt = To_String.exp
 let string_of_ty = To_String.ty
+let string_of_ty_binding = To_String.ty_binding
 
 let make_new : ty binding -> ty binding = function
     | Var s, ty    -> VarPost s, ty

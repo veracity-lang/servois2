@@ -22,12 +22,12 @@ type mode = Bowtie | LeftMover | RightMover
 let mode = ref Bowtie
 
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
-    "(define-fun " ^
-    name ^ "\n" ^
-    "  ( " ^ String.concat "\n    " (List.map (fun (v, ty) -> sp "(%s %s)" (string_of_var v) (string_of_ty ty)) args) ^ " )\n" ^
-    "  " ^ string_of_ty r_ty ^ "\n" ^
-    "  " ^ Str.global_replace (Str.regexp_string "\n") "\n  " (String.trim @@ string_of_smt def) ^ "\n" ^
-    " )\n"
+    unlines [
+        sp "(define-fun %s" name;
+        sp "  ( %s )" @@ String.concat "\n    " (List.map string_of_ty_binding args);
+        "  " ^ string_of_ty r_ty;
+        "  " ^ Str.global_replace (Str.regexp_string "\n") "\n  " (String.trim @@ string_of_smt def);
+        ")"]
 
 let smt_of_spec spec = (* TODO: Preamble? *)
     let s = spec.state in

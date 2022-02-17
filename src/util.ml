@@ -97,6 +97,8 @@ let string_of_chars cl =
   List.map (String.make 1) cl |>
   String.concat ""
 
+let unlines = List.fold_left (fun acc e -> acc ^ e ^ "\n") "" (* Using String.concat misses a trailing \n *)
+
 (* Reduce any more than 2 consecutive newlines to 2 newlines *)
 let normalize_newlines =
   let rec f = function
