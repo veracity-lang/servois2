@@ -53,7 +53,9 @@ let synth ?(options = default_synth_options) spec m n =
       let phi_tilde = ref @@ Disj [] in
       (* I'm pretty sure this is preferable to carrying it around in an option: *)
       let init_time = Unix.gettimeofday () in
-      let rec refine (h : conjunction) (p_set : pred list) : unit =
+      let answer_incomplete = ref false in
+      let rec refine_wrapped h ps = try refine h ps with Failure _ -> answer_incomplete := true 
+      and refine (h : conjunction) (p_set : pred list) : unit =
         let solve_inst = solve prover spec m_spec n_spec in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute (spec.precond) h with
@@ -65,20 +67,20 @@ let synth ?(options = default_synth_options) spec m n =
               | Unknown -> raise @@ Failure "non_commute failure"
               | Sat s -> begin let non_com_cex = parse_pred_data s in
                 let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
-                    refine (add_conjunct (atom_of_pred p) h) (remove p p_set);
-                    refine (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
+                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
+                    refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
                 end
             end
         end in
       let init_smt_queries = !Provers.n_queries in
       begin try begin match timelimit with None -> run | Some f -> run_with_time_limit f end (fun () -> refine (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)) 
           with
-              | Failure f -> print_string f; print_newline () (* TODO: Make this error handling better? *)
-              | Timeout f -> print_string @@ sp "Time limit exceeded: %.6f\n" f
+              | Timeout f -> pfv "Time limit of %.6fs exceeded.\n" f; answer_incomplete := true
       end;
       bench := { !bench with
           smtqueries = !Provers.n_queries - init_smt_queries;
           time = Float.sub (Unix.gettimeofday ()) init_time };
+      if !answer_incomplete then pfv "Warning: Answer incomplete.\n" else ();
       !phi, !phi_tilde in
     let ret = synth_inner preds options.prover options.timeout spec' m_spec n_spec in
     last_benchmarks := !bench; ret

@@ -191,7 +191,7 @@ module RunTemp : Runner = struct
             Printexc.record_backtrace true;
             ignore @@ Parsing.set_trace true end
             else ();
-        let spec = Poke2_fail_example.spec in
+        let spec = Unknown_example.spec in
         let m1_name = "dummyMethod_1" in
         let m2_name = "dummyMethod_2" in
         let options = { Synth.default_synth_options with timeout = !timelimit } in
