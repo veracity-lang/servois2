@@ -1,0 +1,3 @@
+[submodule "compare/servois"]
+	path = compare/servois
+	url = git@github.com:veracity-lang/servois.git
