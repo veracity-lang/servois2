@@ -1,0 +1,65 @@
+name: test
+state:
+- name: 'y'
+  type: Int
+- name: x
+  type: Int
+- name: j
+  type: Int
+- name: i
+  type: Int
+- name: a
+  type: (Array Int Int)
+- name: argc
+  type: Int
+- name: argv
+  type: (Array Int String)
+states_equal:
+  definition: |
+
+    (and (= y_1 y_2)(= x_1 x_2)(= j_1 j_2)(= i_1 i_2)(= a_1 a_2)(= argc_1 argc_2)(=
+    argv_1 argv_2))
+methods:
+- name: dummyMethod_1
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((a_1 (store a i x)))(= a_new a_1))(= y_new y)(= x_new x)(= j_new j)(=
+    i_new i)(= argc_new argc)(= argv_new argv)(= result true))
+  terms: 
+
+    Int: [0, 1, i, (select a i), x]
+
+    (Array Int Int): [a]
+- name: dummyMethod_2
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((a_1 (store a j y)))(= a_new a_1))(= y_new y)(= x_new x)(= j_new j)(=
+    i_new i)(= argc_new argc)(= argv_new argv)(= result true))
+  terms: 
+
+    Int: [0, 1, j, (select a j), y]
+
+    (Array Int Int): [a]
+predicates:
+- name: "="
+  type: [(Array Int String), (Array Int String)]
+- name: "="
+  type: [(Array Int Int), (Array Int Int)]
+- name: ">"
+  type: [Int, Int]
+- name: "="
+  type: [Int, Int]
