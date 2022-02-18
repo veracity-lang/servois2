@@ -69,7 +69,7 @@ let shuffle =
 
 (* Get the minimum of a list, ordered by given predicate. If the minimum is not unique, gives the first such element in the list *)
 let list_min comp p = function
-    | [] -> raise @@ Failure "list_min"
+    | [] -> failwith "list_min"
     | x :: xs -> fst @@ List.fold_left (fun (a, cached_val) e -> let e_val = p e in if comp e_val cached_val then (e, e_val) else (a, cached_val)) (x, p x) xs
 
 let int_comp x y = x < y
