@@ -28,19 +28,22 @@ module type Prover = sig
 end
 
 let default_parse_output = function
-    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *) (* TODO: Do the same for the other provers *)
+    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *)
     | "unsat" :: _ -> Unsat
     | "unknown" :: _ -> Unknown
     | out -> raise @@ SolverFailure (String.concat "" out)
 
-let run_prover (prover : (module Prover)) (smt : string) : solve_result =
+let run_prover (prover : (module Prover)) (smt : string) : string list =
     let module P = (val prover) in
     let exec = find_exec P.name P.exec_paths in
     let sout, serr = run_exec exec P.args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
-    (* TODO handle any errors *)
-    P.parse_output sout
+    sout
+
+let parse_prover_output (prover : (module Prover)) out : solve_result =
+    let module P = (val prover) in
+    P.parse_output out
 
 module ProverCVC4 : Prover = struct
   let name = "CVC4"
@@ -51,7 +54,7 @@ module ProverCVC4 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
 
   let parse_output = default_parse_output
 

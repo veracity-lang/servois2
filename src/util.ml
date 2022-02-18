@@ -13,7 +13,10 @@ let swap (a,b) = b,a
 
 let compose f g x = f (g x)
 
+let curry f x y = f (x, y)
 let uncurry f (x, y) = f x y
+
+let curry3 f x y z = f (x, y, z)
 
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 

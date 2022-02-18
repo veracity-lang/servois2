@@ -1,5 +1,3 @@
-(* TODO: command line stuff *)
-
 open Util
 
 module type Runner = sig

@@ -31,7 +31,7 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
         "  " ^ Str.global_replace (Str.regexp_string "\n") "\n  " (String.trim @@ string_of_smt def);
         ")"]
 
-let smt_of_spec spec = (* TODO: Preamble? *)
+let smt_of_spec = memoize @@ fun spec ->
     let s = spec.state in
     unlines ~trailing_newline:false @@ [
         sp ";; BEGIN: smt_of_spec " ^ spec.name;
@@ -48,7 +48,7 @@ let smt_of_spec spec = (* TODO: Preamble? *)
             ) spec.methods) @ [
         ";; END: smt_of_spec " ^ spec.name]
 
-let generate_bowtie spec m1 m2 = 
+let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let (datanames : string list) = List.map name_of_binding spec.state in
     let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
@@ -122,7 +122,7 @@ let generate_bowtie spec m1 m2 =
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
     unlines @@
-    [ "(set-logic ALL)"
+    [ "(set-logic ALL_SUPPORTED)"
     ; smt_of_spec spec
     ; generate_bowtie spec m1 m2
     ; sp "(assert (not %s))" (string_of_smt smt_exp)
@@ -141,4 +141,21 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
-  run_prover prover s
+  run_prover prover s |> parse_prover_output prover
+
+let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) =
+    let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
+
+    let full_input = unlines @@
+        [ "(set-logic ALL_SUPPORTED)"
+        ; smt_of_spec spec
+        ; generate_bowtie spec m1 m2] @
+        List.concat_map (fun p -> let e = smt_of_pred p in
+            [query e; query (EUop(Not, e))]) preds in
+    
+    let out = run_prover prover full_input in
+    
+    if List.length out != 2*List.length preds
+        then failwith "filter_predicates";
+    
+    List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds
