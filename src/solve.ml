@@ -33,7 +33,7 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
 
 let smt_of_spec spec = (* TODO: Preamble? *)
     let s = spec.state in
-    unlines @@ [
+    unlines ~trailing_newline:false @@ [
         sp ";; BEGIN: smt_of_spec " ^ spec.name;
         ""] @
         begin match spec.preamble with
@@ -42,10 +42,10 @@ let smt_of_spec spec = (* TODO: Preamble? *)
         define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq] @
         (List.map (fun (m : method_spec) ->
             let s_old = s in let s_new = make_new_bindings s in
-            unlines @@ [
-                define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre;
-            define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post
-            ]) spec.methods) @ [
+            sp "%s\n%s"
+                (define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre)
+                (define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post)
+            ) spec.methods) @ [
         ";; END: smt_of_spec " ^ spec.name]
 
 let generate_bowtie spec m1 m2 = 
@@ -57,54 +57,79 @@ let generate_bowtie spec m1 m2 =
          argslist @
          List.map (fun a -> a ^ new_postfix) datanames @
          List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
+    let err_state = has_err_state spec in
     let m1args_binding = List.map (first string_of_var) m1.args in
     let m1args_name = List.map fst m1args_binding in
     let m2args_binding = List.map (first string_of_var) m2.args in
     let m2args_name = List.map fst m2args_binding in
-    (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "") ^
-    let err_state = has_err_state spec in
-    let oper_xy x y (m : method_spec) args = let mname = m.name in "  (" ^ mname ^ "_pre_condition " ^ pre_args_list x args ^ ")\n" ^
-        "  (" ^ mname ^ "_post_condition " ^ post_args_list x y args m.ret ^ ")\n" in
-    List.fold_left (fun acc_outer databinding -> 
-        acc_outer ^ List.fold_left (fun acc_inner e ->
-            acc_inner ^ mk_var (name_of_binding databinding ^ e) (snd databinding)) "" [""; "1"; "2"; "12"; "21"]
-        ) "" spec.state ^
+    
+    let vars_ref = ref "" in
+    let (^=) s1 s2 = s1 := !s1 ^ s2 in
+    
+    (* Make a variable for each argument *)
+    vars_ref ^= (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "");
+    
+    (* Make a variable for each state variable in each post state *)
+    iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
+        spec.state [""; "1"; "2"; "12"; "21"];
     (* TODO: What if result is in datanames? *)
-    (let tmp = ref "" in List.iteri (fun i ret -> tmp := !tmp ^ mk_var ("result_" ^ string_of_int i ^ "_1") (snd ret) ^ mk_var ("result_" ^ string_of_int i ^ "_21") (snd ret)) m1.ret; !tmp) ^
-    (let tmp = ref "" in List.iteri (fun i ret -> tmp := !tmp ^ mk_var ("result_" ^ string_of_int i ^ "_2") (snd ret) ^ mk_var ("result_" ^ string_of_int i ^ "_12") (snd ret)) m2.ret; !tmp) ^
-    "(define-fun oper () Bool (and \n" ^
-    oper_xy "" "1" m1 m1args_name ^
-    oper_xy "2" "21" m1 m1args_name ^
-    oper_xy "" "2" m2 m2args_name ^
-    oper_xy "1" "12" m2 m2args_name ^
-    begin if err_state (* TODO: bowtie vs left/right movers *) 
-        then begin match !mode with
+    
+    (* Make results for m1, then m2, for each of the times we call them in the diamond. *)
+    List.iteri (fun i ret ->
+        vars_ref ^= mk_var (sp "result_%d_1" i) ret ^ mk_var (sp "result_%d_21" i) ret
+        ) @@ List.map snd m1.ret;
+    List.iteri (fun i ret ->
+        vars_ref ^= mk_var (sp "result_%d_2" i) ret ^ mk_var (sp "result_%d_12" i) ret
+        ) @@ List.map snd m2.ret;
+    
+    let vars = !vars_ref in
+    
+    (* Add in the assertions for pre-post relations. *)
+    let oper_xy x y (m : method_spec) args =
+        let mname = m.name in
+        sp "  (%s_pre_condition %s)\n  (%s_post_condition %s)"
+            mname (pre_args_list x args) mname (post_args_list x y args m.ret)
+    in
+    let oper = unlines @@
+        [ "(define-fun oper () Bool (and "
+        ; oper_xy "" "1" m1 m1args_name
+        ; oper_xy "2" "21" m1 m1args_name
+        ; oper_xy "" "2" m2 m2args_name
+        ; oper_xy "1" "12" m2 m2args_name
+        ] @
+    (* Add in which end error states are allowed. *)
+        begin if err_state
+        then [begin match !mode with
             | Bowtie -> "  (or (not err12) (not err21))"
             | LeftMover -> "  (not err21)"
             | RightMover -> "  (not err12)"
-            end
-        else "" end ^
-    "))\n" ^
-    (* TODO: deterministic, complete *)
-    "(define-fun bowtie () Bool (and  \n   " ^ 
-    (*List.fold_left (fun acc k -> acc ^ "(= result_" ^ string_of_int k ^ "_1 result_" ^ string_of_int k ^ "_21)\n   ") "" (flip List.init succ @@ List.length m1.ret) ^
-    List.fold_left (fun acc k -> acc ^ "(= result_" ^ string_of_int k ^ "_2 result_" ^ string_of_int k ^ "_12)\n   ") "" (flip List.init succ @@ List.length m2.ret) ^
-    *)
-    (let tmp = ref "" in
-    List.iteri (fun i _ -> tmp := !tmp ^ sp "(= result_%d_1 result_%d_21)\n   " i i) m1.ret;
-    List.iteri (fun i _ -> tmp := !tmp ^ sp "(= result_%d_2 result_%d_12)\n   " i i) m2.ret;
-    !tmp) ^
-    "   (states_equal " ^
-    pre_args_list "12" [] ^ " " ^ pre_args_list "21" [] ^ ")\n" ^
-    "))\n"
+            end]
+        else [] end @
+        ["))"]
+    in
+    
+    (* TODO: deterministic, complete? *)
+    let bowtie = unlines @@
+        [ "(define-fun bowtie () Bool (and" ] @ 
+        List.mapi (fun i _ -> sp "   (= result_%d_1 result_%d_21)" i i) m1.ret @
+        List.mapi (fun i _ -> sp "   (= result_%d_2 result_%d_12)" i i) m2.ret @
+        [ sp "   (states_equal %s %s)" (pre_args_list "12" []) (pre_args_list "21" [])
+        ; "))"
+        ]
+    in
+    
+    unlines ~trailing_newline:false [vars; oper; bowtie]
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
-    "(set-logic ALL)\n" ^
-    smt_of_spec spec ^
-    generate_bowtie spec m1 m2 ^
-    sp "(assert (not %s))\n" (string_of_smt smt_exp) ^
-    "(check-sat)\n" ^
-    if null get_vals then "" else sp "(get-value (%s))\n" (String.concat " " @@ List.map string_of_smt get_vals)
+    unlines @@
+    [ "(set-logic ALL)"
+    ; smt_of_spec spec
+    ; generate_bowtie spec m1 m2
+    ; sp "(assert (not %s))" (string_of_smt smt_exp)
+    ; "(check-sat)"] @
+    if null get_vals
+        then []
+        else [sp "(get-value (%s))" (String.concat " " @@ List.map string_of_smt get_vals)]
 
 let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
@@ -114,6 +139,6 @@ let commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_c
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
-  pfv ";; SMT QUERY: %s\n" (string_of_smt smt_exp);
+  pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
   run_prover prover s

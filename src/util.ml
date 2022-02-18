@@ -75,7 +75,7 @@ let lex_comp (x1, y1) (x2, y2) = x1 < x2 || x1 = x2 && y1 < y2
 (* Sum a list of numbers *)
 let list_sum = List.fold_left ( + ) 0
 
-let iter2 f l1 l2 = List.iter (fun e1 -> List.iter (fun e2 -> f e1 e2) l2) l1
+let iter_prod f l1 l2 = List.iter (fun e1 -> List.iter (fun e2 -> f e1 e2) l2) l1
 
 (* Reads lines from an in_channel until EOF.
  * Closes channel at the end *)
@@ -99,7 +99,9 @@ let string_of_chars cl =
   List.map (String.make 1) cl |>
   String.concat ""
 
-let unlines = List.fold_left (fun acc e -> acc ^ e ^ "\n") "" (* Using String.concat misses a trailing \n *)
+let unlines ?(trailing_newline = true) = if trailing_newline
+    then List.fold_left (fun acc e -> acc ^ e ^ "\n") ""
+    else String.concat "\n"
 
 (* Reduce any more than 2 consecutive newlines to 2 newlines *)
 let normalize_newlines =

@@ -51,7 +51,7 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
     match (Hashtbl.find_opt all_terms ty1), (Hashtbl.find_opt all_terms ty2) with
     | None, _ | _, None -> ()
     | Some ty1_terms, Some ty2_terms ->  
-    iter2 (fun left right ->
+    iter_prod (fun left right ->
         if not (List.mem (name,left,right) !pred_list ||
           is_reflx name left right ||
           is_symm name left right !pred_list || 
