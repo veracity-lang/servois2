@@ -51,7 +51,7 @@ methods:
     i_new i)(= argc_new argc)(= argv_new argv)(= result true))
   terms: 
 
-    Int: [0, 1, j, (select a j), y]
+    Int: [0, 1, j, (select a j), 'y']
 
     (Array Int Int): [a]
 predicates:

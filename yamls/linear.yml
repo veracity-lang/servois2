@@ -1,0 +1,59 @@
+name: test
+state:
+- name: u
+  type: Int
+- name: w
+  type: Int
+- name: z
+  type: Int
+- name: yy
+  type: Int
+- name: x
+  type: Int
+- name: argc
+  type: Int
+- name: argv
+  type: (Array Int String)
+states_equal:
+  definition: |
+
+    (and (= u_1 u_2)(= w_1 w_2)(= z_1 z_2)(= yy_1 yy_2)(= x_1 x_2)(= argc_1 argc_2)(=
+    argv_1 argv_2))
+methods:
+- name: dummyMethod_1
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((x_1 (+ (+ x (* 2 w)) u)))(= x_new x_1))(= u_new u)(= w_new w)(= z_new
+    z)(= yy_new yy)(= argc_new argc)(= argv_new argv)(= result true))
+  terms: 
+
+    Int: [0, 1, x, 2, w, (* 2 w), (+ x (* 2 w)), u, (+ (+ x (* 2 w)) u)]
+- name: dummyMethod_2
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((x_1 (+ (+ x yy) (* 3 z))))(= x_new x_1))(= u_new u)(= w_new w)(= z_new
+    z)(= yy_new yy)(= argc_new argc)(= argv_new argv)(= result true))
+  terms: 
+
+    Int: [0, 1, x, yy, (+ x yy), 3, z, (* 3 z), (+ (+ x yy) (* 3 z))]
+predicates:
+- name: "="
+  type: [(Array Int String), (Array Int String)]
+- name: ">"
+  type: [Int, Int]
+- name: "="
+  type: [Int, Int]

@@ -1,0 +1,56 @@
+name: test
+state:
+- name: r
+  type: Bool
+- name: x
+  type: Int
+- name: argc
+  type: Int
+- name: argv
+  type: (Array Int String)
+states_equal:
+  definition: |
+
+    (and (= r_1 r_2)(= x_1 x_2)(= argc_1 argc_2)(= argv_1 argv_2))
+methods:
+- name: dummyMethod_1
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((x_1 1))(= x_new x_1))(= r_new r)(= argc_new argc)(= argv_new argv)(=
+    result true))
+  terms: 
+
+    Int: [0, x, 1]
+- name: dummyMethod_2
+  args: []
+  return:
+  - name: result
+    type: Bool
+  requires: |
+
+    true
+  ensures: |
+
+    (and (let ((t x))(let ((r_1 (> t 0)))(= r_new r_1)))(= x_new x)(= argc_new argc)(=
+    argv_new argv)(= result true))
+  terms: 
+
+    Int: [1, 0]
+
+    Bool: [r]
+predicates:
+- name: "="
+  type: [(Array Int String), (Array Int String)]
+- name: ">"
+  type: [Int, Int]
+- name: "="
+  type: [Int, Int]
+- name: "="
+  type: [Bool, Bool]
