@@ -195,9 +195,9 @@ module RunTemp : Runner = struct
             Printexc.record_backtrace true;
             ignore @@ Parsing.set_trace true end
             else ();
-        let spec = Unknown_example.spec in
-        let m1_name = "dummyMethod_1" in
-        let m2_name = "dummyMethod_2" in
+        let spec = Counter_example.spec in
+        let m1_name = "increment" in
+        let m2_name = "decrement" in
         let options = { Synth.default_synth_options with timeout = !timelimit } in
         let phi, phi_tilde = Synth.synth ~options:options spec m1_name m2_name in
         print_string (Phi.string_of_disj phi); print_newline ();
