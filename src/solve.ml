@@ -147,7 +147,7 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
     let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
 
     let full_input = unlines @@
-        [ "(set-logic ALL_SUPPORTED)"
+        [ "(set-logic ALL)"
         ; smt_of_spec spec
         ; generate_bowtie spec m1 m2] @
         List.concat_map (fun p -> let e = smt_of_pred p in
@@ -156,6 +156,9 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
-        then failwith "filter_predicates";
+    then (
+        Printf.printf "out = %s\n" (ToMLString.list ToMLString.str out);
+        failwith "filter_predicates"
+    );
     
     List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds
