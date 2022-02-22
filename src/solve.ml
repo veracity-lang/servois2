@@ -122,7 +122,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
     unlines @@
-    [ "(set-logic ALL_SUPPORTED)"
+    [ "(set-logic ALL)"
     ; smt_of_spec spec
     ; generate_bowtie spec m1 m2
     ; sp "(assert (not %s))" (string_of_smt smt_exp)

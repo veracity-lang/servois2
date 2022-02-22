@@ -71,7 +71,7 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
 
   let parse_output = default_parse_output
 
