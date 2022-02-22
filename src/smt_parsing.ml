@@ -1,9 +1,10 @@
 open Util
 open Smt
 
-
 exception SmtParseException of string * string
 exception SmtLexException of string * int
+
+type 'a parser = (Lexing.lexbuf -> Smt_parser.token) -> Lexing.lexbuf -> 'a
 
 let () =
   Printexc.register_printer @@
@@ -14,9 +15,7 @@ let () =
     Some (sp "SMT lex failure at char %d of '%s'" i s)
   | _ -> None
 
-let parse p (s : string) =
-  let lexbuf = Lexing.from_string s in
-  Smt_lexer.reset_lexbuf s 0 lexbuf;
+let parse_partial (lexbuf, s) p = 
   try
     p Smt_lexer.read lexbuf
   with
@@ -25,11 +24,21 @@ let parse p (s : string) =
     | SmtLexExceptionProto i ->
       raise @@ SmtLexException (s, i)
 
+let lex s = 
+  let lexbuf = Lexing.from_string s in
+  Smt_lexer.reset_lexbuf s 0 lexbuf;
+  lexbuf
+
+let parse_all p s =
+  let lexbuf = lex s in
+  (parse_partial (lexbuf, s) p) |>
+  seq (parse_partial (lexbuf, s) Smt_parser.eof_top)
+
 let bool_of_exp = function (* TODO *)
     | EConst(CBool t) -> t
     | _ -> failwith "bool_of_exp"
 
-let exp_of_string = parse Smt_parser.exp_top
-let ty_of_string = parse Smt_parser.ty_top
-let values_of_string = parse Smt_parser.values_top
-let parse_pred_data s = (match s with "" -> [] | s -> List.map (compose bool_of_exp snd) @@ values_of_string s)
+let exp_of_string = parse_all Smt_parser.exp_top
+let ty_of_string = parse_all Smt_parser.ty_top
+let values_of_string = parse_all Smt_parser.values_top
+let pred_data_of_values = List.map (compose bool_of_exp snd)
