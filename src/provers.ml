@@ -1,6 +1,7 @@
 open Util
 open Smt
 open Smt_parsing
+open Option
 
 exception SolverFailure of string
 
@@ -24,7 +25,7 @@ module type Prover = sig
   val name : string
   val exec_paths : string list
   val args : string array
-  val model_arg : string
+  val model_arg : string option
   val parse_output : string list -> solve_result
 end
 
@@ -37,7 +38,7 @@ let default_parse_output = function
 let run_prover ?(model=true) (prover : (module Prover)) (smt : string) : string list =
     let module P = (val prover) in
     let exec = find_exec P.name P.exec_paths in
-    let args = if model then (Array.append P.args [| P.model_arg |]) else P.args in
+    let args = if model && is_some P.model_arg then (Array.append P.args [| get @@ P.model_arg |]) else P.args in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
@@ -58,7 +59,7 @@ module ProverCVC4 : Prover = struct
   let args =
     [| ""; "--lang"; "smt2"; "--incremental" |]
     
-  let model_arg = "--produce-models"
+  let model_arg = Some "--produce-models"
 
   let parse_output = default_parse_output
 
@@ -77,7 +78,7 @@ module ProverCVC5 : Prover = struct
   let args =
     [| ""; "--lang"; "smt2"; "--incremental" |]
     
-  let model_arg = "--produce-models"
+  let model_arg = Some "--produce-models"
 
   let parse_output = default_parse_output
 
@@ -95,7 +96,7 @@ module ProverZ3 : Prover = struct
   let args =
     [| ""; "-smt2"; "-in" |]
     
-  let model_arg = ""
+  let model_arg = None
 
   let parse_output = default_parse_output
 
@@ -114,7 +115,7 @@ module ProverMathSAT : Prover = struct
   let args =
     [| ""; "-input=smt2" |]
     
-  let model_arg = "-model"
+  let model_arg = Some "-model"
 
   let parse_output = function
     | "sat" :: models -> let inp = (String.concat "" models) in let lexbuf = lex inp in
