@@ -156,9 +156,6 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
-    then (
-        Printf.printf "out = %s\n" (ToMLString.list ToMLString.str out);
-        failwith "filter_predicates"
-    );
+    then failwith "filter_predicates";
     
     List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds
