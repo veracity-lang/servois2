@@ -14,7 +14,6 @@ let () =
 
 let n_queries = ref 0
 
-
 type solve_result =
   | Sat of (exp * exp) list
   | Unsat
@@ -25,6 +24,7 @@ module type Prover = sig
   val name : string
   val exec_paths : string list
   val args : string array
+  val model_arg : string
   val parse_output : string list -> solve_result
 end
 
@@ -34,10 +34,11 @@ let default_parse_output = function
     | "unknown" :: _ -> Unknown
     | out -> raise @@ SolverFailure (String.concat "" out)
 
-let run_prover (prover : (module Prover)) (smt : string) : string list =
+let run_prover ?(model=true) (prover : (module Prover)) (smt : string) : string list =
     let module P = (val prover) in
     let exec = find_exec P.name P.exec_paths in
-    let sout, serr = run_exec exec P.args smt in
+    let args = if model then (Array.append P.args [| P.model_arg |]) else P.args in
+    let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
     sout
@@ -55,7 +56,9 @@ module ProverCVC4 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
+    [| ""; "--lang"; "smt2"; "--incremental" |]
+    
+  let model_arg = "--produce-models"
 
   let parse_output = default_parse_output
 
@@ -72,7 +75,9 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
+    [| ""; "--lang"; "smt2"; "--incremental" |]
+    
+  let model_arg = "--produce-models"
 
   let parse_output = default_parse_output
 
@@ -89,6 +94,8 @@ module ProverZ3 : Prover = struct
 
   let args =
     [| ""; "-smt2"; "-in" |]
+    
+  let model_arg = ""
 
   let parse_output = default_parse_output
 
@@ -106,7 +113,16 @@ module ProverMathSAT : Prover = struct
 
   let args =
     [| ""; "-input=smt2" |]
+    
+  let model_arg = "-model"
 
-  let parse_output = default_parse_output
+  let parse_output = function
+    | "sat" :: models -> let inp = (String.concat "" models) in let lexbuf = lex inp in
+        Fun.const () @@ parse_partial (lexbuf, inp) Smt_parser.values_top;
+        Sat (parse_partial (lexbuf, inp) Smt_parser.values_top) |>
+        seq @@ parse_partial (lexbuf, inp) Smt_parser.eof_top
+    | "unsat" :: _ -> Unsat
+    | "unknown" :: _ -> Unknown
+    | out -> raise @@ SolverFailure (String.concat "" out)
 
 end
