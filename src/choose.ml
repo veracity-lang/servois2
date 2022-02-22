@@ -47,11 +47,11 @@ let poke env : pred =
         let weight_fn_inner h_com h_ncom = match env.solver smt_diff_preds @@ commute env.spec.precond h_com with
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
-            | Sat s -> begin let com_cex = parse_pred_data s in
+            | Sat vs -> begin let com_cex = pred_data_of_values vs in
                 match env.solver smt_diff_preds @@ non_commute env.spec.precond h_ncom with
                 | Unsat -> 0
                 | Unknown -> List.length smt_diff_preds
-                | Sat s -> begin let non_com_cex = parse_pred_data s in
+                | Sat vs -> begin let non_com_cex = pred_data_of_values vs in
                     differentiating_predicates diff_preds com_cex non_com_cex |> List.length
                     end
                 end in
@@ -80,11 +80,11 @@ let poke2 env : pred =
             | Sat s -> 0
             end
         | Unknown -> List.length smt_diff_preds (* Memoize for efficiency? Use max_int? *)
-        | Sat s -> begin let com_cex = parse_pred_data s in
+        | Sat vs -> begin let com_cex = pred_data_of_values vs in
             match env.solver smt_diff_preds @@ non_commute env.spec.precond h'' with
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
-            | Sat s -> begin let non_com_cex = parse_pred_data s in
+            | Sat vs -> begin let non_com_cex = pred_data_of_values vs in
                 differentiating_predicates diff_preds com_cex non_com_cex |> List.length
                 end
             end in
