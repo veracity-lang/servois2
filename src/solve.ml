@@ -56,7 +56,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
         (List.map (fun a -> a ^ old_postfix) datanames @
          argslist @
          List.map (fun a -> a ^ new_postfix) datanames @
-         List.mapi (fun i _ -> sp "result_%d_" i ^ new_postfix) ret) in
+         List.mapi (fun i _ -> sp "result_%d" i ^ new_postfix) ret) in
     let err_state = has_err_state spec in
     let m1args_binding = List.map (first string_of_var) m1.args in
     let m1args_name = List.map fst m1args_binding in
@@ -69,17 +69,17 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     (* Make a variable for each argument *)
     vars_ref ^= (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "");
     
-    (* Make a variable for each state variable in each post state *)
+    (* Make a variable for each state variable for each needed object *)
     iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
-        spec.state [""; "1"; "2"; "12"; "21"];
+        spec.state ["_l"; "_r"; "_l1"; "_r2"; "_l12"; "_r21"];
     (* TODO: What if result is in datanames? *)
     
     (* Make results for m1, then m2, for each of the times we call them in the diamond. *)
     List.iteri (fun i ret ->
-        vars_ref ^= mk_var (sp "result_%d_1" i) ret ^ mk_var (sp "result_%d_21" i) ret
+        vars_ref ^= mk_var (sp "result_%d_l1" i) ret ^ mk_var (sp "result_%d_r21" i) ret
         ) @@ List.map snd m1.ret;
     List.iteri (fun i ret ->
-        vars_ref ^= mk_var (sp "result_%d_2" i) ret ^ mk_var (sp "result_%d_12" i) ret
+        vars_ref ^= mk_var (sp "result_%d_r2" i) ret ^ mk_var (sp "result_%d_l12" i) ret
         ) @@ List.map snd m2.ret;
     
     let vars = !vars_ref in
@@ -92,17 +92,17 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     in
     let oper = unlines @@
         [ "(define-fun oper () Bool (and "
-        ; oper_xy "" "1" m1 m1args_name
-        ; oper_xy "2" "21" m1 m1args_name
-        ; oper_xy "" "2" m2 m2args_name
-        ; oper_xy "1" "12" m2 m2args_name
+        ; oper_xy "_l" "_l1" m1 m1args_name
+        ; oper_xy "_r2" "_r21" m1 m1args_name
+        ; oper_xy "_r" "_r2" m2 m2args_name
+        ; oper_xy "_l1" "_l12" m2 m2args_name
         ] @
     (* Add in which end error states are allowed. *)
         begin if err_state
         then [begin match !mode with
-            | Bowtie -> "  (or (not err12) (not err21))"
-            | LeftMover -> "  (not err21)"
-            | RightMover -> "  (not err12)"
+            | Bowtie -> "  (or (not err_l12) (not err_r21))"
+            | LeftMover -> "  (not err_r21)"
+            | RightMover -> "  (not err_l12)"
             end]
         else [] end @
         ["))"]
@@ -111,9 +111,9 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     (* TODO: deterministic, complete? *)
     let bowtie = unlines @@
         [ "(define-fun bowtie () Bool (and" ] @ 
-        List.mapi (fun i _ -> sp "   (= result_%d_1 result_%d_21)" i i) m1.ret @
-        List.mapi (fun i _ -> sp "   (= result_%d_2 result_%d_12)" i i) m2.ret @
-        [ sp "   (states_equal %s %s)" (pre_args_list "12" []) (pre_args_list "21" [])
+        List.mapi (fun i _ -> sp "   (= result_%d_l1 result_%d_r21)" i i) m1.ret @
+        List.mapi (fun i _ -> sp "   (= result_%d_r2 result_%d_l12)" i i) m2.ret @
+        [ sp "   (states_equal %s %s)" (pre_args_list "_l12" []) (pre_args_list "_r21" [])
         ; "))"
         ]
     in
