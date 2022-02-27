@@ -33,18 +33,28 @@ let is_const (op: string) (exp1: exp) (exp2: exp) =
   | _ -> false
 
 
-let add_terms (type_terms) (tl: term_list list) =
+let add_terms spec (type_terms) (tl: term_list list) =
   List.iter (fun (ty, el) -> 
+    let rec process e = begin match e with
+      | EVar (Var v) -> if List.mem (Var v) @@ List.map fst spec.state then [EVar (Var (v^"_l")); EVar (Var (v^"_r"))] else [EVar (Var v)]
+      | EBop(b, el, er) -> let els = process el in let ers = process er in List.concat_map (fun el -> List.map (fun er -> EBop(b, el, er)) els) ers
+      | EUop(u, e) -> List.map (fun e -> EUop(u, e)) @@ process e
+      | ELop(lop, es) -> List.fold_right (fun e acc -> let es = process e in List.concat_map (fun e -> List.map (fun acce -> e::acce) acc) es) es [] |> List.map (fun es -> ELop(lop, es))
+      | ELet(binds, e) -> List.map (fun e -> ELet(binds, e)) @@ process e (* TODO: Scope? *)
+      | EITE(i, t, e) -> let is = process i in let ts = process t in let es = process e in List.concat_map (fun i -> List.concat_map (fun t -> List.map (fun e -> EITE(i, t, e)) es) ts) is
+      (*| EFunc(s, es) -> EFunc(s, List.map (make_recursive f) es)*) (* TODO: Similar to ELop case *)
+      | x -> [x] end in
+    let el' = List.concat_map process el in
     match Hashtbl.find_opt type_terms ty with 
-    | Some t -> Hashtbl.replace type_terms ty (el @ t)
-    | None -> Hashtbl.add type_terms ty el
+    | Some t -> Hashtbl.replace type_terms ty (el' @ t)
+    | None -> Hashtbl.add type_terms ty el'
   ) tl;
   type_terms
 
 let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) : pred list =
   let type_terms = Hashtbl.create 100 in
 
-  let all_terms = add_terms (add_terms type_terms method1.terms) method2.terms in
+  let all_terms = add_terms spec (add_terms spec type_terms method1.terms) method2.terms in
 
   let pred_list = ref [] in
   List.iter (fun [@warning "-8"] (PredSig (name,[ty1;ty2])) ->
