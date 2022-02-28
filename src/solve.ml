@@ -99,7 +99,8 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
         ] @
     (* Add in which end error states are allowed. *)
         begin if err_state
-        then [begin match !mode with
+        then "  (and (not err_l) (not err_r))" :: (* TODO: Not very elegant or robust? *)
+            [begin match !mode with
             | Bowtie -> "  (or (not err_l12) (not err_r21))"
             | LeftMover -> "  (not err_r21)"
             | RightMover -> "  (not err_l12)"
@@ -134,8 +135,9 @@ let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid
 let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
-let non_commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_conjunct precond h), EUop(Not, smt_bowtie))
-let commute precond h = EBop(Imp, smt_of_conj @@ (add_conjunct smt_oper @@ add_conjunct precond h), smt_bowtie)
+let commute_hypothesis spec h = smt_of_conj @@ (add_conjunct smt_oper @@ add_conjunct spec.precond h)
+let non_commute spec h = EBop(Imp, commute_hypothesis spec h, EUop(Not, smt_bowtie))
+let commute spec h = EBop(Imp, commute_hypothesis spec h, smt_bowtie)
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
