@@ -1,0 +1,117 @@
+(set-logic ALL_SUPPORTED)
+;; BEGIN: smt_of_spec counter
+
+(define-fun states_equal
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (= contents contents_new)))
+)
+
+(define-fun increment_pre_condition
+  ( (err Bool)
+    (contents Int) )
+  Bool
+  true
+)
+
+(define-fun increment_post_condition
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int)
+    (result Bool) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (>= contents 0) (and (= contents_new (+ contents 1)) (= result true))) (and (not err) err_new (not (>= contents 0))))
+)
+
+(define-fun decrement_pre_condition
+  ( (err Bool)
+    (contents Int) )
+  Bool
+  true
+)
+
+(define-fun decrement_post_condition
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int)
+    (result Bool) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (>= contents 1) (and (= contents_new (- contents 1)) (= result true))) (and (not err) err_new (not (>= contents 1))))
+)
+
+(define-fun reset_pre_condition
+  ( (err Bool)
+    (contents Int) )
+  Bool
+  true
+)
+
+(define-fun reset_post_condition
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int)
+    (result Bool) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (>= contents 0) (and (= contents_new 0) (= result true))) (and (not err) err_new (not (>= contents 0))))
+)
+
+(define-fun zero_pre_condition
+  ( (err Bool)
+    (contents Int) )
+  Bool
+  true
+)
+
+(define-fun zero_post_condition
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int)
+    (result Bool) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (>= contents 0) (and (= contents_new contents) (= result (= contents 0)))) (and (not err) err_new (not (>= contents 0))))
+)
+
+;; END: smt_of_spec counter
+(declare-fun err () Bool)
+(declare-fun err1 () Bool)
+(declare-fun err2 () Bool)
+(declare-fun err12 () Bool)
+(declare-fun err21 () Bool)
+(declare-fun contents () Int)
+(declare-fun contents1 () Int)
+(declare-fun contents2 () Int)
+(declare-fun contents12 () Int)
+(declare-fun contents21 () Int)
+(declare-fun result_0_1 () Bool)
+(declare-fun result_0_21 () Bool)
+(declare-fun result_0_2 () Bool)
+(declare-fun result_0_12 () Bool)
+
+(define-fun oper () Bool (and 
+  (increment_pre_condition err contents)
+  (increment_post_condition err contents err1 contents1 result_0_1)
+  (increment_pre_condition err2 contents2)
+  (increment_post_condition err2 contents2 err21 contents21 result_0_21)
+  (decrement_pre_condition err contents)
+  (decrement_post_condition err contents err2 contents2 result_0_2)
+  (decrement_pre_condition err1 contents1)
+  (decrement_post_condition err1 contents1 err12 contents12 result_0_12)
+  (or (not err12) (not err21))
+))
+
+(define-fun bowtie () Bool (and
+   (= result_0_1 result_0_21)
+   (= result_0_2 result_0_12)
+   (states_equal err12 contents12 err21 contents21)
+))
+
+(assert (not (=> (and oper (= contents 0)) bowtie)))
+(check-sat)
+(get-value ((= contents 1) (= 0 (+ contents 1)) (= (- contents 1) 0) (= 1 (+ contents 1)) (= 1 (- contents 1))))
