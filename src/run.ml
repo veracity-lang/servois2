@@ -66,7 +66,7 @@ end
 
 module RunSynth : Runner = struct
   let usage_msg exe_name =
-    "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
+    "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> m1;m2;m3:n1;n2;n3;etc"
   
   let debug = ref false
   let quiet = ref false
@@ -100,7 +100,7 @@ module RunSynth : Runner = struct
     ] |>
     Arg.align
 
-  let synth yaml method1 method2 =
+  let synth yaml method_list =
     if !debug then begin
       Printexc.record_backtrace true;
       ignore @@ Parsing.set_trace true
@@ -120,13 +120,15 @@ module RunSynth : Runner = struct
       | "mathsat" -> (module Provers.ProverMathSAT)
       | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
     in
+    
+    let ms :: ns :: [] = String.split_on_char ':' method_list |> List.map (String.split_on_char ';') in
 
     let phi_comm, phi_noncomm =
       let synth_options = {
           Synth.default_synth_options with prover = prover;
           timeout = !timeout
           } in
-      Synth.synth ~options:synth_options spec method1 method2 
+      Synth.synth ~options:synth_options spec ms ns 
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
@@ -154,7 +156,7 @@ module RunSynth : Runner = struct
     Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
     let anons = List.rev (!anons) in
     match anons with
-    | [prog;method1;method2] -> synth prog method1 method2
+    | [prog;method_list] -> synth prog method_list
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 

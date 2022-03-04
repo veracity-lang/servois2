@@ -39,16 +39,22 @@ let string_of_benches benches = sp "predicates, %d\npredicates_filtered, %d\nsmt
 
 type counterex = exp bindlist
 
-let synth ?(options = default_synth_options) spec m n =
+let synth ?(options = default_synth_options) spec ms ns =
     let init_time = Unix.gettimeofday () in
     let init_smt_queries = !Provers.n_queries in
     let spec = if options.lift then lift spec else spec in
 
-    let m_spec = get_method spec m |> mangle_method_vars true in
-    let n_spec = get_method spec n |> mangle_method_vars false in
+    let ms_specs = List.map (compose (mangle_method_vars true) (get_method spec)) ms in
+    let ns_specs = List.map (compose (mangle_method_vars false) (get_method spec)) ns in
 
-    let preds_unfiltered = match options.preds with None -> generate_predicates spec m_spec n_spec | Some x -> x in
-    let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
+    let preds_unfiltered = match options.preds with
+        | Some x -> x 
+        | None -> let ps = ref [] in
+            iter_prod (fun m_spec n_spec -> ps := generate_predicates spec m_spec n_spec @ !ps) ms_specs ns_specs;
+            list_unique !ps
+    in
+    
+    let preds = filter_predicates options.prover spec ms_specs ns_specs preds_unfiltered in
     
     seq (last_benchmarks := 
       { predicates = List.length preds_unfiltered
@@ -62,7 +68,7 @@ let synth ?(options = default_synth_options) spec m n =
     
     let rec refine_wrapped h ps = try refine h ps with Failure _ -> answer_incomplete := true 
     and refine (h : conjunction) (p_set : pred list) : unit =
-        let solve_inst = solve options.prover spec m_spec n_spec in
+        let solve_inst = solve options.prover spec ms_specs ns_specs in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute spec h with
             | Unsat -> phi := add_disjunct h !phi

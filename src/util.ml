@@ -80,6 +80,8 @@ let list_sum = List.fold_left ( + ) 0
 
 let iter_prod f l1 l2 = List.iter (fun e1 -> List.iter (fun e2 -> f e1 e2) l2) l1
 
+let list_unique l = List.fold_right (fun e acc -> if List.mem e acc then acc else e :: acc) l []
+
 (* Reads lines from an in_channel until EOF.
  * Closes channel at the end *)
 let read_all_in (chan : in_channel) : string list =
