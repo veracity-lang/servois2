@@ -48,7 +48,7 @@ let smt_of_spec = memoize @@ fun spec ->
             ) spec.methods) @ [
         ";; END: smt_of_spec " ^ spec.name]
 
-let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
+let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
     let (datanames : string list) = List.map name_of_binding spec.state in
     let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
