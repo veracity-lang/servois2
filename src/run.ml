@@ -4,21 +4,46 @@ module type Runner = sig
   val run : unit -> unit (* Uses all of argv *)
 end
 
+module CommonOptions = struct
+  let debug = ref false
+  let quiet = ref false
+  let anons = ref []
+  let output_file = ref ""
+  let prover_name = ref ""
+  let anon_fun (v : string) = anons := v :: !anons
+  let common_speclist =
+    [ "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "-d",      Arg.Set debug, " Short for --debug"
+    ; "-o",      Arg.Set_string output_file, "<file> File to output to. Default file is stdout"
+    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
+    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
+    ; "-q", Arg.Set quiet, " Short for --quiet"
+    ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
+    ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
+    ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
+    ; "-vv", Arg.Set Util.very_verbose, " Short for --very-verbose"
+    ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
+    ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
+    ]
+    
+  let get_prover () : (module Provers.Prover) =
+      match !prover_name |> String.lowercase_ascii with
+      | "cvc4" -> (module Provers.ProverCVC4)
+      | "cvc5" -> (module Provers.ProverCVC5)
+      | "z3"   -> (module Provers.ProverZ3)
+      | ""     -> (module Provers.ProverCVC4)
+      | "mathsat" -> (module Provers.ProverMathSAT)
+      | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
+
+end
 
 module RunParse : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " parse [<flags>] <YAML file>"
   
-  let debug = ref false
-
+  open CommonOptions
+  
   let just_yaml = ref false
-
-  let anons = ref []
-
-  let anon_fun (v : string) =
-    anons := v :: !anons
-
-  let output_file = ref ""
 
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
@@ -68,36 +93,15 @@ module RunSynth : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
   
-  let debug = ref false
-  let quiet = ref false
+  open CommonOptions
+  
   let timeout = ref None
-
-  let anons = ref []
-
-  let anon_fun (v : string) =
-    anons := v :: !anons
-
-  let output_file = ref ""
-
-  let prover_name = ref ""
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
-    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout"
-    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
-    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "-d",      Arg.Set debug, " Short for --debug"
-    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
-    ; "-q", Arg.Set quiet, " Short for --quiet"
-    ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
-    ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
-    ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
-    ; "-vv", Arg.Set Util.very_verbose, " Short for --very-verbose"
-    ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
-    ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
-    ] |>
+    ] @ common_speclist |>
     Arg.align
 
   let synth yaml method1 method2 =
@@ -111,19 +115,9 @@ module RunSynth : Runner = struct
       Spec.spec_of_yaml
     in
 
-    let prover : (module Provers.Prover) =
-      match !prover_name |> String.lowercase_ascii with
-      | "cvc4" -> (module Provers.ProverCVC4)
-      | "cvc5" -> (module Provers.ProverCVC5)
-      | "z3"   -> (module Provers.ProverZ3)
-      | ""     -> (module Provers.ProverCVC4)
-      | "mathsat" -> (module Provers.ProverMathSAT)
-      | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
-    in
-
     let phi_comm, phi_noncomm =
       let synth_options = {
-          Synth.default_synth_options with prover = prover;
+          Synth.default_synth_options with prover = get_prover ();
           timeout = !timeout
           } in
       Synth.synth ~options:synth_options spec method1 method2 
@@ -163,24 +157,14 @@ module RunTemp : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " temp [<flags>]\n    Synths commutativity conditions for OCaml representation of an object."
   
-  let debug = ref false
+  open CommonOptions
+  
   let timelimit = ref None
   
-  let anons = ref []
-  let anon_fun (v : string) =
-    anons := v :: !anons
 
   let speclist =
-    [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use the poke heuristic"
-    ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use the poke2 heuristic"
-    ; "--verbose", Arg.Set (Util.verbosity), " Verbose!"
-    ; "-v", Arg.Set (Util.verbosity), " --verbose" 
-    ; "--very-verbose", Arg.Set (Util.very_verbose), " Very verbose!"
-    ; "-vv", Arg.Set (Util.very_verbose), " --very-verbose" 
-    ; "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
-    ] |>
+    [ "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
+    ] @ common_speclist |>
     Arg.align
 
   let run () =
