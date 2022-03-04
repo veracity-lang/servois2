@@ -152,6 +152,74 @@ module RunSynth : Runner = struct
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
+module RunVerify : Runner = struct
+    let usage_msg = sp "Usage: %s verify <yaml file> <method 1> <method 2> <condition> [flags]"
+    
+    open CommonOptions
+    
+    let ncom = ref false
+    let complete = ref false
+    
+    let speclist = 
+      [ "--ncom", Arg.Set ncom, " Verify non-commutativity condition instead of commutativity condition."
+      ; "--complete", Arg.Set complete, " Also verify completeness."
+      ] @ common_speclist |> Arg.align
+    
+    let verify yaml m1 m2 cond =
+        let open Solve in
+        let open Spec in
+        
+        let spec =
+          Yaml_util.yaml_of_file yaml |>
+          spec_of_yaml |>
+          lift
+        in
+        
+        let cond_smt = Smt_parsing.exp_of_string cond in
+        let implication_function, neg_implication_function = if !ncom
+            then (non_commute_of_smt, commute_of_smt)
+            else (commute_of_smt, non_commute_of_smt)
+        in
+        
+        let valid = match solve (get_prover ()) spec (get_method spec m1 |> mangle_method_vars true) (get_method spec m2 |> mangle_method_vars false) [] (implication_function (ELop(And, [spec.precond; cond_smt]))) with
+            | Unsat -> "true"
+            | Unknown -> "unknown"
+            | Sat _ -> "false"
+        in
+        
+        let out_1 = if !quiet
+            then valid ^ "\n"
+            else sp "Valid: %s\n" valid
+        in
+        
+        let out = if !complete
+            then out_1 ^ begin
+              let compl = match solve (get_prover ()) spec (get_method spec m1 |> mangle_method_vars true) (get_method spec m2 |> mangle_method_vars false) [] (neg_implication_function (ELop(And, [spec.precond; EUop(Not, cond_smt)]))) with
+                | Unsat -> "true"
+                | Unknown -> "unknown"
+                | Sat _ -> "false"
+              in if !quiet then compl ^ "\n" else sp "Complete: %s\n" compl
+            end
+            else out_1
+        in
+        
+        begin if !output_file = ""
+        then print_string out
+        else
+          let out_chan = open_out !output_file in
+          output_string out_chan out;
+          close_out out_chan
+        end
+    
+    let run () =
+      Arg.current := 1;
+      Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+      let anons = List.rev (!anons) in
+      match anons with
+      | [prog; m1; m2; cond] -> verify prog m1 m2 cond
+      | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
+end
+
 module RunTemp : Runner = struct
 
   let usage_msg exe_name =
@@ -161,7 +229,6 @@ module RunTemp : Runner = struct
   
   let timelimit = ref None
   
-
   let speclist =
     [ "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
     ] @ common_speclist |>
@@ -192,18 +259,21 @@ end
 type command =
   | CmdHelp (* Show help info *)
   | CmdSynth (* Synthesize phi *)
+  | CmdVerify (* Verify validity of commutativity condition *)
   | CmdParse (* Parse YAML *)
   | CmdTemp
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdSynth
+  ; "verify",   CmdVerify
   ; "parse",    CmdParse
   ; "temp",     CmdTemp
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdSynth,    (module RunSynth)
+  ; CmdVerify,   (module RunVerify)
   ; CmdParse,  (module RunParse)
   ; CmdTemp,   (module RunTemp)
   ]
@@ -213,6 +283,7 @@ let display_help_message exe_name =
     "Commands:\n" ^
     "  help        Display this message\n" ^
     "  synth       Run inference\n" ^
+    "  verify      Verify commutativity condition\n" ^
     "  parse       Parse yaml\n" ^
     "  temp        Do whatever the particular test implemented is\n"
   in Printf.eprintf "Usage: %s <command> [<flags>] [<args>]\n%s" exe_name details
