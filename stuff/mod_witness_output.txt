@@ -1,0 +1,69 @@
+
+(model
+(define-fun n () Int 4)
+(define-fun n1 () Int 0)
+(define-fun n2 () Int 0)
+(define-fun n12 () Int (- 1))
+(define-fun n21 () Int 0)
+(define-fun y () Int 4)
+(define-fun y1 () Int 0)
+(define-fun y2 () Int 0)
+(define-fun y12 () Int 0)
+(define-fun y21 () Int 0)
+(define-fun x () Int 2)
+(define-fun x1 () Int 2)
+(define-fun x2 () Int 4)
+(define-fun x12 () Int 4)
+(define-fun x21 () Int 0)
+(define-fun err () Bool false)
+(define-fun err1 () Bool false)
+(define-fun err2 () Bool false)
+(define-fun err12 () Bool false)
+(define-fun err21 () Bool false)
+(define-fun result1 () Bool true)
+(define-fun result21 () Bool true)
+(define-fun result2 () Bool true)
+(define-fun result12 () Bool true)
+)
+
+(((= (mod (+ x y) n) (+ x y)) (= (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0)))))) 0)) ((= n x) false) ((= (+ x y) (mod (+ x y) n)) (= (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0)))))) 0)) ((= (+ x y) n) false) ((= (+ x y) 2) false) ((= (+ x y) (* 2 x)) false) ((= (+ x y) y) false) ((= (+ x y) x) false) ((= 2 (mod (+ x y) n)) (= (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0)))))) 1)) ((= 2 n) false) ((= 2 (+ x y)) false) ((= 2 (* 2 x)) false) ((= 2 y) false) ((= 2 x) true) ((= (* 2 x) (mod (+ x y) n)) false) ((= (* 2 x) n) true) ((= (* 2 x) (+ x y)) false) ((= (* 2 x) 2) false) ((= (* 2 x) y) true) ((= (* 2 x) x) false) ((= y (mod (+ x y) n)) false) ((= y n) true) ((= y (+ x y)) false) ((= y 2) false) ((= y (* 2 x)) true) ((= y x) false) ((= x (mod (+ x y) n)) (= (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0)))))) 1)) ((= x n) false) ((= x (+ x y)) false) ((= x 2) true) ((= x (* 2 x)) false) ((= x y) false))
+
+(= (mod (+ x y) n) (+ x y))
+(
+    (= (mod (+ x y) n) (+ x y)) 
+    (= 
+      (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0))))))
+      0
+    )
+)
+(= (witness ((BOUND_VARIABLE_440 Int)) (and (=> (>= n 1) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1))) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0)))))) 0)
+Substituting in known values for 
+n = 4; y = 4; x = 2
+(= (mod (+ x y) n) (+ x y)) = (= 2 6) = false
+(
+    (= (mod (+ x y) n) (+ x y)) 
+    (= 
+      (witness ((BOUND_VARIABLE_440 Int)) (and (>= (+ 6 (* (- 1) (* 4 BOUND_VARIABLE_440))) 0) (>= (+ n (* (- 1) y) (* (- 1) x) (* n BOUND_VARIABLE_440)) 1) (=> (not (>= n 0)) (and (>= (+ y x (* (- 1) (* n BOUND_VARIABLE_440))) 0) (not (>= (+ n y x (* (- 1) (* n BOUND_VARIABLE_440))) 0))))))
+      0
+    )
+)
+
+If we let BOUND_VARIABLE_440 be 0:
+(
+    (= (mod (+ x y) n) (+ x y)) 
+    (= 
+      (witness ((0 Int)) (and (=> (>= n 1) (and (>= (+ y x) 0) (>= (+ n (* (- 1) y)) 1))) (=> (not (>= n 0)) (and (>= (+ y x) 0) (not (>= (+ n y x) 0))))))
+      0
+    )
+)
+
+And now with n=4 y=4 x=2
+(
+    (= (mod (+ x y) n) (+ x y)) 
+    (= 
+      (witness ((0 Int)) (and (and (>= (+ y x) 0) false) (=> (not (>= n 0)) (and (>= (+ y x) 0) (not (>= (+ n y x) 0))))))
+      0
+    )
+)
+Which is false.
+
