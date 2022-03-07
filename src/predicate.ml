@@ -36,7 +36,7 @@ let is_const (op: string) (exp1: exp) (exp2: exp) =
 let add_terms spec (type_terms) (tl: term_list list) =
   List.iter (fun (ty, el) -> 
     let rec process e = begin match e with
-      | EVar (Var v) -> if List.mem (Var v) @@ List.map fst spec.state then [EVar (Var (v^"_l")); EVar (Var (v^"_r"))] else [EVar (Var v)]
+      | EVar (Var v) -> if List.mem (Var v) @@ List.map fst spec.state then [EVar (Var (v^"_l0")); EVar (Var (v^"_r0"))] else [EVar (Var v)]
       | EBop(b, el, er) -> let els = process el in let ers = process er in List.concat_map (fun el -> List.map (fun er -> EBop(b, el, er)) els) ers
       | EUop(u, e) -> List.map (fun e -> EUop(u, e)) @@ process e
       | ELop(lop, es) -> List.fold_right (fun e acc -> let es = process e in List.concat_map (fun e -> List.map (fun acce -> e::acce) acc) es) es [] |> List.map (fun es -> ELop(lop, es))

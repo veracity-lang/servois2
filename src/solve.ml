@@ -58,52 +58,70 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
          List.map (fun a -> a ^ new_postfix) datanames @
          List.mapi (fun i _ -> sp "result_%d" i ^ new_postfix) ret) in
     let err_state = has_err_state spec in
+    (*
     let m1args_binding = List.map (first string_of_var) m1.args in
     let m1args_name = List.map fst m1args_binding in
     let m2args_binding = List.map (first string_of_var) m2.args in
     let m2args_name = List.map fst m2args_binding in
-    
-    let vars_ref = ref "" in
-    let (^=) s1 s2 = s1 := !s1 ^ s2 in
-    
-    (* Make a variable for each argument *)
-    vars_ref ^= (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "");
-    
-    (* Make a variable for each state variable for each needed object *)
-    iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
-        spec.state ["_l"; "_r"; "_l1"; "_r2"; "_l12"; "_r21"];
-    (* TODO: What if result is in datanames? *)
-    
-    (* Make results for m1, then m2, for each of the times we call them in the diamond. *)
-    List.iteri (fun i ret ->
-        vars_ref ^= mk_var (sp "result_%d_l1" i) ret ^ mk_var (sp "result_%d_r21" i) ret
-        ) @@ List.map snd m1.ret;
-    List.iteri (fun i ret ->
-        vars_ref ^= mk_var (sp "result_%d_r2" i) ret ^ mk_var (sp "result_%d_l12" i) ret
-        ) @@ List.map snd m2.ret;
-    
-    let vars = !vars_ref in
+    *)
+    let vars = 
+        let vars_ref = ref "" in
+        let (^=) s1 s2 = s1 := !s1 ^ s2 in
+        
+        (* Make a variable for each argument *)
+        let all_args =
+            let typeless_args m = List.map (first string_of_var) m.args in
+            List.concat_map typeless_args ms @ List.concat_map typeless_args ns
+        in
+        vars_ref ^= (uncurry mk_var |> Fun.flip List.map all_args |> String.concat "");
+        
+        (* Make a variable for each state variable for each needed object *)
+        iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
+            spec.state @@ ["_l0"; "_r0"] @
+            List.mapi (fun i _ -> sp "_l%d" (i+1)) ms @
+            List.mapi (fun i _ -> sp "_r%d" (i+1)) ns;
+        (* TODO: What if result is in datanames? *)
+        
+        (* Make results for ms, then ns, for each of the times we call them. *)
+        Fun.flip List.iteri ms (fun i m ->
+            Fun.flip List.iteri (List.map snd m.ret) (fun j ret ->
+                vars_ref ^= mk_var (sp "result_%d_l%d" j (i+1)) ret
+            )
+        );
+        Fun.flip List.iteri ns (fun i n ->
+            Fun.flip List.iteri (List.map snd n.ret) (fun j ret ->
+                vars_ref ^= mk_var (sp "result_%d_r%d" j (i+1)) ret
+            )
+        );
+        !vars_ref
+    in
     
     (* Add in the assertions for pre-post relations. *)
-    let oper_xy x y (m : method_spec) args =
+    let oper_xy x y (m : method_spec) =
         let mname = m.name in
+        let args = List.map (compose string_of_var fst) m.args in
         sp "  (%s_pre_condition %s)\n  (%s_post_condition %s)"
             mname (pre_args_list x args) mname (post_args_list x y args m.ret)
     in
+    let final_l_postfix = sp "_l%d" @@ List.length ms in
+    let final_r_postfix = sp "_r%d" @@ List.length ns in
+    
     let oper = unlines @@
-        [ "(define-fun oper () Bool (and "
-        ; oper_xy "_l" "_l1" m1 m1args_name
+        [ "(define-fun oper () Bool (and " ] @
+        List.mapi (fun i m -> oper_xy ("_l" ^ string_of_int i) ("_l" ^ (string_of_int (i+1))) m) ms @
+        List.mapi (fun i n -> oper_xy ("_r" ^ string_of_int i) ("_r" ^ (string_of_int (i+1))) n) ns
+(*        ; oper_xy "_l" "_l1" m1 m1args_name
         ; oper_xy "_r2" "_r21" m1 m1args_name
         ; oper_xy "_r" "_r2" m2 m2args_name
         ; oper_xy "_l1" "_l12" m2 m2args_name
-        ] @
+        ] *) @
     (* Add in which end error states are allowed. *)
         begin if err_state
-        then "  (and (not err_l) (not err_r))" :: (* TODO: Not very elegant or robust? *)
+        then "  (and (not err_l0) (not err_r0))" :: (* TODO: Not very elegant or robust? *)
             [begin match !mode with
-            | Bowtie -> "  (or (not err_l12) (not err_r21))"
-            | LeftMover -> "  (not err_r21)"
-            | RightMover -> "  (not err_l12)"
+            | Bowtie -> sp "  (or (not err%s) (not err%s))" final_l_postfix final_r_postfix
+            | LeftMover -> sp "  (not err%s)" final_r_postfix
+            | RightMover -> sp "  (not err%s)" final_l_postfix
             end]
         else [] end @
         ["))"]
@@ -112,9 +130,9 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
     (* TODO: deterministic, complete? *)
     let bowtie = unlines @@
         [ "(define-fun bowtie () Bool (and" ] @ 
-        List.mapi (fun i _ -> sp "   (= result_%d_l1 result_%d_r21)" i i) m1.ret @
-        List.mapi (fun i _ -> sp "   (= result_%d_r2 result_%d_l12)" i i) m2.ret @
-        [ sp "   (states_equal %s %s)" (pre_args_list "_l12" []) (pre_args_list "_r21" [])
+        (* List.mapi (fun i _ -> sp "   (= result_%d_l1 result_%d_r21)" i i) m1.ret @
+        List.mapi (fun i _ -> sp "   (= result_%d_r2 result_%d_l12)" i i) m2.ret @ *)
+        [ sp "   (states_equal %s %s)" (pre_args_list final_l_postfix []) (pre_args_list final_r_postfix [])
         ; "))"
         ]
     in
@@ -139,8 +157,8 @@ let commute_hypothesis spec h = smt_of_conj @@ (add_conjunct smt_oper @@ add_con
 let non_commute spec h = EBop(Imp, commute_hypothesis spec h, EUop(Not, smt_bowtie))
 let commute spec h = EBop(Imp, commute_hypothesis spec h, smt_bowtie)
 
-let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
-  let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
+let solve (prover : (module Prover)) (spec : spec) (ms : method_spec list) (ns : method_spec list) (get_vals : exp list) (smt_exp : exp) : solve_result =
+  let s = string_of_smt_query spec ms ns get_vals smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
   run_prover prover s |> parse_prover_output prover

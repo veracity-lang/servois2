@@ -191,18 +191,7 @@ module RunTemp : Runner = struct
     let anons = List.rev (!anons) in
     match anons with
     | [] -> 
-        if !debug then begin
-            Printexc.record_backtrace true;
-            ignore @@ Parsing.set_trace true end
-            else ();
-        let spec = Counter_example.spec in
-        let m1_name = "increment" in
-        let m2_name = "decrement" in
-        let options = { Synth.default_synth_options with timeout = !timelimit } in
-        let phi, phi_tilde = Synth.synth ~options:options spec m1_name m2_name in
-        print_string (Phi.string_of_disj phi); print_newline ();
-        print_string (Phi.string_of_disj phi_tilde); print_newline();
-        epf "Last benches:\n%s\n" @@ Synth.string_of_benches !Synth.last_benchmarks
+        ()
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
