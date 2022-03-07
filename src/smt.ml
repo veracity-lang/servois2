@@ -12,7 +12,7 @@ exception SmtLexExceptionProto of int
 type var =
   | Var of string
   | VarPost of string
-  | VarM of bool * string (* bool represents whether it is the first/left method *)
+  | VarM of bool * string (* bool represents whether it is the first/left method *) (* TODO: may need more differentiation now that multiple methods can appear in l/r program *)
 
 type 'a binding = var * 'a
 type 'a bindlist = 'a binding list

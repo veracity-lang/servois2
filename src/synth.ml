@@ -70,12 +70,12 @@ let synth ?(options = default_synth_options) spec ms ns =
     and refine (h : conjunction) (p_set : pred list) : unit =
         let solve_inst = solve options.prover spec ms_specs ns_specs in
         let pred_smt = List.map smt_of_pred p_set in
-        begin match solve_inst pred_smt @@ commute spec h with
+        begin match solve_inst pred_smt @@ commute spec.precond h with
             | Unsat -> phi := add_disjunct h !phi
             | Unknown -> raise @@ Failure "commute failure"
             | Sat s -> 
             let com_cex = parse_pred_data s in
-            begin match solve_inst pred_smt @@ non_commute spec h with
+            begin match solve_inst pred_smt @@ non_commute spec.precond h with
                 | Unsat -> phi_tilde := add_disjunct h !phi_tilde
                 | Unknown -> raise @@ Failure "non_commute failure"
                 | Sat s ->

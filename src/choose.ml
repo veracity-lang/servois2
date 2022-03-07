@@ -44,11 +44,11 @@ let poke env : pred =
     let weight_fn p =
         let h'  = add_conjunct (atom_of_pred p) env.h in
         let h'' = add_conjunct (not_atom @@ atom_of_pred p) env.h in
-        let weight_fn_inner h_com h_ncom = match env.solver smt_diff_preds @@ commute env.spec h_com with
+        let weight_fn_inner h_com h_ncom = match env.solver smt_diff_preds @@ commute env.spec.precond h_com with
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
             | Sat s -> begin let com_cex = parse_pred_data s in
-                match env.solver smt_diff_preds @@ non_commute env.spec h_ncom with
+                match env.solver smt_diff_preds @@ non_commute env.spec.precond h_ncom with
                 | Unsat -> 0
                 | Unknown -> List.length smt_diff_preds
                 | Sat s -> begin let non_com_cex = parse_pred_data s in
@@ -73,15 +73,15 @@ let poke2 env : pred =
     let weight_fn p cov =
         let h'  = add_conjunct ((if cov then Fun.id else not_atom) @@ atom_of_pred p) env.h in
         let h'' = add_conjunct ((if cov then not_atom else Fun.id) @@ atom_of_pred p) env.h in
-        match env.solver smt_diff_preds @@ commute env.spec h' with
-        | Unsat -> begin match env.solver smt_diff_preds @@ non_commute env.spec h'' with
+        match env.solver smt_diff_preds @@ commute env.spec.precond h' with
+        | Unsat -> begin match env.solver smt_diff_preds @@ non_commute env.spec.precond h'' with
             | Unsat -> -1
             | Unknown -> List.length smt_diff_preds
             | Sat s -> 0
             end
         | Unknown -> List.length smt_diff_preds (* Memoize for efficiency? Use max_int? *)
         | Sat s -> begin let com_cex = parse_pred_data s in
-            match env.solver smt_diff_preds @@ non_commute env.spec h'' with
+            match env.solver smt_diff_preds @@ non_commute env.spec.precond h'' with
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
             | Sat s -> begin let non_com_cex = parse_pred_data s in

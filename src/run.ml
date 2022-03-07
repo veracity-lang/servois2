@@ -4,21 +4,46 @@ module type Runner = sig
   val run : unit -> unit (* Uses all of argv *)
 end
 
+module CommonOptions = struct
+  let debug = ref false
+  let quiet = ref false
+  let anons = ref []
+  let output_file = ref ""
+  let prover_name = ref ""
+  let anon_fun (v : string) = anons := v :: !anons
+  let common_speclist =
+    [ "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
+    ; "-d",      Arg.Set debug, " Short for --debug"
+    ; "-o",      Arg.Set_string output_file, "<file> File to output to. Default file is stdout"
+    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
+    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
+    ; "-q", Arg.Set quiet, " Short for --quiet"
+    ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
+    ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
+    ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
+    ; "-vv", Arg.Set Util.very_verbose, " Short for --very-verbose"
+    ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
+    ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
+    ]
+    
+  let get_prover () : (module Provers.Prover) =
+      match !prover_name |> String.lowercase_ascii with
+      | "cvc4" -> (module Provers.ProverCVC4)
+      | "cvc5" -> (module Provers.ProverCVC5)
+      | "z3"   -> (module Provers.ProverZ3)
+      | ""     -> (module Provers.ProverCVC4)
+      | "mathsat" -> (module Provers.ProverMathSAT)
+      | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
+
+end
 
 module RunParse : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " parse [<flags>] <YAML file>"
   
-  let debug = ref false
-
+  open CommonOptions
+  
   let just_yaml = ref false
-
-  let anons = ref []
-
-  let anon_fun (v : string) =
-    anons := v :: !anons
-
-  let output_file = ref ""
 
   let speclist =
     [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
@@ -68,36 +93,15 @@ module RunSynth : Runner = struct
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> m1;m2;m3:n1;n2;n3;etc"
   
-  let debug = ref false
-  let quiet = ref false
+  open CommonOptions
+  
   let timeout = ref None
-
-  let anons = ref []
-
-  let anon_fun (v : string) =
-    anons := v :: !anons
-
-  let output_file = ref ""
-
-  let prover_name = ref ""
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
-    ; "-o",      Arg.Set_string output_file, "<file> Output generated condition to file. Default file is stdout"
-    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
-    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "-d",      Arg.Set debug, " Short for --debug"
-    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
-    ; "-q", Arg.Set quiet, " Short for --quiet"
-    ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
-    ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
-    ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
-    ; "-vv", Arg.Set Util.very_verbose, " Short for --very-verbose"
-    ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
-    ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
-    ] |>
+    ] @ common_speclist |>
     Arg.align
 
   let synth yaml method_list =
@@ -125,7 +129,7 @@ module RunSynth : Runner = struct
 
     let phi_comm, phi_noncomm =
       let synth_options = {
-          Synth.default_synth_options with prover = prover;
+          Synth.default_synth_options with prover = get_prover ();
           timeout = !timeout
           } in
       Synth.synth ~options:synth_options spec ms ns 
@@ -160,29 +164,89 @@ module RunSynth : Runner = struct
     | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
+module RunVerify : Runner = struct
+    let usage_msg = sp "Usage: %s verify <yaml file> <method 1> <method 2> <condition> [flags]"
+    
+    open CommonOptions
+    
+    let ncom = ref false
+    let complete = ref false
+    
+    let speclist = 
+      [ "--ncom", Arg.Set ncom, " Verify non-commutativity condition instead of commutativity condition."
+      ; "--complete", Arg.Set complete, " Also verify completeness."
+      ] @ common_speclist |> Arg.align
+    
+    let verify yaml method_list cond =
+        let open Solve in
+        let open Spec in
+        
+        let spec =
+          Yaml_util.yaml_of_file yaml |>
+          spec_of_yaml |>
+          lift
+        in
+        
+        let cond_smt = Smt_parsing.exp_of_string cond in
+        let implication_function, neg_implication_function = if !ncom
+            then (non_commute_of_smt, commute_of_smt)
+            else (commute_of_smt, non_commute_of_smt)
+        in
+        
+        let ms_names :: ns_names :: [] = String.split_on_char ':' method_list |> List.map (String.split_on_char ';') in
+        let ms, ns = List.map (compose (mangle_method_vars true) (get_method spec)) ms_names, List.map (compose (mangle_method_vars false) (get_method spec)) ns_names in
+        
+        let valid = match solve (get_prover ()) spec ms ns [] (implication_function (ELop(And, [spec.precond; cond_smt]))) with
+            | Unsat -> "true"
+            | Unknown -> "unknown"
+            | Sat _ -> "false"
+        in
+        
+        let out_1 = if !quiet
+            then valid ^ "\n"
+            else sp "Valid: %s\n" valid
+        in
+        
+        let out = if !complete
+            then out_1 ^ begin
+              let compl = match solve (get_prover ()) spec ms ns [] (neg_implication_function (ELop(And, [spec.precond; EUop(Not, cond_smt)]))) with
+                | Unsat -> "true"
+                | Unknown -> "unknown"
+                | Sat _ -> "false"
+              in if !quiet then compl ^ "\n" else sp "Complete: %s\n" compl
+            end
+            else out_1
+        in
+        
+        begin if !output_file = ""
+        then print_string out
+        else
+          let out_chan = open_out !output_file in
+          output_string out_chan out;
+          close_out out_chan
+        end
+    
+    let run () =
+      Arg.current := 1;
+      Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+      let anons = List.rev (!anons) in
+      match anons with
+      | [prog; method_list; cond] -> verify prog method_list cond
+      | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
+end
+
 module RunTemp : Runner = struct
 
   let usage_msg exe_name =
     "Usage: " ^ exe_name ^ " temp [<flags>]\n    Synths commutativity conditions for OCaml representation of an object."
   
-  let debug = ref false
+  open CommonOptions
+  
   let timelimit = ref None
   
-  let anons = ref []
-  let anon_fun (v : string) =
-    anons := v :: !anons
-
   let speclist =
-    [ "-d",      Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
-    ; "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use the poke heuristic"
-    ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use the poke2 heuristic"
-    ; "--verbose", Arg.Set (Util.verbosity), " Verbose!"
-    ; "-v", Arg.Set (Util.verbosity), " --verbose" 
-    ; "--very-verbose", Arg.Set (Util.very_verbose), " Very verbose!"
-    ; "-vv", Arg.Set (Util.very_verbose), " --very-verbose" 
-    ; "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
-    ] |>
+    [ "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
+    ] @ common_speclist |>
     Arg.align
 
   let run () =
@@ -199,18 +263,21 @@ end
 type command =
   | CmdHelp (* Show help info *)
   | CmdSynth (* Synthesize phi *)
+  | CmdVerify (* Verify validity of commutativity condition *)
   | CmdParse (* Parse YAML *)
   | CmdTemp
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdSynth
+  ; "verify",   CmdVerify
   ; "parse",    CmdParse
   ; "temp",     CmdTemp
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdSynth,    (module RunSynth)
+  ; CmdVerify,   (module RunVerify)
   ; CmdParse,  (module RunParse)
   ; CmdTemp,   (module RunTemp)
   ]
@@ -220,6 +287,7 @@ let display_help_message exe_name =
     "Commands:\n" ^
     "  help        Display this message\n" ^
     "  synth       Run inference\n" ^
+    "  verify      Verify commutativity condition\n" ^
     "  parse       Parse yaml\n" ^
     "  temp        Do whatever the particular test implemented is\n"
   in Printf.eprintf "Usage: %s <command> [<flags>] [<args>]\n%s" exe_name details
