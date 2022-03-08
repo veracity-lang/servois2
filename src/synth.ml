@@ -67,15 +67,9 @@ let synth ?(options = default_synth_options) spec m n =
         begin match solve_inst pred_smt @@ commute spec h with
             | Unsat -> phi := add_disjunct h !phi
             | Unknown -> raise @@ Failure "commute failure"
-<<<<<<< HEAD
             | Sat vs -> 
             let com_cex = pred_data_of_values vs in
-            begin match solve_inst pred_smt @@ non_commute (spec.precond) h with
-=======
-            | Sat s -> 
-            let com_cex = parse_pred_data s in
             begin match solve_inst pred_smt @@ non_commute spec h with
->>>>>>> main
                 | Unsat -> phi_tilde := add_disjunct h !phi_tilde
                 | Unknown -> raise @@ Failure "non_commute failure"
                 | Sat vs ->
