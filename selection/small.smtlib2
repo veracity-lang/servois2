@@ -1,0 +1,36 @@
+(set-logic ALL)
+(declare-fun err () Bool)
+(declare-fun err1 () Bool)
+(declare-fun err2 () Bool)
+(declare-fun err12 () Bool)
+(declare-fun err21 () Bool)
+(declare-fun contents () Int)
+(declare-fun contents1 () Int)
+(declare-fun contents2 () Int)
+(declare-fun contents12 () Int)
+(declare-fun contents21 () Int)
+(declare-fun result_0_1 () Bool)
+(declare-fun result_0_21 () Bool)
+(declare-fun result_0_2 () Bool)
+(declare-fun result_0_12 () Bool)
+
+;(assert (>= contents 0))
+; increment;decrement
+(assert (= contents1 (+ contents 1)))
+(assert (= contents12 
+    (ite (> contents1 0) 
+         (- contents1 1)
+         (- 5))))
+; decrement;increment
+(assert (= contents2 
+    (ite (> contents 0) 
+         (- contents 1)
+         (- 5))))
+(assert (= contents21 (+ contents2 1)))
+
+(assert (not (=>
+   (> contents 0) 
+   (= contents12 contents21)
+)))
+(check-sat)
+;(get-model)

@@ -1,0 +1,28 @@
+(set-logic ALL)
+(declare-fun err () Bool)
+(declare-fun err1 () Bool)
+(declare-fun err2 () Bool)
+(declare-fun err12 () Bool)
+(declare-fun err21 () Bool)
+(declare-fun contents () Int)
+(declare-fun contents1 () Int)
+(declare-fun contents2 () Int)
+(declare-fun contents12 () Int)
+(declare-fun contents21 () Int)
+(declare-fun result_0_1 () Bool)
+(declare-fun result_0_21 () Bool)
+(declare-fun result_0_2 () Bool)
+(declare-fun result_0_12 () Bool)
+(assert (not (=> (and (and
+  true
+  (or (and err err1) (and (not err) (not err1) (>= contents 0) (and (= contents1 (+ contents 1)) (= result_0_1 true))) (and (not err) err1 (not (>= contents 0))))
+  true
+  (or (and err2 err21) (and (not err2) (not err21) (>= contents2 0) (and (= contents21 (+ contents2 1)) (= result_0_21 true))) (and (not err2) err21 (not (>= contents2 0))))
+  true
+  (or (and err err2) (and (not err) (not err2) (>= contents 1) (and (= contents2 (- contents 1)) (= result_0_2 true))) (and (not err) err2 (not (>= contents 1))))
+  true
+  (or (and err1 err12) (and (not err1) (not err12) (>= contents1 1) (and (= contents12 (- contents1 1)) (= result_0_12 true))) (and (not err1) err12 (not (>= contents1 1)))) (or (not err12) (not err21))) (= contents 0)) (and
+   (= result_0_1 result_0_21)
+   (= result_0_2 result_0_12)
+  (or (and err12 err21) (and (not err12) (not err21) (= contents12 contents21)))))))
+  (check-sat)

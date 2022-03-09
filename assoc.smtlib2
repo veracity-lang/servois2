@@ -1,0 +1,156 @@
+(set-logic ALL_SUPPORTED)
+;; BEGIN: smt_of_spec counter
+
+
+(define-fun states_equal
+  ( (err Bool)
+    (contents Int)
+    (err_new Bool)
+    (contents_new Int) )
+  Bool
+  (or (and err err_new) 
+      (and (not err) (not err_new) 
+      (= contents contents_new)))
+)
+
+
+
+;; END: smt_of_spec counter
+(declare-fun err () Bool)
+(declare-fun err1 () Bool)
+(declare-fun err2 () Bool)
+(declare-fun err12 () Bool)
+(declare-fun err21 () Bool)
+(declare-fun contents () Int)
+(declare-fun contents1 () Int)
+(declare-fun contents2 () Int)
+(declare-fun contents12 () Int)
+(declare-fun contents21 () Int)
+(declare-fun result_0_1 () Bool)
+(declare-fun result_0_21 () Bool)
+(declare-fun result_0_2 () Bool)
+(declare-fun result_0_12 () Bool)
+
+(declare-fun xxx () Int)
+(declare-fun yyy () Int)
+(declare-fun tmpL0 () Int)
+(declare-fun tmpR0 () Int)
+(declare-fun tmpL1 () Int)
+(declare-fun tmpR1 () Int)
+(declare-fun tmpL2 () Int)
+(declare-fun tmpR2 () Int)
+(declare-fun tmpL12 () Int)
+(declare-fun tmpR12 () Int)
+(declare-fun tmpL21 () Int)
+(declare-fun tmpR21 () Int)
+
+; subtraction only associative when subtracting 0
+;   (c - x) - y != c - (x - y)       Example: c=10, x=5, y=2.  3 !=  7
+; define this as:
+;   tmpL = (c-x)          sub1L
+;   tmp2 = tmpL - y       \ sub2L
+;   counter_new = tmp2    /
+
+;   tmpR = (x-y)          sub2R
+;   tmp4 = c - tmpR       \ sub1R
+;   counter_new = tmp4    /
+
+
+; states_equal = (counter_1 = counter_2)
+
+(define-fun sub1L_post_condition
+  ( (err Bool) (contents Int)  (tmpL Int) (tmpR Int)
+    (err_new Bool) (contents_new Int) (tmpL_new Int) (tmpR_new Int) 
+    (result Bool) )
+  Bool
+  (or (and err err_new) 
+      (and (not err) (not err_new)
+           (= tmpL_new (- contents xxx))
+           (= tmpR tmpR_new)
+           (= result true)
+           (= contents_new contents)
+      )
+  )
+)
+
+(define-fun sub2L_post_condition
+  ( (err Bool) (contents Int) (tmpL Int) (tmpR Int) 
+    (err_new Bool) (contents_new Int) (tmpL_new Int) (tmpR_new Int) 
+    (result Bool) )
+  Bool
+  (or (and err err_new) 
+      (and (not err) (not err_new)
+           (= tmpL tmpL_new)
+           (= tmpR tmpR_new)
+           (= result true)
+           (= contents_new (- tmpL yyy)) ;   counter_new = tmp2
+      )
+  )
+)
+
+
+;   tmpR = (x-y)          sub1R
+;   tmp4 = c - tmpR       \ sub1R
+;   counter_new = tmp4    /
+(define-fun sub1R_post_condition
+  ( (err Bool) (contents Int) (tmpL Int) (tmpR Int)
+    (err_new Bool) (contents_new Int) (tmpL_new Int) (tmpR_new Int) 
+    (result Bool) )
+  Bool
+  (or (and err err_new) 
+      (and (not err) (not err_new)
+           (= tmpL tmpL_new)
+           (= tmpR_new (- xxx yyy)) ;   tmpR = (x-y)  
+           (= result true)
+           (= contents_new contents)
+      )
+  )
+)
+
+(define-fun sub2R_post_condition
+  ( (err Bool) (contents Int) (tmpL Int) (tmpR Int) 
+    (err_new Bool) (contents_new Int) (tmpL_new Int) (tmpR_new Int) 
+    (result Bool) )
+  Bool
+  (or (and err err_new) 
+      (and (not err) (not err_new)
+           (= tmpL tmpL_new)
+           (= tmpR tmpR_new)
+           (= result true)
+           (= contents_new (- contents tmpR)) ;   counter_new = c - tmpR
+      )
+  )
+)
+
+
+
+(define-fun oper () Bool (and 
+  (sub1L_post_condition err  contents  tmpL0 tmpR0 err1  contents1  tmpL1  tmpR1  result_0_1)
+  (sub2L_post_condition err1 contents1 tmpL1 tmpR1 err12 contents12 tmpL12 tmpR12 result_0_12)
+
+  (sub1R_post_condition err  contents  tmpL0 tmpR0 err2  contents2  tmpL2  tmpR2  result_0_2)
+  (sub2R_post_condition err2 contents2 tmpL2 tmpR2 err21 contents21 tmpL21 tmpR21 result_0_21)
+;  (or (not err12) (not err21))
+))
+
+(define-fun bowtie () Bool (and
+   ;(= result_0_21 result_0_12)
+   (states_equal err12 contents12 err21 contents21)
+))
+
+
+;(assert false)
+(assert (not (=> (and oper 
+; INVALID associativity conditions:
+;                      (= xxx 0) 
+;                      (= xxx yyy)   ; model: x=1, y=1
+
+; VALID associativity conditions:
+;                      (= xxx 0) (= yyy 0) (= contents 0) 
+                      (= xxx 0) (= yyy 0) 
+
+
+
+                      ) bowtie)))
+(check-sat)
+(get-model)
