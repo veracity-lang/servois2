@@ -42,7 +42,7 @@ let add_terms spec (type_terms) (tl: term_list list) =
       | ELop(lop, es) -> List.fold_right (fun e acc -> let es = process e in List.concat_map (fun e -> List.map (fun acce -> e::acce) acc) es) es [] |> List.map (fun es -> ELop(lop, es))
       | ELet(binds, e) -> List.map (fun e -> ELet(binds, e)) @@ process e (* TODO: Scope? *)
       | EITE(i, t, e) -> let is = process i in let ts = process t in let es = process e in List.concat_map (fun i -> List.concat_map (fun t -> List.map (fun e -> EITE(i, t, e)) es) ts) is
-      (*| EFunc(s, es) -> EFunc(s, List.map (make_recursive f) es)*) (* TODO: Similar to ELop case *)
+      | EFunc(s, es) -> List.fold_right (fun e acc -> let es = process e in List.concat_map (fun e -> List.map (fun acce -> e::acce) acc) es) es [] |> List.map (fun es -> EFunc(s, es))
       | x -> [x] end in
     let el' = List.concat_map process el in
     match Hashtbl.find_opt type_terms ty with 
