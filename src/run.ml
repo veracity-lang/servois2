@@ -165,26 +165,24 @@ module RunVerify : Runner = struct
       ; "--complete", Arg.Set complete, " Also verify completeness."
       ] @ common_speclist |> Arg.align
     
-    let verify yaml m1 m2 cond =
-        let open Solve in
-        let open Spec in
+    let run_verify yaml m1 m2 cond =
         
         let spec =
           Yaml_util.yaml_of_file yaml |>
-          spec_of_yaml |>
-          lift
+          Spec.spec_of_yaml
         in
         
         let cond_smt = Smt_parsing.exp_of_string cond in
-        let implication_function, neg_implication_function = if !ncom
-            then (non_commute_of_smt, commute_of_smt)
-            else (commute_of_smt, non_commute_of_smt)
+        
+        let string_of_bool_option = function
+            | Some true -> "true"
+            | Some false -> "false"
+            | _ -> "unknown"
         in
         
-        let valid = match solve (get_prover ()) spec (get_method spec m1 |> mangle_method_vars true) (get_method spec m2 |> mangle_method_vars false) [] (implication_function (ELop(And, [spec.precond; cond_smt]))) with
-            | Unsat -> "true"
-            | Unknown -> "unknown"
-            | Sat _ -> "false"
+        let valid = let verify_options = {
+          Verify.default_verify_options with prover = get_prover ()
+          } in Verify.verify ~options:verify_options spec m1 m2 cond_smt |> string_of_bool_option
         in
         
         let out_1 = if !quiet
@@ -194,10 +192,9 @@ module RunVerify : Runner = struct
         
         let out = if !complete
             then out_1 ^ begin
-              let compl = match solve (get_prover ()) spec (get_method spec m1 |> mangle_method_vars true) (get_method spec m2 |> mangle_method_vars false) [] (neg_implication_function (ELop(And, [spec.precond; EUop(Not, cond_smt)]))) with
-                | Unsat -> "true"
-                | Unknown -> "unknown"
-                | Sat _ -> "false"
+              let compl = let verify_options = {
+                  Verify.default_verify_options with prover = get_prover (); ncom = true
+                  } in Verify.verify ~options:verify_options spec m1 m2 (EUop(Not, cond_smt)) |> string_of_bool_option
               in if !quiet then compl ^ "\n" else sp "Complete: %s\n" compl
             end
             else out_1
@@ -216,7 +213,7 @@ module RunVerify : Runner = struct
       Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
       let anons = List.rev (!anons) in
       match anons with
-      | [prog; m1; m2; cond] -> verify prog m1 m2 cond
+      | [prog; m1; m2; cond] -> run_verify prog m1 m2 cond
       | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
