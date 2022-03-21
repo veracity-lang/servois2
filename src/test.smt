@@ -91,8 +91,7 @@
 
 (define-fun beta_coherence ((beta (Set E)) (H_l (Array E F)) (H_r (Array E F))) Bool 
     (forall ((e E)) 
-        (ite (member e beta) 
-            true
+        (=> (not (member e beta))
             (= (select H_l e) (select H_r e))
         )
     )
@@ -108,9 +107,10 @@
         (= rd_param_l0 rd_param_r0)
         ;; (= rd_return_l0 rd_return_r0)
         (not (member rd_param_l0 beta_pre))
-        (beta_coherence beta_pre H_l0 H_r0)
+        ;; (beta_coherence beta_pre H_l0 H_r0)
     )
 )
 
 (assert (not (=> (and oper precondition) postcondition_inst)))
 (check-sat)
+(get-model)
