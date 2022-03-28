@@ -47,7 +47,7 @@
     (rd_return_new F)
     (result F) )
   Bool
-  (or (and err err_new) (and (not err) (not err_new) (member rd_param keys) (and (= keys_new keys) (= H_new H) (= size_new size) (= (select H rd_param) result) (= result rd_return))) (and (not err) err_new (not (member rd_param keys))))
+  (or (and err err_new) (and (not err) (not err_new) (set.member rd_param keys) (and (= keys_new keys) (= H_new H) (= size_new size) (= (select H rd_param) result) (= result rd_return))) (and (not err) err_new (not (set.member rd_param keys))))
 )
 
 ;; END: smt_of_spec HashTable
@@ -91,7 +91,7 @@
 
 (define-fun beta_coherence ((beta (Set E)) (H_l (Array E F)) (H_r (Array E F))) Bool 
     (forall ((e E)) 
-        (=> (not (member e beta))
+        (=> (not (set.member e beta))
             (= (select H_l e) (select H_r e))
         )
     )
@@ -105,9 +105,9 @@
 (define-fun precondition () Bool 
     (and 
         (= rd_param_l0 rd_param_r0)
-        ;; (= rd_return_l0 rd_return_r0)
-        (not (member rd_param_l0 beta_pre))
-        ;; (beta_coherence beta_pre H_l0 H_r0)
+        (= rd_return_l0 rd_return_r0)
+        (not (set.member rd_param_l0 beta_pre))
+        ;; (beta_coherence beta_pre H_l0 H_r0) ;; Uncommenting this turns it to unknown
     )
 )
 
