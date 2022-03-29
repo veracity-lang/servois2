@@ -24,12 +24,14 @@
 %start <ty> ty_top
 %start <exp> exp_top
 %start <(exp * exp) list> values_top
+%start <unit> eof_top
 
 %%
 
-exp_top: e=exp EOF { e }
-ty_top:  t=ty EOF  { t }
+exp_top: e=exp { e }
+ty_top:  t=ty { t }
 values_top: LP l=list(value_pair) RP { l }
+eof_top: EOF { () }
 
 value_pair: LP e1=exp e2=exp RP { (e1, e2) }
 
