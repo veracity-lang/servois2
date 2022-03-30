@@ -155,7 +155,8 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
         ; generate_bowtie spec m1 m2] @
         List.concat_map (fun p -> let e = smt_of_pred p in
             [query e; query (EUop(Not, e))]) preds in
-    
+            
+    pfvv "\n%s\n" full_input;
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
