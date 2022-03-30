@@ -29,7 +29,7 @@ module type Prover = sig
 end
 
 let default_parse_output = function
-    | "sat" :: models -> Sat (values_of_string @@ String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *)
+    | "sat" :: models -> if null models then Sat [] else Sat (values_of_string @@ String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *)
     | "unsat" :: _ -> Unsat
     | "unknown" :: _ -> Unknown
     | out -> raise @@ SolverFailure (String.concat "" out)
