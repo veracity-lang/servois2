@@ -145,6 +145,13 @@ let find_exec (name : string) (progs : string list) : string =
       String.concat ", " progs;
     exit 1
 
+let waitpid_poll ?(interval=0.01) pid = 
+  let ret = ref 0 in
+  while (!ret = 0) do
+    ret := fst @@ Unix.waitpid [Unix.WNOHANG] pid;
+    if !ret = 0 then Unix.sleepf interval
+  done
+  
 
 let run_exec (prog : string) (args : string array) (output : string) =
   let chan_out, chan_in, chan_err =
@@ -156,7 +163,7 @@ let run_exec (prog : string) (args : string array) (output : string) =
           raise Timeout)
       );
   output_string chan_in output; flush chan_in; close_out chan_in;
-  let _ = Unix.waitpid [] (-1) in
+  let _ = waitpid_poll pid in
   let sout = read_all_in chan_out in
   let serr = read_all_in chan_err in
   sout, serr
