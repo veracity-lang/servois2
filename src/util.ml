@@ -3,6 +3,7 @@
 exception UnreachableFailure of string
 exception NotImplemented of string
 exception BadInputFormat of string
+exception Timeout
 
 (*** Utility functions ***)
 
@@ -148,6 +149,12 @@ let find_exec (name : string) (progs : string list) : string =
 let run_exec (prog : string) (args : string array) (output : string) =
   let chan_out, chan_in, chan_err =
     Unix.open_process_args_full prog args [||] in
+  let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
+  Sys.set_signal Sys.sigalrm (
+      Sys.Signal_handle (fun _ ->
+          Unix.kill pid Sys.sigkill;
+          raise Timeout)
+      );
   output_string chan_in output; flush chan_in; close_out chan_in;
   let _ = Unix.waitpid [] (-1) in
   let sout = read_all_in chan_out in
@@ -288,7 +295,6 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
    Pre-emptive runtime bound on a function, modified from:
    https://discuss.ocaml.org/t/todays-trick-memory-limits-with-gc-alarms/4431/2
 *)
-exception Timeout of float
 
 let run_with_time_limit limit f =
   (* create a Unix timer timer *)
@@ -298,7 +304,7 @@ let run_with_time_limit limit f =
   let () =
     Sys.set_signal Sys.sigalrm (
       Sys.Signal_handle (fun _ ->
-          raise (Timeout limit))
+          raise Timeout)
       ) in
   Fun.protect f ~finally:(fun () ->
     Fun.const () @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }

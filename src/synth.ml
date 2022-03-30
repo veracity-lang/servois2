@@ -83,7 +83,7 @@ let synth ?(options = default_synth_options) spec m n =
     
     begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
         refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)
-        ) with Timeout f -> pfv "Time limit of %.6fs exceeded.\n" f; answer_incomplete := true
+        ) with Timeout -> pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); answer_incomplete := true
     end;
     
     if !answer_incomplete then pfv "Warning: Answer incomplete.\n";

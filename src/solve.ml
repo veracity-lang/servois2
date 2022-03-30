@@ -144,6 +144,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
+  flush stdout;
   run_prover prover s |> parse_prover_output prover
 
 let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) =
@@ -157,6 +158,7 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
             [query e; query (EUop(Not, e))]) preds in
             
     pfvv "\n%s\n" full_input;
+    flush stdout;
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
