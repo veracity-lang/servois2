@@ -53,6 +53,11 @@ type func =
   | Select of ty
   | Store of ty * ty
 
+type bindop =
+  | Let
+  | Exists
+  | Forall
+
 type exp =
   | EVar of var
   | EArg of int
@@ -60,7 +65,9 @@ type exp =
   | EBop of bop * exp * exp
   | EUop of uop * exp
   | ELop of lop * exp list
+  (* TODO: Make the following two cases just this: | EBinding of bindop * exp bindlist * exp *)
   | ELet of exp bindlist * exp
+  | EExists of ty bindlist * exp
   | EITE of exp * exp * exp
   | EFunc of string * exp list
 
@@ -72,6 +79,7 @@ let rec make_recursive (f : exp -> exp) (* f only needs to work on EVar, EArg, E
   | EUop(u, e) -> EUop(u, make_recursive f e)
   | ELop(lop, es) -> ELop(lop, List.map (make_recursive f) es)
   | ELet(binds, e) -> ELet(binds, make_recursive f e)
+  | EExists(binds, e) -> EExists(binds, make_recursive f e)
   | EITE(i, t, e) -> EITE(make_recursive f i, make_recursive f t, make_recursive f e)
   | EFunc(s, es) -> EFunc(s, List.map (make_recursive f) es)
 
@@ -150,6 +158,7 @@ module To_String = struct
     | ELop (o, [])     -> sp "(%s %s)" (lop o) (lop_id o)
     | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
     | ELet (bl, e)     -> sp "(let (%s) %s)" (list exp_binding bl) (exp e)
+    | EExists (bl, e)     -> sp "(exists (%s) %s)" (list ty_binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
     | EFunc (f, el)    -> sp "(%s %s)" f (list exp el)
 end
@@ -208,6 +217,8 @@ module Smt_ToMLString = struct
     | ELop (o, el)     -> "ELop " ^ ToMLString.pair lop (ToMLString.list exp) (o,el)
     | ELet (bl, e)     -> "ELet " ^
       ToMLString.pair (ToMLString.list (ToMLString.pair var exp)) exp (bl,e)
+    | EExists (bl, e)     -> "EExists " ^
+      ToMLString.pair (ToMLString.list (ToMLString.pair var ty)) exp (bl,e)
     | EITE (g, e1, e2) -> "EITE " ^ ToMLString.triple exp exp exp (g,e1,e2)
     | EFunc (f, el)    -> "EFunc " ^
       ToMLString.pair ToMLString.str (ToMLString.list exp) (f,el)
