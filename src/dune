@@ -3,7 +3,7 @@
  (public_name servois2)
  (libraries unix str yaml)
  (modules (:standard \ run))
- (wrapped (transition "Unqualified module name."))
+ (wrapped true)
  (synopsis "Servois"))
 
 (ocamllex smt_lexer)
