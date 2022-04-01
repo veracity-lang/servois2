@@ -145,25 +145,11 @@ let find_exec (name : string) (progs : string list) : string =
       String.concat ", " progs;
     exit 1
 
-let waitpid_poll ?(interval=0.01) pid = 
-  let ret = ref 0 in
-  while (!ret = 0) do
-    ret := fst @@ Unix.waitpid [Unix.WNOHANG] pid;
-    if !ret = 0 then Unix.sleepf interval
-  done
-  
-
 let run_exec (prog : string) (args : string array) (output : string) =
   let chan_out, chan_in, chan_err =
     Unix.open_process_args_full prog args [||] in
-  let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
-  Sys.set_signal Sys.sigalrm (
-      Sys.Signal_handle (fun _ ->
-          Unix.kill pid Sys.sigkill;
-          raise Timeout)
-      );
   output_string chan_in output; flush chan_in; close_out chan_in;
-  let _ = waitpid_poll pid in
+  let _ = Unix.waitpid [] (-1) in
   let sout = read_all_in chan_out in
   let serr = read_all_in chan_err in
   sout, serr
@@ -303,16 +289,13 @@ let loc_of_parse_error (buf : Lexing.lexbuf) =
    https://discuss.ocaml.org/t/todays-trick-memory-limits-with-gc-alarms/4431/2
 *)
 
-let run_with_time_limit limit f =
-  (* create a Unix timer timer *)
-  let _ = Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = limit; it_interval = 0.000001 } in
-  (* The Unix.timer works by sending a Sys.sigalrm, so in order to use it,
-     we catch it and raise the Out_of_time exception. *)
-  let () =
-    Sys.set_signal Sys.sigalrm (
-      Sys.Signal_handle (fun _ ->
-          raise Timeout)
-      ) in
+let () = Sys.set_signal Sys.sigalrm (
+  Sys.Signal_handle (fun _ ->
+      raise Timeout)
+  )
+
+let run_with_time_limit (limit : float) f =
+  let _ = Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = limit; it_interval = 0. } in
   Fun.protect f ~finally:(fun () ->
-    Fun.const () @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }
+    ignore @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }
   )

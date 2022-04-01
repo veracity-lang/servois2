@@ -135,10 +135,10 @@ let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
 let commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), smt_bowtie)
-let commute spec h = smt_of_conj (add_conjunct smt_oper @@ add_conjunct spec.precond h) |> commute_of_smt
+let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt
 
 let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
-let non_commute spec h = smt_of_conj (add_conjunct smt_oper @@ add_conjunct spec.precond h) |> non_commute_of_smt
+let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
