@@ -165,7 +165,7 @@ let run_exec (prog : string) (args : string array) (output : string) =
           raise Timeout)
       );
   output_string chan_in output; flush chan_in; close_out chan_in;
-  let _ = waitpid_poll (-1) in
+  let _ = waitpid_poll pid in
   set_timeout_handler ();
   let sout = read_all_in chan_out in
   let serr = read_all_in chan_err in
