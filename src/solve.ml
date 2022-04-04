@@ -124,6 +124,9 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
             | RightMover -> sp "  (not err%s)" final_l_postfix
             end]
         else [] end @
+        ["(beta_coherence beta_pre H_l0 H_r0)"
+        ;"(= beta_pre beta_post)"
+        ;"(= err_l0 err_r0)"] @ (* TODO: Hack *)
         ["))"]
     in
     
@@ -183,4 +186,5 @@ let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) 
     if List.length out != 2*List.length preds
     then failwith "filter_predicates";
     
-    List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds
+    let res = List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds in
+    seq (pfv "Filtered preds: %s\n" @@ ToMLString.list (string_of_pred) res) res

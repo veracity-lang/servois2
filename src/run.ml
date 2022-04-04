@@ -115,16 +115,6 @@ module RunSynth : Runner = struct
       Spec.spec_of_yaml
     in
 
-    let prover : (module Provers.Prover) =
-      match !prover_name |> String.lowercase_ascii with
-      | "cvc4" -> (module Provers.ProverCVC4)
-      | "cvc5" -> (module Provers.ProverCVC5)
-      | "z3"   -> (module Provers.ProverZ3)
-      | ""     -> (module Provers.ProverCVC4)
-      | "mathsat" -> (module Provers.ProverMathSAT)
-      | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
-    in
-    
     let ms :: ns :: [] = String.split_on_char ':' method_list |> List.map (String.split_on_char ';') in
 
     let phi_comm, phi_noncomm =
