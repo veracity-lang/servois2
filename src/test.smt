@@ -18,7 +18,9 @@
     (rd_param_new E)
     (rd_return_new F) )
   Bool
-  (or (and err err_new) (and (not err) (not err_new) (and (= rd_param rd_param_new) (= rd_return rd_return_new))))
+  (or (and err err_new) (and (not err) (not err_new) 
+    (and (= rd_param rd_param_new) (= rd_return rd_return_new) (select keys rd_param))
+  ))
 )
 
 (define-fun get_pre_condition
@@ -47,7 +49,7 @@
     (rd_return_new F)
     (result F) )
   Bool
-  (or (and err err_new) (and (not err) (not err_new) (set.member rd_param keys) (and (= keys_new keys) (= H_new H) (= size_new size) (= (select H rd_param) result) (= result rd_return))) (and (not err) err_new (not (set.member rd_param keys))))
+  (or (and err err_new) (and (not err) (not err_new) (select keys rd_param) (and (= keys_new keys) (= H_new H) (= size_new size) (= (select H rd_param) result) (= result rd_return))) (and (not err) err_new (not (select keys rd_param))))
 )
 
 ;; END: smt_of_spec HashTable
@@ -68,7 +70,6 @@
 (declare-fun size_l1 () Int)
 (declare-fun size_r1 () Int)
 (declare-fun beta_pre () (Set E))
-(declare-fun beta_post () (Set E))
 (declare-fun rd_param_l0 () E)
 (declare-fun rd_param_r0 () E)
 (declare-fun rd_param_l1 () E)
@@ -89,9 +90,10 @@
   (or (not err_l1) (not err_r1))
 ))
 
-(define-fun beta_coherence ((beta (Set E)) (H_l (Array E F)) (H_r (Array E F))) Bool 
-    (forall ((e E)) 
-        (=> (not (set.member e beta))
+(define-fun beta_coherence ((beta (Set E)) (H_l (Array E F)) (mems_l (Set E)) (H_r (Array E F)) (mems_r (Set E))) Bool 
+    (forall ((e E))
+        (=> 
+            (not (select beta e))
             (= (select H_l e) (select H_r e))
         )
     )
@@ -99,18 +101,29 @@
 
 (define-fun postcondition_inst () Bool (and
    (postcondition err_l1 keys_l1 H_l1 size_l1 rd_param_l1 rd_return_l1 err_r1 keys_r1 H_r1 size_r1 rd_param_r1 rd_return_r1)
-   (beta_coherence beta_post H_l1 H_r1)
+   ;; (beta_coherence beta_post H_l1 H_r1)
 ))
 
 (define-fun precondition () Bool 
     (and 
         (= rd_param_l0 rd_param_r0)
         (= rd_return_l0 rd_return_r0)
-        (not (set.member rd_param_l0 beta_pre))
-        ;; (beta_coherence beta_pre H_l0 H_r0) ;; Uncommenting this turns it to unknown
+        (not (select beta_pre rd_param_l0))
+        (beta_coherence beta_pre H_l0 keys_l0 H_r0 keys_r0) ;; Uncommenting this turns it to unknown
+        ;; (exists ((e E)) (and (select beta_pre e) (select keys_l0 e)))
     )
 )
 
 (assert (not (=> (and oper precondition) postcondition_inst)))
+
+
+
+;; (=> (and oper (beta_coherence pre)) (beta_coherence post))
+
+
+
+
+
+
 (check-sat)
-(get-model)
+;;(get-model)
