@@ -141,7 +141,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
 
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
     unlines @@
-    [ "(set-logic ALL_SUPPORTED)"
+    [ "(set-logic ALL)"
     ; smt_of_spec spec
     ; generate_bowtie spec m1 m2
     ; sp "(assert (not %s))" (string_of_smt smt_exp)
@@ -154,30 +154,33 @@ let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
 let commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), smt_bowtie)
-let commute spec h = smt_of_conj (add_conjunct smt_oper @@ add_conjunct spec.precond h) |> commute_of_smt
+let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt
 
 let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
-let non_commute spec h = smt_of_conj (add_conjunct smt_oper @@ add_conjunct spec.precond h) |> non_commute_of_smt
+let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
 let solve (prover : (module Prover)) (spec : spec) (ms : method_spec list) (ns : method_spec list) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec ms ns get_vals smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
+  flush stdout;
   run_prover prover s |> parse_prover_output prover
 
 let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) =
     let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
 
     let full_input = unlines @@
-        [ "(set-logic ALL_SUPPORTED)"
+        [ "(set-logic ALL)"
         ; smt_of_spec spec
         ; generate_bowtie spec m1 m2] @
         List.concat_map (fun p -> let e = smt_of_pred p in
             [query e; query (EUop(Not, e))]) preds in
-    
+            
+    pfvv "\n%s\n" full_input;
+    flush stdout;
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
-        then failwith "filter_predicates";
+    then failwith "filter_predicates";
     
     List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds

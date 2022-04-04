@@ -183,23 +183,22 @@ module RunVerify : Runner = struct
         
         let spec =
           Yaml_util.yaml_of_file yaml |>
-          spec_of_yaml |>
-          lift
+          Spec.spec_of_yaml
         in
         
         let cond_smt = Smt_parsing.exp_of_string cond in
-        let implication_function, neg_implication_function = if !ncom
-            then (non_commute_of_smt, commute_of_smt)
-            else (commute_of_smt, non_commute_of_smt)
+        
+        let string_of_bool_option = function
+            | Some true -> "true"
+            | Some false -> "false"
+            | _ -> "unknown"
         in
         
         let ms_names :: ns_names :: [] = String.split_on_char ':' method_list |> List.map (String.split_on_char ';') in
-        let ms, ns = List.map (compose (mangle_method_vars true) (get_method spec)) ms_names, List.map (compose (mangle_method_vars false) (get_method spec)) ns_names in
-        
-        let valid = match solve (get_prover ()) spec ms ns [] (implication_function (ELop(And, [spec.precond; cond_smt]))) with
-            | Unsat -> "true"
-            | Unknown -> "unknown"
-            | Sat _ -> "false"
+       
+        let valid = let verify_options = {
+          Verify.default_verify_options with prover = get_prover ()
+          } in Verify.verify ~options:verify_options spec ms_names ns_names cond_smt |> string_of_bool_option
         in
         
         let out_1 = if !quiet
@@ -209,10 +208,9 @@ module RunVerify : Runner = struct
         
         let out = if !complete
             then out_1 ^ begin
-              let compl = match solve (get_prover ()) spec ms ns [] (neg_implication_function (ELop(And, [spec.precond; EUop(Not, cond_smt)]))) with
-                | Unsat -> "true"
-                | Unknown -> "unknown"
-                | Sat _ -> "false"
+              let compl = let verify_options = {
+                  Verify.default_verify_options with prover = get_prover (); ncom = true
+                  } in Verify.verify ~options:verify_options spec ms_names ns_names (EUop(Not, cond_smt)) |> string_of_bool_option
               in if !quiet then compl ^ "\n" else sp "Complete: %s\n" compl
             end
             else out_1

@@ -17,7 +17,7 @@ let digit = ['0'-'9']
 let literalint = digit+
 
 (* TODO: technically a subset of valid SMT symbols *)
-let symbol = ['a'-'z' 'A'-'Z']+ ['a'-'z' 'A'-'Z' '0'-'9' '_']*
+let symbol = ['a'-'z' 'A'-'Z']+ ['a'-'z' 'A'-'Z' '0'-'9' '_' '.']*
 
 (* TODO: technically a subset of valid SMT strings *)
 let str_char = ['a'-'z' 'A'-'Z' '0'-'9' '_' '-' ' ']

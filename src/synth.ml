@@ -73,13 +73,13 @@ let synth ?(options = default_synth_options) spec ms ns =
         begin match solve_inst pred_smt @@ commute spec h with
             | Unsat -> phi := add_disjunct h !phi
             | Unknown -> raise @@ Failure "commute failure"
-            | Sat s -> 
-            let com_cex = parse_pred_data s in
+            | Sat vs -> 
+            let com_cex = pred_data_of_values vs in
             begin match solve_inst pred_smt @@ non_commute spec h with
                 | Unsat -> phi_tilde := add_disjunct h !phi_tilde
                 | Unknown -> raise @@ Failure "non_commute failure"
-                | Sat s ->
-                let non_com_cex = parse_pred_data s in
+                | Sat vs ->
+                let non_com_cex = pred_data_of_values vs in
                 let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
                     refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
                     refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
@@ -89,7 +89,7 @@ let synth ?(options = default_synth_options) spec ms ns =
     
     begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
         refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)
-        ) with Timeout f -> pfv "Time limit of %.6fs exceeded.\n" f; answer_incomplete := true
+        ) with Timeout -> pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); answer_incomplete := true
     end;
     
     if !answer_incomplete then pfv "Warning: Answer incomplete.\n";

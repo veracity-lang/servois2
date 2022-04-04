@@ -14,8 +14,9 @@ let () =
 
 let n_queries = ref 0
 
+
 type solve_result =
-  | Sat of string
+  | Sat of (exp * exp) list
   | Unsat
   | Unknown
 
@@ -28,7 +29,7 @@ module type Prover = sig
 end
 
 let default_parse_output = function
-    | "sat" :: models -> Sat (String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *)
+    | "sat" :: models -> if null models then Sat [] else Sat (values_of_string @@ String.concat "" models) (* TODO: Maybe this should be a list of strings (parsed to a list of expressions?) *)
     | "unsat" :: _ -> Unsat
     | "unknown" :: _ -> Unknown
     | out -> raise @@ SolverFailure (String.concat "" out)
@@ -54,7 +55,7 @@ module ProverCVC4 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--fmf-fun" |]
 
   let parse_output = default_parse_output
 
@@ -71,7 +72,7 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
 
   let parse_output = default_parse_output
 

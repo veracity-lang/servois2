@@ -24,12 +24,14 @@
 %start <ty> ty_top
 %start <exp> exp_top
 %start <(exp * exp) list> values_top
+%start <unit> eof_top
 
 %%
 
-exp_top: e=exp EOF { e }
-ty_top:  t=ty EOF  { t }
+exp_top: e=exp { e }
+ty_top:  t=ty { t }
 values_top: LP l=list(value_pair) RP { l }
+eof_top: EOF { () }
 
 value_pair: LP e1=exp e2=exp RP { (e1, e2) }
 
@@ -49,6 +51,7 @@ exp:
   | LP b=bop e1=exp e2=exp RP { EBop (b, e1, e2) }
   | LP u=uop e=exp RP { EUop (u, e) }
   | LP l=lop el=nonempty_list(exp) RP { ELop (l, el) }
+  | LP SUB el=nonempty_list(exp) RP { match el with [e1] -> EUop(Neg, e1) | [e1; e2] -> EBop(Sub, e1, e2) | _ -> failwith "Too many arguments with sub" }
   | LP f=SYMBOL el=nonempty_list(exp) RP { EFunc (f, el) }
 
   | v=SYMBOL { EVar (Var v) }
@@ -65,7 +68,6 @@ exp:
   | LP ITE e1=exp e2=exp e3=exp RP { EITE (e1, e2, e3) }
 
 bop:
-  | SUB { Sub }
   | MUL { Mul }
   | MOD { Mod }
   | DIV { Div }
