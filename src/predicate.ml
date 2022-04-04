@@ -16,9 +16,11 @@ let is_symm (op: string) (exp1: exp) (exp2: exp) =
   function preds_list ->
   match op with
   | "=" -> 
+    let s1, s2 = Smt_ToMLString.exp exp1, Smt_ToMLString.exp exp2 in
+    String.compare s1 s2 >= 0 &&
     List.exists (fun (o,e1,e2) -> 
-        (String.equal o op) && (String.equal (Smt_ToMLString.exp exp1) (Smt_ToMLString.exp e2)) 
-        && (String.equal (Smt_ToMLString.exp exp2) (Smt_ToMLString.exp e1))
+        (String.equal o op) && (String.equal s1 (Smt_ToMLString.exp e2)) 
+        && (String.equal s2 (Smt_ToMLString.exp e1))
     ) preds_list
 
   | _ -> false
@@ -54,8 +56,8 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
     iter_prod (fun left right ->
         if not (List.mem (name,left,right) !pred_list ||
           is_reflx name left right ||
-          is_symm name left right !pred_list || 
-          is_const name left right)
+          is_symm name left right !pred_list ||
+          is_const name left right )
         then pred_list := (name,left,right) :: !pred_list
     ) (Hashtbl.find all_terms ty1) (Hashtbl.find all_terms ty2)
   ) spec.preds;
