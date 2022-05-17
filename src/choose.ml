@@ -20,7 +20,8 @@ let differentiating_predicates (ps : pred list) (a : bool list) b : ((pred * boo
     (* TODO: Account for a/b not being simple true/false *)
     List.fold_right2 (fun p (x, y) acc -> if (x != y) then (p, y) :: acc else acc) ps (List.map2 (fun x y -> (x, y)) a b) []
 
-let rec size = function
+let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> compose List.length
+(* function
   | EVar _ -> 0
   | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
   | EConst _ -> 0
@@ -30,6 +31,7 @@ let rec size = function
   | ELet(_, e) -> 1 + size e
   | EITE(e1, e2, e3) -> 3 + size e1 + size e2 + size e3
   | EFunc(_, es) -> List.length es + list_sum (List.map size es)
+*)
 
 let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
 
