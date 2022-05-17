@@ -21,15 +21,15 @@ let differentiating_predicates (ps : pred list) (a : bool list) b : ((pred * boo
     List.fold_right2 (fun p (x, y) acc -> if (x != y) then (p, y) :: acc else acc) ps (List.map2 (fun x y -> (x, y)) a b) []
 
 let rec size = function
-  | EVar _ -> 1
+  | EVar _ -> 0
   | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
-  | EConst _ -> 1
-  | EBop(_, e1, e2) -> 1 + size e1 + size e2
+  | EConst _ -> 0
+  | EBop(_, e1, e2) -> 2 + size e1 + size e2
   | EUop(_, e) -> 1 + size e
-  | ELop(_, es) -> 1 + list_sum (List.map size es)
+  | ELop(_, es) -> List.length es + list_sum (List.map size es)
   | ELet(_, e) -> 1 + size e
-  | EITE(e1, e2, e3) -> 1 + size e1 + size e2 + size e3
-  | EFunc(_, es) -> 1 + list_sum (List.map size es)
+  | EITE(e1, e2, e3) -> 3 + size e1 + size e2 + size e3
+  | EFunc(_, es) -> List.length es + list_sum (List.map size es)
 
 let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
 
@@ -55,7 +55,7 @@ let poke env : pred =
                     differentiating_predicates diff_preds com_cex non_com_cex |> List.length
                     end
                 end in
-        weight_fn_inner h' h'' + weight_fn_inner h'' h' in
+        weight_fn_inner h' h' + weight_fn_inner h'' h'' in
     fst3 @@ match next with 
         | [] -> failwith "poke"
         | (p, b) :: next' -> List.fold_left (fun (p, weight, shortcircuit) (e, _) ->
