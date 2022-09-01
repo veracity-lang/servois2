@@ -36,7 +36,19 @@ methods:
            (= result true))
     terms:
       (_ BitVec 32): [b, (bvneg b)]
-
+  - name: shr1
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (bvcomp2 (bvlshr b (_ bv1 32)) b_new) (= result true))
+    terms:
+      (_ BitVec 32): [b, (bvlshr b 1)]
+      Int: [0, 31]
+      
 predicates:
   - name: "bvcomp2"
     type: [(_ BitVec 32), (_ BitVec 32)]

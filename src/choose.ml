@@ -35,8 +35,8 @@ let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> comp
 
 let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
 
-let simple env : pred =
-    differentiating_predicates env.choose_from (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
+let simple env : pred * bool =
+    differentiating_predicates env.choose_from (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd
 
 let poke env : pred =
     let com, n_com = env.cex_ncex in
@@ -58,14 +58,14 @@ let poke env : pred =
                     end
                 end in
         weight_fn_inner h' h' + weight_fn_inner h'' h'' in
-    fst3 @@ match next with 
+    (fst3 @@ match next with 
         | [] -> failwith "poke"
         | (p, b) :: next' -> List.fold_left (fun (p, weight, shortcircuit) (e, _) ->
         if shortcircuit then (p, weight, shortcircuit) else
         let e_weight = weight_fn e  in 
         if e_weight = -1 then (e, e_weight, true) else
         if e_weight < weight then (e, e_weight, false) else
-        (p, weight, false)) (let weight = weight_fn p in (p, weight, weight = -1)) next'
+        (p, weight, false)) (let weight = weight_fn p in (p, weight, weight = -1)) next'), true
 
 let poke2 env : pred =
     let com, n_com = env.cex_ncex in
@@ -90,13 +90,13 @@ let poke2 env : pred =
                 differentiating_predicates diff_preds com_cex non_com_cex |> List.length
                 end
             end in
-    fst4 @@ match next with 
+    (fst4 @@ match next with 
         | [] -> failwith "poke2"
         | (p, b) :: next' -> List.fold_left (fun (p, cov, weight, shortcircuit) (e, e_cov) ->
         if shortcircuit then (p, cov, weight, shortcircuit) else
         let e_weight = weight_fn e e_cov  in 
         if e_weight = -1 then (e, e_cov, e_weight, true) else
         if e_weight < weight then (e, e_cov, e_weight, false) else
-        (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
+        (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'), true
 
-let choose : (choose_env -> pred) ref = ref simple
+let choose : (choose_env -> pred * bool) ref = ref simple

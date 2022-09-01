@@ -7,12 +7,12 @@ name: bv
 
 state:
   - name: b
-    type: BitVec[m]
+    type: (_ BitVec 32)
 
 states_equal:
   definition: (bvcomp b_1 b_2 bit1)
 
-preamble: "(define-fun bveq ((bA BitVec[m]) (bB BitVec[m])) (bvcomp bA bB bit1))"
+preamble: "(define-fun bveq ((bA BitVec[m]) (bB BitVec[m])) (bvcomp bA bB bit1)) (define-fun bvisset ((bA BitVec[m]) (pos Int)) (_ extract pos (+ pos 1) bA))"
 
 methods:
   - name: negate
@@ -26,11 +26,25 @@ methods:
       (and (bvneg b b_new)
            (= result true))
     terms:
-      Int: [b, (bvneg b)]
+      BitVec[m]: [b, (bvneg b)]
+  - name: shr1
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (bveq b_new (bvlshr b 1)) (= result true))
+    terms:
+      BitVec[m]: [b, (bvlshr b 1)]
+      Int: [0, (- m 1)]
 
 predicates:
   - name: "bveq"
     type: [BitVec[m], BitVec[m]]
+  - name: "bvisset"
+    type: [BitVec[m], Int]
 
 
 # (set-logic QF_BV) 

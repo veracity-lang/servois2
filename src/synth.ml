@@ -75,10 +75,12 @@ let synth ?(options = default_synth_options) spec m n =
                 | Sat vs ->
                 let non_com_cex = pred_data_of_values vs in
                 let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
-                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
+                    refine_com (add_conjunct (atom_of_pred p) h) (remove p p_set);
                     refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
             end
         end
+    and refine_com h p_set com_cex = failwith "test"
+    and refine_ncom h p_set non_com_cex = failwith "test"
     in
     
     begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
