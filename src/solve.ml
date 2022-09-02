@@ -124,9 +124,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, ms, ns) -> (* TODO *)
             | RightMover -> sp "  (not err%s)" final_l_postfix
             end]
         else [] end @
-        ["(beta_coherence beta_pre H_l0 H_r0)"
-        ;"(= beta_pre beta_post)"
-        ;"(= err_l0 err_r0)"] @ (* TODO: Hack *)
+        ["(= err_l0 err_r0)"] @ (* TODO: Hack *)
         ["))"]
     in
     

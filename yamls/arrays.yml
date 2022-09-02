@@ -1,0 +1,85 @@
+
+name: array_test
+
+state:
+- name: 'arr0'
+  type: Int
+- name: 'arr1'
+  type: Int
+- name: 'arr2'
+  type: Int
+- name: 'farr0'
+  type: Int
+- name: 'farr1'
+  type: Int
+- name: 'farr2'
+  type: Int
+- name: 'farr_size'
+  type: Int
+
+states_equal:
+  definition: |
+    (ite (= farr_size 0) true
+     (ite (= farr_size 1) (= arr0 farr0)
+      (ite (= farr_size 2) (and (= arr0 farr0) (= arr1 farr1))
+       (and (= arr0 farr0)(= arr1 farr1)(= arr2 farr2))
+      )
+     )
+    )
+
+methods:
+- name: arr_set
+  args: 
+    - name: index
+      type: Int
+    - name: value
+      type: Int
+  return:
+  - name: result
+    type: Bool
+  requires: |
+    true
+  ensures: |
+    (and (= result true)
+         (ite (= index 0) (and (= arr0_new value)
+             (= arr1_new arr1) (= arr2_new arr2)
+             (= farr0_new farr0) (= farr1_new farr1) (= farr2_new farr2) (= farr_size_new farr_size))
+         (ite (= index 1) (and (= arr1_new value)
+             (= arr0_new arr0) (= arr2_new arr2)
+             (= farr0_new farr0) (= farr1_new farr1) (= farr2_new farr2) (= farr_size_new farr_size))
+         (ite (= index 2) (and (= arr2_new value)
+             (= arr0_new arr0) (= arr1_new arr1)
+             (= farr0_new farr0) (= farr1_new farr1) (= farr2_new farr2) (= farr_size_new farr_size))
+         true
+         ))))
+  terms: 
+    Int: [0, 1, 'index', 'value', 'arr0', 'arr1', 'arr2', 'farr0', 'farr1', 'farr2', 'farr_size']
+
+- name: farr_cons
+  args: 
+    - name: value
+      type: Int
+  return:
+  - name: result
+    type: Bool
+  requires: |
+    true
+  ensures: |
+    (and (= result true) (= farr_size_new (+ farr_size 1))
+         (ite (= farr_size 0) (and (= farr0_new value)
+             (= arr0_new arr0) (= arr1_new arr1) (= arr2_new arr2)
+             (= farr1_new farr1) (= farr2_new farr2))
+         (ite (= farr_size 1) (and (= farr1_new value)
+             (= arr0_new arr0) (= arr1_new arr1) (= arr2_new arr2)
+             (= farr0_new farr0) (= farr2_new farr2))
+         (ite (= farr_size 2) (and (= farr0_new value)
+             (= arr0_new arr0) (= arr1_new arr1) (= arr2_new arr2)
+             (= farr1_new farr1) (= farr0_new farr0))
+         true
+         ))))
+  terms: 
+    Int: [0, 1, 'value', 'arr0', 'arr1', 'arr2', 'farr0', 'farr1', 'farr2', 'farr_size']
+
+predicates:
+  - name: "="
+    type: [Int, Int]
