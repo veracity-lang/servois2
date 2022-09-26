@@ -1,0 +1,67 @@
+
+name: stack_test
+
+preamble: |
+    (declare-datatypes ((list 0))
+      (((cons (head Int) (tail list)) (nil))))
+
+state:
+- name: 'x0'
+  type: Int
+- name: 'x1'
+  type: Int
+- name: 'x2'
+  type: Int
+- name: 'size'
+  type: Int
+- name: 'list_memory'
+  type: list
+
+
+states_equal:
+  definition: |
+    (ite (= size_1 0) (= list_memory_2 nil)
+     (ite (= size_1 1) (and (= x0_1 (head list_memory_2)) (= (tail list_memory_2) nil))
+      (ite (= size_1 2) (and (= x0_1 (head list_memory_2)) (= x1 (head (tail list_memory_2))) (= (tail (tail list_memory_2)) nil))
+       (and (= x0_1 (head list_memory_2)) (= x1_1 (head (tail list_memory_2))) (= x2_1 (head (tail (tail list_memory_2)))) (= (tail (tail (tail list_memory_2))) nil))
+      )
+     )
+    )
+
+methods:
+- name: pop
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (> size 0)
+  ensures: |
+    (and (= size_new (- size 1))
+         (= list_memory_new list_memory)
+         (ite (= size 1) (and (= val x0) (= x0_new x0) (= x1_new x1) (= x2_new x2))
+         (ite (= size 2) (and (= val x1) (= x0_new x0) (= x1_new x1) (= x2_new x2))
+         (ite (= size 3) (and (= val x2) (= x0_new x0) (= x1_new x1) (= x2_new x2))
+         true
+         ))))
+  terms: 
+    Int: [0, 1, 'x0', 'x1', 'x2']
+
+- name: pop_list_impl
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (not (= list_memory nil))
+  ensures: |
+    (and (= val (head list_memory))
+         (= list_memory_new (tail list_memory))
+         (= x0_new x0) (= x1_new x1) (= x2_new x2) (= size_new size))
+  terms: 
+    Int: [0, 1, 'x0', 'x1', 'x2']
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+

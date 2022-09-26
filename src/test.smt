@@ -1,129 +1,112 @@
 (set-logic ALL)
-;; BEGIN: smt_of_spec HashTable
+;; BEGIN: smt_of_spec stack_test
 
-(declare-sort E 0)
-(declare-sort F 0)
+(declare-datatypes ((list 0))
+  (((cons (head Int) (tail list)) (nil))))
 
-(define-fun postcondition
+(define-fun states_equal
   ( (err Bool)
-    (keys (Set E))
-    (H (Array E F))
+    (x0 Int)
+    (x1 Int)
+    (x2 Int)
     (size Int)
-    (rd_param E)
-    (rd_return F)
-    (err_new Bool)
-    (keys_new (Set E))
-    (H_new (Array E F))
-    (size_new Int)
-    (rd_param_new E)
-    (rd_return_new F) )
+    (list_memory list) )
   Bool
-  (or (and err err_new) (and (not err) (not err_new) 
-    (and (= rd_param rd_param_new) (= rd_return rd_return_new) (select keys rd_param))
-  ))
+  (or err (ite (= size 0) (= list_memory nil) (ite (= size 1) (and (= x0 (head list_memory)) (= (tail list_memory) nil)) (ite (= size 2) (and (= x0 (head list_memory)) (= x1 (head (tail list_memory))) (= (tail (tail list_memory)) nil)) (and (= x0 (head list_memory)) (= x1 (head (tail list_memory))) (= x2 (head (tail (tail list_memory)))) (= (tail (tail (tail list_memory))) nil))))))
 )
 
-(define-fun get_pre_condition
+(define-fun pop_pre_condition
   ( (err Bool)
-    (keys (Set E))
-    (H (Array E F))
+    (x0 Int)
+    (x1 Int)
+    (x2 Int)
     (size Int)
-    (rd_param E)
-    (rd_return F) )
+    (list_memory list) )
   Bool
   true
 )
 
-(define-fun get_post_condition
+(define-fun pop_post_condition
   ( (err Bool)
-    (keys (Set E))
-    (H (Array E F))
+    (x0 Int)
+    (x1 Int)
+    (x2 Int)
     (size Int)
-    (rd_param E)
-    (rd_return F)
+    (list_memory list)
     (err_new Bool)
-    (keys_new (Set E))
-    (H_new (Array E F))
+    (x0_new Int)
+    (x1_new Int)
+    (x2_new Int)
     (size_new Int)
-    (rd_param_new E)
-    (rd_return_new F)
-    (result F) )
+    (list_memory_new list)
+    (val Int) )
   Bool
-  (or (and err err_new) (and (not err) (not err_new) (select keys rd_param) (and (= keys_new keys) (= H_new H) (= size_new size) (= (select H rd_param) result) (= result rd_return))) (and (not err) err_new (not (select keys rd_param))))
+  (or (and err err_new) (and (not err) (not err_new) (> size 0) (and (= size_new (- size 1)) (= list_memory_new list_memory) (ite (= size 1) (and (= val x0) (= x0_new x0) (= x1_new x1) (= x2_new x2)) (ite (= size 2) (and (= val x1) (= x0_new x0) (= x1_new x1) (= x2_new x2)) (ite (= size 3) (and (= val x2) (= x0_new x0) (= x1_new x1) (= x2_new x2)) true))))) (and (not err) err_new (not (> size 0))))
 )
 
-;; END: smt_of_spec HashTable
+(define-fun pop_list_impl_pre_condition
+  ( (err Bool)
+    (x0 Int)
+    (x1 Int)
+    (x2 Int)
+    (size Int)
+    (list_memory list) )
+  Bool
+  true
+)
+
+(define-fun pop_list_impl_post_condition
+  ( (err Bool)
+    (x0 Int)
+    (x1 Int)
+    (x2 Int)
+    (size Int)
+    (list_memory list)
+    (err_new Bool)
+    (x0_new Int)
+    (x1_new Int)
+    (x2_new Int)
+    (size_new Int)
+    (list_memory_new list)
+    (val Int) )
+  Bool
+  (or (and err err_new) (and (not err) (not err_new) (not (= list_memory nil)) (and (= val (head list_memory)) (= list_memory_new (tail list_memory)) (= x0_new x0) (= x1_new x1) (= x2_new x2) (= size_new size))) (and (not err) err_new (not (not (= list_memory nil)))))
+)
+
+;; END: smt_of_spec stack_test
 (declare-fun err_l0 () Bool)
-(declare-fun err_r0 () Bool)
 (declare-fun err_l1 () Bool)
-(declare-fun err_r1 () Bool)
-(declare-fun keys_l0 () (Set E))
-(declare-fun keys_r0 () (Set E))
-(declare-fun keys_l1 () (Set E))
-(declare-fun keys_r1 () (Set E))
-(declare-fun H_l0 () (Array E F))
-(declare-fun H_r0 () (Array E F))
-(declare-fun H_l1 () (Array E F))
-(declare-fun H_r1 () (Array E F))
+(declare-fun err_l2 () Bool)
+(declare-fun x0_l0 () Int)
+(declare-fun x0_l1 () Int)
+(declare-fun x0_l2 () Int)
+(declare-fun x1_l0 () Int)
+(declare-fun x1_l1 () Int)
+(declare-fun x1_l2 () Int)
+(declare-fun x2_l0 () Int)
+(declare-fun x2_l1 () Int)
+(declare-fun x2_l2 () Int)
 (declare-fun size_l0 () Int)
-(declare-fun size_r0 () Int)
 (declare-fun size_l1 () Int)
-(declare-fun size_r1 () Int)
-(declare-fun beta_pre () (Set E))
-(declare-fun rd_param_l0 () E)
-(declare-fun rd_param_r0 () E)
-(declare-fun rd_param_l1 () E)
-(declare-fun rd_param_r1 () E)
-(declare-fun rd_return_l0 () F)
-(declare-fun rd_return_r0 () F)
-(declare-fun rd_return_l1 () F)
-(declare-fun rd_return_r1 () F)
-(declare-fun result_0_l1 () F)
-(declare-fun result_0_r1 () F)
+(declare-fun size_l2 () Int)
+(declare-fun list_memory_l0 () list)
+(declare-fun list_memory_l1 () list)
+(declare-fun list_memory_l2 () list)
+(declare-fun result_0_l1 () Int)
+(declare-fun result_0_l2 () Int)
 
-(define-fun oper () Bool (and
-  (get_pre_condition err_l0 keys_l0 H_l0 size_l0 rd_param_l0 rd_return_l0)
-  (get_post_condition err_l0 keys_l0 H_l0 size_l0 rd_param_l0 rd_return_l0 err_l1 keys_l1 H_l1 size_l1 rd_param_l1 rd_return_l1 result_0_l1)
-  (get_pre_condition err_r0 keys_r0 H_r0 size_r0 rd_param_r0 rd_return_r0)
-  (get_post_condition err_r0 keys_r0 H_r0 size_r0 rd_param_r0 rd_return_r0 err_r1 keys_r1 H_r1 size_r1 rd_param_r1 rd_return_r1 result_0_r1)
-  (and (not err_l0) (not err_r0))
-  (or (not err_l1) (not err_r1))
+(define-fun oper () Bool (and 
+  (= err_l0 false)
+  (pop_pre_condition err_l0 x0_l0 x1_l0 x2_l0 size_l0 list_memory_l0)
+  (pop_post_condition err_l0 x0_l0 x1_l0 x2_l0 size_l0 list_memory_l0 err_l1 x0_l1 x1_l1 x2_l1 size_l1 list_memory_l1 result_0_l1)
+  (pop_list_impl_pre_condition err_l1 x0_l1 x1_l1 x2_l1 size_l1 list_memory_l1)
+  (pop_list_impl_post_condition err_l1 x0_l1 x1_l1 x2_l1 size_l1 list_memory_l1 err_l2 x0_l2 x1_l2 x2_l2 size_l2 list_memory_l2 result_0_l2)
 ))
 
-(define-fun beta_coherence ((beta (Set E)) (H_l (Array E F)) (mems_l (Set E)) (H_r (Array E F)) (mems_r (Set E))) Bool 
-    (forall ((e E))
-        (=> 
-            (not (select beta e))
-            (= (select H_l e) (select H_r e))
-        )
-    )
-)
-
-(define-fun postcondition_inst () Bool (and
-   (postcondition err_l1 keys_l1 H_l1 size_l1 rd_param_l1 rd_return_l1 err_r1 keys_r1 H_r1 size_r1 rd_param_r1 rd_return_r1)
-   ;; (beta_coherence beta_post H_l1 H_r1)
+(define-fun bowtie () Bool (and
+   (states_equal err_l1 x0_l1 x1_l1 x2_l1 size_l1 list_memory_l1)
 ))
 
-(define-fun precondition () Bool 
-    (and 
-        (= rd_param_l0 rd_param_r0)
-        (= rd_return_l0 rd_return_r0)
-        (not (select beta_pre rd_param_l0))
-        (beta_coherence beta_pre H_l0 keys_l0 H_r0 keys_r0) ;; Uncommenting this turns it to unknown
-        ;; (exists ((e E)) (and (select beta_pre e) (select keys_l0 e)))
-    )
-)
-
-(assert (not (=> (and oper precondition) postcondition_inst)))
-
-
-
-;; (=> (and oper (beta_coherence pre)) (beta_coherence post))
-
-
-
-
-
-
+(assert (not (=> (and oper true) (not bowtie))))
 (check-sat)
-;;(get-model)
+(get-model)
