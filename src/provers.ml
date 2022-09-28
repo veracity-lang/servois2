@@ -55,7 +55,7 @@ module ProverCVC4 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--fmf-fun" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--fmf-fun"; "--strings-exp" |]
 
   let parse_output = default_parse_output
 
@@ -72,7 +72,7 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental" |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp"  |]
 
   let parse_output = default_parse_output
 
