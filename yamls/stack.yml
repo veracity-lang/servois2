@@ -22,8 +22,8 @@ states_equal:
   definition: |
     (ite (= size_1 0) (= list_memory_2 nil)
      (ite (= size_1 1) (and (= x0_1 (head list_memory_2)) (= (tail list_memory_2) nil))
-      (ite (= size_1 2) (and (= x0_1 (head list_memory_2)) (= x1 (head (tail list_memory_2))) (= (tail (tail list_memory_2)) nil))
-       (and (= x0_1 (head list_memory_2)) (= x1_1 (head (tail list_memory_2))) (= x2_1 (head (tail (tail list_memory_2)))) (= (tail (tail (tail list_memory_2))) nil))
+      (ite (= size_1 2) (and (= x1_1 (head list_memory_2)) (= x0_1 (head (tail list_memory_2))) (= (tail (tail list_memory_2)) nil))
+       (and (= x2_1 (head list_memory_2)) (= x1_1 (head (tail list_memory_2))) (= x0_1 (head (tail (tail list_memory_2)))) (= (tail (tail (tail list_memory_2))) nil))
       )
      )
     )
@@ -60,6 +60,9 @@ methods:
          (= x0_new x0) (= x1_new x1) (= x2_new x2) (= size_new size))
   terms: 
     Int: [0, 1, 'x0', 'x1', 'x2']
+
+# pre-condition: (and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))
+# ./servois2 verify ../yamls/stack.yml pop:pop_list_impl "(and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))" -vv
 
 predicates:
   - name: "="
