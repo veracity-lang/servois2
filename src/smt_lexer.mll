@@ -79,6 +79,7 @@ rule read = parse
 
   | "let" { LET }
   | "ite" { ITE }
+  | "exists" { EXISTS }
 
   | '\"' str_char* '\"' {
     let s = lexeme lexbuf in

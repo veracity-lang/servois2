@@ -238,6 +238,14 @@ let make_new : ty binding -> ty binding = function
 let make_new_bindings = List.map make_new
 
 type pred = string * exp * exp
+type predP = P of pred | NotP of pred
+let negate: predP -> predP = function
+  | P p -> NotP p
+  | NotP p -> P p
 
 let smt_of_pred (op, e1, e2) = EFunc(op, [e1; e2])
 let string_of_pred = compose string_of_smt smt_of_pred
+let exp_of_predP: predP -> exp = function
+  |P p -> smt_of_pred p
+  |NotP p -> EUop (Not, smt_of_pred p)
+let string_of_predP: predP -> string = compose string_of_smt exp_of_predP

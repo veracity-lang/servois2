@@ -19,7 +19,7 @@
 %token LT GT LTE GTE
 %token NOT
 %token ADD AND OR
-%token LET ITE
+%token LET ITE EXISTS
 
 %start <ty> ty_top
 %start <exp> exp_top
@@ -66,6 +66,7 @@ exp:
   | s=STR { EConst (CString s) }
   | LP LET LP bl=nonempty_list(binding) RP e=exp RP { ELet (bl, e) }
   | LP ITE e1=exp e2=exp e3=exp RP { EITE (e1, e2, e3) }
+  | LP EXISTS LP bl=nonempty_list(ty_binding) RP e=exp RP {EExists (bl, e)}
 
 bop:
   | MUL { Mul }
@@ -89,3 +90,6 @@ lop:
 
 binding:
   LP v=SYMBOL e=exp RP { (Var v, e) }
+
+ty_binding:
+  LP v=SYMBOL t=ty RP { (Var v, t) }
