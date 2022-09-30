@@ -51,13 +51,13 @@ let string_of_predP = function
 
 let log_predicates_summary = 
   fun title pred_all -> 
-  Printf.printf ("\n\n%s [%d]: \n%s\n") title
+  pfv ("\n\n%s [%d]: \n%s\n") title
     (List.length pred_all)
     (String.concat "\n" (List.map (string_of_predP) pred_all))
 
 let log_predicates_impl_rels = 
   fun title rels -> 
-  Printf.printf ("\n\n%s [%d]: \n%s\n") title
+  pfv ("\n\n%s [%d]: \n%s\n") title
     (List.length rels)
     (String.concat "\n" (List.map (fun (p1, p2) -> 
          (string_of_predP p1) ^ " => " ^
@@ -65,7 +65,7 @@ let log_predicates_impl_rels =
 
 let log_predicates_impl_queries_result = 
   fun title impls unknown_count unsolved ->
-  Printf.printf "\n\n%s Valid Implications [%d]: \n%s\n\n Unknown[%d]\n\nUnsolved[%d]: \n%s" title
+  pfv "\n\n%s Valid Implications [%d]: \n%s\n\n Unknown[%d]\n\nUnsolved[%d]: \n%s" title
     (List.length impls)
     (String.concat "\n" (List.map (fun (p1, p2, _) -> 
          (string_of_predP p1) ^ " => " ^
@@ -78,7 +78,7 @@ let log_predicates_impl_queries_result =
 
 let log_predicates_equal_rels = 
   fun title rels -> 
-  Printf.printf ("\n\n%s [%d]: \n%s\n") title
+  pfv ("\n\n%s [%d]: \n%s\n") title
     (List.length rels)
     (String.concat "\n" (List.map (fun (p1, p2) -> 
          (string_of_predP p1) ^ " = " ^
@@ -86,7 +86,7 @@ let log_predicates_equal_rels =
 
 let log_predicates_equiv_classes = 
   fun title partition -> 
-  Printf.printf ("\n\n%s [%d]: \n%s\n") title
+  pfv ("\n\n%s [%d]: \n%s\n") title
     (List.length partition)
     (String.concat "\n" (List.map (
          fun (ps) -> sp "{%s}" 
@@ -107,7 +107,7 @@ let log_predicates_mc =
         else if (v1 == v2) then 0 
         else -1)
   in
-  Printf.printf ("\n\n%s [%d]: \n%s") title
+  pfv ("\n\n%s [%d]: \n%s") title
     (List.length ps)
     (String.concat "\n" (List.map (fun (p, p_mc, notp_mc, split_ratio) ->
        match p_mc, notp_mc with
@@ -128,7 +128,7 @@ let log_predicates_mc =
 
 let log_ppeak_result = 
   fun (p, d) ps -> 
-  Printf.printf "\nPPEAK RESULT: \nPredicate selected: %s\nPredicates remaining [%d]"
+  pfv "\nPPEAK RESULT: \nPredicate selected: %s\nPredicates remaining [%d]"
     (string_of_predP p) 
     (List.length ps)
 
@@ -146,7 +146,7 @@ let log_predicate_implication_chains : predP list -> (predP * predP) list -> uni
   let l = L.construct ps in
   pfv "\n\nLATTICE.\n %s" (L.string_of l);
   let cs = L.chains_of l in
-  Printf.printf "\n\nIMPLICATION CHAINS [%d]: \n%s\n\n"
+  pfv "\n\nIMPLICATION CHAINS [%d]: \n%s\n\n"
     (List.length cs)
     (String.concat "\n" (List.map (
         fun pc -> String.concat " => " (
