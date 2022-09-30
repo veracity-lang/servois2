@@ -160,8 +160,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
     *)
    let ps, pps, pequivc = Predicate_analyzer.observe_rels_all preds state_vars in
    Predicate_analyzer_logger.log_predicate_implication_chains ps pps;          
-   let psmcs = Predicate_analyzer.run_mc preds state_vars in
-   let psmcs = List.filter (fun (p, _) -> List.exists ((=) p) ps) psmcs in
+   let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
    let module PS = Precond_synth in 
    let module L = PS.L in
    let rank_pred = 
