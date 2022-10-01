@@ -1,0 +1,54 @@
+name: string
+
+state:
+  - name: data
+    type: String
+
+states_equal:
+  definition: (= data data_new)
+
+methods:
+  - name: substr
+    args:
+      - name: start
+        type: Int
+      - name: end
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (>= start 0)
+    ensures: |
+      (and
+          (= data_new (str.substr data start end))
+          (= result true)
+      )
+    terms:
+      Int: [0, 1, start, end, (str.len data)]
+      String: [data, (str.substr data start end)]
+  - name: charAt
+    args:
+      - name: loc
+        type: Int
+    return:
+      - name: result
+        type: String
+    requires: |
+      (and (>= loc 0) (< loc (str.len data)))
+    ensures: |
+      (and
+          (= data_new data)
+          (= result (str.at data loc))
+      )
+    terms:
+      Int: [0, 1, (str.len data)]
+      String: [data, (str.at data loc)]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: "="
+    type: [String, String]
+  - name: "str.contains"
+    type: [String, String]
