@@ -150,22 +150,24 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
      | Some x -> x in
    let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
 
-   (* One-time analysis of prediactes: 
-      1. Get all predicates generated from specs. 
-         Append their negated form to the set of candidates
-      2. Find all pairs (p1, p2) s.t. p1 => p2
-      3. Run the model counter on all predicates
-      4. Annotate each predicate with the corresponding split ratio distance from 0.5
-      5. Construct the lattice 
-   *)
+    (* One-time analysis of predicates: 
+       1. Get all predicates generated from specs. 
+          Append their negated form to the set of candidates
+       2. Find all pairs (p1, p2) s.t. p1 => p2
+       3. Run the model counter on all predicates
+       4. Annotate each predicate with the corresponding split ratio distance from 0.5
+       5. Construct the lattice 
+    *)
    let ps, pps, pequivc = Predicate_analyzer.observe_rels_all preds state_vars in
    Predicate_analyzer_logger.log_predicate_implication_chains ps pps;          
-   let psmcs = Predicate_analyzer.run_mc preds state_vars in
-   let psmcs = List.filter (fun (p, _) -> List.exists ((=) p) ps) psmcs in
-
-   let specs_str  = smt_of_spec spec in
-   let tc_str = generate_bowtie spec m_spec n_spec in
-   let post = EVar(Var("bowtie")) in
+   let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
+   let module PS = Precond_synth in 
+   let module L = PS.L in
+   let rank_pred = 
+     if maximize_cover then PS.compare_pred_maximum_cover
+     else PS.compare_pred_bisect
+   in
+   let l = PS.construct_lattice psmcs pps in
 
    let synth_start_time = Unix.gettimeofday () in
 
@@ -179,33 +181,9 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
    let answer_incomplete = ref false in
    let phi = ref @@ Disj [] in
    let phi_tilde = ref @@ Disj [] in
-
-   let module PS = Precond_synth in 
-   let module L = PS.L in
-   let rank_pred = 
-     if maximize_cover then PS.compare_pred_maximum_cover
-     else PS.compare_pred_bisect
-   in  
-   let l = PS.construct_lattice psmcs pps in
   
-   let string_of_smt_query specs_str pre tc_str post get_models= 
-     let smt_tc_call = EVar(Var("oper")) in
-     let smt_assert = EBop(Imp, ELop(And, [smt_tc_call; smt_of_conj pre]), post) in
-     unlines @@ 
-     ["(set-logic ALL)";
-      specs_str;
-      tc_str;
-      sp "(assert (not %s))" (string_of_smt @@ smt_assert);
-      "(check-sat)"
-     ] @ 
-     if null get_models then []
-     else [sp "(get-value (%s))" (String.concat " " @@ List.map string_of_smt get_models)]
-   in
 
-  let run_smt_solver pre post get_models = 
-    let s = string_of_smt_query specs_str pre tc_str post get_models in
-    run_prover options.prover s |> parse_prover_output options.prover
-  in
+  let solve_inst = solve options.prover spec m_spec n_spec in
 
   let rec refine_ppeak_wrapped h l = 
     try refine_ppeak h l with Failure _ -> answer_incomplete := true; false 
@@ -213,18 +191,18 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
     let p_set = List.map fst  (L.list_of l) in
     let pred_smt = List.map exp_of_predP p_set in
     
-    begin match run_smt_solver h post pred_smt with
+    begin match solve_inst pred_smt @@ commute spec h with
       | Unsat ->
-        Printf.printf "\nPartial solution for phi: %s\n" 
+        pfv "\nPartial solution for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
         phi := add_disjunct h !phi; 
         true
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
-        begin match run_smt_solver h (EUop (Not, post)) pred_smt with
+        begin match solve_inst pred_smt @@ non_commute spec h with
           | Unsat -> 
-            Printf.printf "\nPartial solution for phi-tilde: %s\n" 
+            pfv "\nPartial solution for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
             phi_tilde := add_disjunct h !phi_tilde;
             true
@@ -246,7 +224,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
                   let new_ps = List.map fst (L.list_of l_) in
                   Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
                   let h_ = add_conjunct (exp_of_predP p_) h in
-                  Printf.printf "\n\nNew predicate added to conjunction: %s\n" 
+                  pfv "\n\nNew predicate added to conjunction: %s\n" 
                     (string_of_smt @@ smt_of_conj h_);
                   (refine_ppeak_wrapped h_ l_, Some p_)
                 in
