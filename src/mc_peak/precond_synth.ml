@@ -52,7 +52,8 @@ let differentiate_by_counterex =
   fun l a b ->
   let ps = L.list_of l in 
   List.fold_right2 (
-    fun p (x, y) acc -> 
+    fun p (x, y) acc ->
+      (* only predicates that hold *)
       if (x != y) then (p, y) :: acc 
       else acc
   ) ps (List.map2 (fun x y -> (x, y)) a b) []
@@ -60,20 +61,26 @@ let differentiate_by_counterex =
 let gen_next_candidates = 
   fun l cmp cex_ncex -> 
   let com, n_com = cex_ncex in
-  let filtered_pred = differentiate_by_counterex l com n_com in
-  List.sort cmp @@ List.filter 
-    (fun p -> List.exists (fun (p', _) -> p = p') filtered_pred) 
-    (L.list_of l)
-    
+  let filtered_preds = List.map fst @@ differentiate_by_counterex l com n_com in
+   pfv "\nFiltered predicates after differentiating: { %s }"
+    (String.concat " ; " (List.map (fun a -> string_of_predP (fst a)) filtered_preds));
+  let strongest_ps, weaker_ps, _ = List.fold_left (fun (sps, wps, ps) p ->
+      if List.exists (fun p' -> p' != p && PO.lte p' p) ps then (sps, p::wps, ps)
+      else (p::sps, wps, ps)) ([], [], filtered_preds) filtered_preds
+  in
+  let l_ps = L.list_of l in
+  (List.sort cmp @@ List.filter (fun p -> List.exists (fun p' -> p = p') strongest_ps) l_ps) @ 
+  (List.sort cmp @@ List.filter (fun p -> List.exists (fun p' -> p = p') weaker_ps) l_ps)
+  
 let construct_lattice = 
   fun psmcs pps ->
   order_rels_set := pps;
   let l = L.construct psmcs in
-  Printf.printf "\n\nLATTICE:\n%s" (L.string_of l);
+  pfv "\n\nLATTICE:\n%s" (L.string_of l);
   l
 
 let print_pred_candidates cs = 
-  Printf.printf "\n\nCandidates ordered [%d]: { %s }\n"
+  pfv "\n\nCandidates ordered [%d]: { %s }\n"
     (List.length cs)
     (String.concat " ; " (List.map (PO.string_of) cs))
 
