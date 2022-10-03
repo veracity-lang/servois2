@@ -88,12 +88,12 @@ rule read = parse
 
   | "m1_" symbol {
     let s = lexeme lexbuf in
-    let s' = String.sub s 3 (String.length s - 4)
+    let s' = String.sub s 3 (String.length s - 3)
     in SYMBOL_M1 s'
   }
   | "m2_" symbol {
     let s = lexeme lexbuf in
-    let s' = String.sub s 3 (String.length s - 4)
+    let s' = String.sub s 3 (String.length s - 3)
     in SYMBOL_M2 s'
   }
 
