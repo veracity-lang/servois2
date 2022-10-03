@@ -74,29 +74,28 @@ let synth ?(options = default_synth_options) spec m n =
     let phi_tilde = ref @@ Disj [] in
     let answer_incomplete = ref false in
     
-    let rec refine_wrapped h ps = try refine h ps with Failure _ -> answer_incomplete := true 
-    and refine (h : conjunction) (p_set : pred list) : unit =
+    let rec refine_wrapped h ps cont = try refine h ps cont with Failure _ -> answer_incomplete := true 
+    and refine (h : conjunction) (p_set : pred list) (cont : unit -> unit) : unit =
         let solve_inst = solve options.prover spec m_spec n_spec in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute spec h with
-            | Unsat -> phi := add_disjunct h !phi
+            | Unsat -> phi := add_disjunct h !phi; cont ()
             | Unknown -> raise @@ Failure "commute failure"
             | Sat vs -> 
             let com_cex = pred_data_of_values vs in
             begin match solve_inst pred_smt @@ non_commute spec h with
-                | Unsat -> phi_tilde := add_disjunct h !phi_tilde
+                | Unsat -> phi_tilde := add_disjunct h !phi_tilde; cont ()
                 | Unknown -> raise @@ Failure "non_commute failure"
                 | Sat vs ->
                 let non_com_cex = pred_data_of_values vs in
                 let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
-                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
-                    refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
+                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set) @@ compose (fun () -> refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set) id) cont
             end
         end
     in
     
     begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
-        refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)
+        refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds) id
         ) with Timeout -> pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); answer_incomplete := true
     end;
     
@@ -293,6 +292,36 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
             let pl' = L.list_of l' in
             let candidates = List.filter (fun p -> List.exists (fun p' -> p = p') pl') candidates in
             Precond_synth.print_pred_candidates candidates;
+
+            (*
+            ignore @@ List.fold_left (fun res ((p_, d_), l_) ->
+                let handle_next = fun () ->
+                  let new_ps = List.map fst (L.list_of l_) in
+                  Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
+                  let h_ = add_conjunct (exp_of_predP p_) h in
+                  pfv "\n\nNew predicate added to conjunction: %s\n" 
+                    (string_of_smt @@ smt_of_conj h_);
+                  (refine_ppeak_wrapped h_ l_, Some p_)
+                in
+                match res with
+                | false, _ -> handle_next ()
+                | true, Some pp ->
+                  if PS.pequiv pequivc p_ (negate pp) then handle_next ()
+                  else  res
+                | true, None -> raise @@ Failure "Unexpected. Unreachable statement reached"
+              ) (false, None) (pnext l candidates);
+            *)
+            
+            (* begin match pnext l candidates with
+             * | ((p_, d_), l_) :: ps -> let new_ps = List.map fst (L.list_of l_) in
+             *       Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
+             *       let h_ = add_conjunct (exp_of_predP p_) h in
+             *       pfv "\n\nNew predicate added to conjunction: %s\n" 
+             *         (string_of_smt @@ smt_of_conj h_);
+             *       ignore @@ refine_ppeak_wrapped h_ l_;
+             *       ignore @@ refine_ppeak_wrapped (add_conjunct (exp_of_predP @@ negate p_) h) l_
+             * | [] -> raise @@ Failure "No remaining predicates." end;
+             * false *)
 
             let rec plgen l ps = 
               match ps with
