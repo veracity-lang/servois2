@@ -318,7 +318,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
                     handle_next pls' concluding_ps
             end
             in
-            handle_next (plgen l candidates) []
+            handle_next (plgen l' candidates) []
         end
     end
   in
