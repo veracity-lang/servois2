@@ -219,6 +219,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
                 let l' = L.remove p l in
                 (p, l')::(pnext l' ps')
             in
+            (*
             ignore @@ List.fold_left (fun res ((p_, d_), l_) ->
                 let handle_next = fun () ->
                   let new_ps = List.map fst (L.list_of l_) in
@@ -235,6 +236,17 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
                   else  res
                 | true, None -> raise @@ Failure "Unexpected. Unreachable statement reached"
               ) (false, None) (pnext l candidates);
+            *)
+            
+            begin match pnext l candidates with
+            | ((p_, d_), l_) :: ps -> let new_ps = List.map fst (L.list_of l_) in
+                  Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
+                  let h_ = add_conjunct (exp_of_predP p_) h in
+                  pfv "\n\nNew predicate added to conjunction: %s\n" 
+                    (string_of_smt @@ smt_of_conj h_);
+                  ignore @@ refine_ppeak_wrapped h_ l_;
+                  ignore @@ refine_ppeak_wrapped (add_conjunct (exp_of_predP @@ negate p_) h) l_
+            | [] -> raise @@ Failure "No remaining predicates." end;
             false
         end
     end
