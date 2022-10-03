@@ -13,8 +13,7 @@ let add_conjunct c cs = match c with
     | EConst (CBool true) -> cs
     | _ -> Conj (c :: un_conj cs)
 
-type t = Disj of conjunction list
-
+type disjunction = Disj of conjunction list
 
 
 let un_disj ds = match ds with Disj ds' -> ds'

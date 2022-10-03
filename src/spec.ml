@@ -173,6 +173,7 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
       EITE (bake_args b, bake_args t, bake_args f)
     | EFunc (s, el) ->
       EFunc (s, List.map bake_args el)
+    | e -> e
   in
 
   (* Return *)
