@@ -1,0 +1,52 @@
+name: linear-cond
+
+state:
+  - name: x
+    type: Int
+  - name: 'y'
+    type: Int
+  - name: z
+    type: Int
+
+states_equal:
+  definition: |
+    (and (= x_1 x_2) (= y_1 y_2) (= z_1 z_2))
+
+methods:
+  - name: dummyMethod_1
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (ite (> y 0) (= x_new (+ x 2)) (= x_new z))
+        (= y_new y)
+        (= z_new z)
+        (= result true))
+    terms:
+      Int: [0, 2, x, "y", z, (+ x 2)]
+
+  - name: dummyMethod_2
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and
+        (= x_new (+ x 1))
+        (= y_new (+ y 1))
+        (= z_new z)
+        (= result true))
+    terms:
+      Int: [x, "y", z, 1, (+ x 1), (+ y 1)]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
