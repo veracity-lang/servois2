@@ -29,8 +29,6 @@ let second (g : 'c -> 'd) : ('a * 'c -> 'a * 'd) = fun (x, y) -> (x, g y)
 
 let run f = f ()
 
-let id : 'a -> 'a = fun x -> x
-
 let seq a b = b (* = flip const *)
 
 let null = function 

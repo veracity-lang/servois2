@@ -74,28 +74,29 @@ let synth ?(options = default_synth_options) spec m n =
     let phi_tilde = ref @@ Disj [] in
     let answer_incomplete = ref false in
     
-    let rec refine_wrapped h ps cont = try refine h ps cont with Failure _ -> answer_incomplete := true 
-    and refine (h : conjunction) (p_set : pred list) (cont : unit -> unit) : unit =
+    let rec refine_wrapped h ps = try refine h ps with Failure _ -> answer_incomplete := true 
+    and refine (h : conjunction) (p_set : pred list) : unit =
         let solve_inst = solve options.prover spec m_spec n_spec in
         let pred_smt = List.map smt_of_pred p_set in
         begin match solve_inst pred_smt @@ commute spec h with
-            | Unsat -> phi := add_disjunct h !phi; cont ()
+            | Unsat -> phi := add_disjunct h !phi
             | Unknown -> raise @@ Failure "commute failure"
             | Sat vs -> 
             let com_cex = pred_data_of_values vs in
             begin match solve_inst pred_smt @@ non_commute spec h with
-                | Unsat -> phi_tilde := add_disjunct h !phi_tilde; cont ()
+                | Unsat -> phi_tilde := add_disjunct h !phi_tilde
                 | Unknown -> raise @@ Failure "non_commute failure"
                 | Sat vs ->
                 let non_com_cex = pred_data_of_values vs in
                 let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
-                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set) @@ compose (fun () -> refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set) id) cont
+                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
+                    refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
             end
         end
     in
     
     begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
-        refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds) id
+        refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)
         ) with Timeout -> pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); answer_incomplete := true
     end;
     
