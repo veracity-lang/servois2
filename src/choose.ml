@@ -5,18 +5,19 @@ open Provers
 open Phi
 open Spec
 open Smt_parsing
+open Precond_synth
 
 type choose_env =
   { solver : (exp list -> exp -> solve_result)
   ; spec : spec
   ; h : conjunction
-  ; choose_from : pred list
+  ; choose_from : L.v L.el L.t
   ; cex_ncex : bool list * bool list
   }
 
 (* Assume that all predicate lists are sorted by complexity *)
 
-let differentiating_predicates (ps : pred list) (a : bool list) b : ((pred * bool) list) = (* The bool should be true if the predicate is true in the commute (first list) case *)
+let differentiating_predicates (ps : predP list) (a : bool list) b : ((predP * bool) list) = (* The bool should be true if the predicate is true in the commute (first list) case *)
     (* TODO: Account for a/b not being simple true/false *)
     List.fold_right2 (fun p (x, y) acc -> if (x != y) then (p, y) :: acc else acc) ps (List.map2 (fun x y -> (x, y)) a b) []
 
@@ -33,19 +34,24 @@ let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> comp
   | EFunc(_, es) -> List.length es + list_sum (List.map size es)
 *)
 
-let complexity : pred -> int = memoize @@ fun (_, left, right) -> size left + size right
+let preds_of_lattice l =
+    L.list_of l |> List.map fst
 
-let simple env : pred =
-    differentiating_predicates env.choose_from (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
+let complexity : predP -> int = memoize @@ fun p -> match p with 
+    | P (_, left, right) -> size left + size right
+    | NotP (_, left, right) -> 1 + size left + size right
 
-let poke env : pred =
+let simple env : predP =
+    differentiating_predicates (preds_of_lattice env.choose_from) (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
+
+let poke env : predP =
     let com, n_com = env.cex_ncex in
-    let next = differentiating_predicates env.choose_from com n_com in
+    let next = differentiating_predicates (preds_of_lattice env.choose_from) com n_com in
     let diff_preds = List.map fst next in
-    let smt_diff_preds = List.map smt_of_pred diff_preds in
+    let smt_diff_preds = List.map exp_of_predP diff_preds in
     let weight_fn p =
-        let h'  = add_conjunct (atom_of_pred p) env.h in
-        let h'' = add_conjunct (not_atom @@ atom_of_pred p) env.h in
+        let h'  = add_conjunct (exp_of_predP p) env.h in
+        let h'' = add_conjunct (exp_of_predP @@ negate p) env.h in
         let weight_fn_inner h_com h_ncom = match env.solver smt_diff_preds @@ commute env.spec h_com with
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
@@ -67,14 +73,14 @@ let poke env : pred =
         if e_weight < weight then (e, e_weight, false) else
         (p, weight, false)) (let weight = weight_fn p in (p, weight, weight = -1)) next'
 
-let poke2 env : pred =
+let poke2 env : predP =
     let com, n_com = env.cex_ncex in
-    let next = differentiating_predicates env.choose_from com n_com in
+    let next = differentiating_predicates (preds_of_lattice env.choose_from) com n_com in
     let diff_preds = List.map fst next in
-    let smt_diff_preds = List.map smt_of_pred diff_preds in
+    let smt_diff_preds = List.map exp_of_predP diff_preds in
     let weight_fn p cov =
-        let h'  = add_conjunct ((if cov then Fun.id else not_atom) @@ atom_of_pred p) env.h in
-        let h'' = add_conjunct ((if cov then not_atom else Fun.id) @@ atom_of_pred p) env.h in
+        let h'  = add_conjunct (exp_of_predP @@ (if cov then Fun.id else negate) p) env.h in
+        let h'' = add_conjunct (exp_of_predP @@ (if cov then negate else Fun.id) p) env.h in
         match env.solver smt_diff_preds @@ commute env.spec h' with
         | Unsat -> begin match env.solver smt_diff_preds @@ non_commute env.spec h'' with
             | Unsat -> -1
@@ -99,4 +105,4 @@ let poke2 env : pred =
         if e_weight < weight then (e, e_cov, e_weight, false) else
         (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
 
-let choose : (choose_env -> pred) ref = ref simple
+let choose : (choose_env -> predP) ref = ref simple

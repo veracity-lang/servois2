@@ -140,9 +140,9 @@ module RunSynth : Runner = struct
                                          timeout = !timeout
       } in
       if !mc_synth then
-        Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars !mc_synth_maxcover
+        Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars (* !mc_synth_maxcover *)
       else
-        Synth.synth ~options:synth_options spec method1 method2
+        Synth.synth ~options:synth_options spec method1 method2 !mc_vars 
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
@@ -239,62 +239,23 @@ module RunVerify : Runner = struct
       | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
-module RunTemp : Runner = struct
-
-  let usage_msg exe_name =
-    "Usage: " ^ exe_name ^ " temp [<flags>]\n    Synths commutativity conditions for OCaml representation of an object."
-  
-  open CommonOptions
-  
-  let timelimit = ref None
-  
-  let speclist =
-    [ "--timeout", Arg.Float (fun f -> timelimit := Some f), " Set time limit for execution"
-    ] @ common_speclist |>
-    Arg.align
-
-  let run () =
-    Arg.current := 1;
-    Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
-    let anons = List.rev (!anons) in
-    match anons with
-    | [] -> 
-        if !debug then begin
-            Printexc.record_backtrace true;
-            ignore @@ Parsing.set_trace true end
-            else ();
-        let spec = Counter_example.spec in
-        let m1_name = "increment" in
-        let m2_name = "decrement" in
-        let options = { Synth.default_synth_options with timeout = !timelimit } in
-        let phi, phi_tilde = Synth.synth ~options:options spec m1_name m2_name in
-        print_string (Phi.string_of_disj phi); print_newline ();
-        print_string (Phi.string_of_disj phi_tilde); print_newline();
-        epf "Last benches:\n%s\n" @@ Synth.string_of_benches !Synth.last_benchmarks
-    | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
-end
-
-
 type command =
   | CmdHelp (* Show help info *)
   | CmdSynth (* Synthesize phi *)
   | CmdVerify (* Verify validity of commutativity condition *)
   | CmdParse (* Parse YAML *)
-  | CmdTemp
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdSynth
   ; "verify",   CmdVerify
   ; "parse",    CmdParse
-  ; "temp",     CmdTemp
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdSynth,    (module RunSynth)
   ; CmdVerify,   (module RunVerify)
   ; CmdParse,  (module RunParse)
-  ; CmdTemp,   (module RunTemp)
   ]
 
 let display_help_message exe_name = 
@@ -303,8 +264,7 @@ let display_help_message exe_name =
     "  help        Display this message\n" ^
     "  synth       Run inference\n" ^
     "  verify      Verify commutativity condition\n" ^
-    "  parse       Parse yaml\n" ^
-    "  temp        Do whatever the particular test implemented is\n"
+    "  parse       Parse yaml\n"
   in Printf.eprintf "Usage: %s <command> [<flags>] [<args>]\n%s" exe_name details
 
 (* Check first argument for command *)

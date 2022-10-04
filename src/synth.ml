@@ -17,6 +17,7 @@ type synth_options =
   ; prover : (module Prover)
   ; lift : bool
   ; timeout : float option
+  ; lattice : bool
   }
 
 let default_synth_options =
@@ -24,6 +25,7 @@ let default_synth_options =
   ; prover = (module Provers.ProverCVC4)
   ; lift = true
   ; timeout = None
+  ; lattice = false
   }
 
 type benches =
@@ -49,7 +51,7 @@ let string_of_benches benches = sp
     benches.synth_time
 
 type counterex = exp bindlist
-
+(*
 let synth ?(options = default_synth_options) spec m n =
     let init_time = Unix.gettimeofday () in
     let init_smt_queries = !Provers.n_queries in
@@ -103,6 +105,7 @@ let synth ?(options = default_synth_options) spec m n =
     if !answer_incomplete then pfv "Warning: Answer incomplete.\n";
     
     !phi, !phi_tilde
+*)
 
 (* refine with new variant of CHOOSE alg
    1. input:
@@ -137,7 +140,7 @@ let synth ?(options = default_synth_options) spec m n =
 *)
 
 
-let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximize_cover =
+let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
   let init_time = Unix.gettimeofday () in
   let init_smt_queries = !Provers.n_queries in
 
@@ -162,15 +165,16 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
    *)
   let ps, pps, pequivc = Predicate_analyzer.observe_rels_all preds state_vars in
   Predicate_analyzer_logger.log_predicate_implication_chains ps pps;          
-  let psmcs = Predicate_analyzer.run_mc preds state_vars 
-              |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
   let module PS = Precond_synth in 
   let module L = PS.L in
-  let rank_pred = 
-    if maximize_cover then PS.compare_pred_maximum_cover
-    else PS.compare_pred_bisect
+  let l = if options.lattice
+    then 
+      let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
+      PS.construct_lattice psmcs pps 
+    else
+      (* make trivial lattice *)
+      PS.construct_lattice (List.map (fun p -> (P p, 0.0)) preds) []
   in
-  let l = PS.construct_lattice psmcs pps in
 
   let synth_start_time = Unix.gettimeofday () in
 
@@ -283,7 +287,8 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let next_candidate = PS.mcpeak l rank_pred (com_cex, non_com_cex)  in
+            let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } 
+            in
             (* current p is not concluding, then 
                - add it to preh, and 
                - remove all its upper set (which comprises weaker predicates)      
@@ -296,15 +301,12 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
                      (List.map (fun p -> string_of_predP @@ fst p) (L.upperset_of_v p l))); 
                 (add_conjunct (exp_of_predP (fst p)) preh), L.remove_upperset p l 
             end in
-            begin match next_candidate with
-            | None -> raise @@ Failure "No available candidates"
-            | Some p ->
-                (* find the equivalent of non p *)
-                let nonp = PS.pfind (negate (fst p)) pequivc l in 
-                let l = L.remove p l |> L.remove nonp in                
-                refine_ppeak_wrapped preh (Some p) l;                
-                refine_ppeak_wrapped preh (Some nonp) l
-            end            
+            (* find the equivalent of non p *)
+            let p_lattice = PS.pfind p pequivc l in
+            let nonp_lattice = PS.pfind (negate p) pequivc l in
+            let l = L.remove p_lattice l |> L.remove nonp_lattice in
+            refine_ppeak_wrapped preh (Some p_lattice) l;
+            refine_ppeak_wrapped preh (Some nonp_lattice) l
         end 
     end
   in
@@ -324,3 +326,4 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
   if !answer_incomplete then pfv "Warning: Answer incomplete.\n";
   !phi, !phi_tilde
 
+let synth = synth_with_mc

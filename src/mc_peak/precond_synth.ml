@@ -4,7 +4,6 @@ open Smt
 open Smt_parsing
 open Provers
 open Phi
-open Choose
 open Predicate_analyzer
 
 module PAL = Predicate_analyzer_logger
