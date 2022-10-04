@@ -23,6 +23,8 @@ sig
 
   val list_of: v el t -> v list
 
+  val find_opt: (v -> bool) -> v el t -> v option
+
   (* val add: v -> v el t -> v el t *)
 
   val remove: v -> v el t -> v el t
@@ -36,6 +38,7 @@ sig
   val coveringset: v -> v el t -> v list
 
   val upperset: int -> v el t -> (int * v el) list
+  val upperset_of_v: v -> v el t -> v list
 
   val lowerset: int -> v el t -> (int * v el) list
 
@@ -78,15 +81,25 @@ struct
   let id_next: unit -> int = 
     let gen = ref 1 in
     fun () -> gen := !gen + 1; !gen
- 
-  let find_opt: v -> v el t -> (int * v el) option = 
-    fun a l -> 
+
+  let find_binding_opt: (v -> bool) -> v el t -> (int * v el) option = 
+    fun f l -> 
     StoreM.choose_opt @@ StoreM.filter (
         fun _ el -> 
           match el with 
-          | Element {value = a'; _} -> a = a'
+          | Element {value = a; _} -> f a 
           | (Top _ | Bottom _) -> false 
       ) l
+  
+  let find_opt: (v -> bool) -> v el t -> v option = 
+    fun f l ->
+    let maybe_binding = find_binding_opt f l in 
+    Option.bind maybe_binding (
+      fun (_, el) ->
+        match el with
+        | Element {value = a; _} -> Some a
+        | (Top _ | Bottom _) -> None)
+        
 
   let construct : v list -> v el t = 
     fun els -> 
@@ -166,7 +179,7 @@ struct
 
   let coveredbyset: v -> v el t -> v list = 
     fun a l -> 
-    match find_opt a l with
+    match find_binding_opt (fun a' -> a' = a) l with
     | None -> []
     | Some (_, Top _) -> []
     | (Some (_, Element {covered_by; _}) | Some (_, Bottom {covered_by})) ->
@@ -180,7 +193,7 @@ struct
 
   let coveringset: v -> v el t -> v list = 
     fun a l -> 
-    match find_opt a l with
+    match find_binding_opt (fun a' -> a' = a) l with
     | None -> []
     | Some (_, Bottom _) -> []
     | (Some (_, Element {covering; _}) | Some (_, Top {covering})) ->
@@ -214,6 +227,20 @@ struct
     | Some (Element {covered_by; _} as el) -> ups l covered_by [(idk, el)]
     | Some (Bottom {covered_by} as el) -> ups l covered_by [(idk, el)] 
               
+  let upperset_of_v: v -> v el t -> v list = 
+    fun a l -> 
+    match find_binding_opt (fun a' -> a' = a) l with
+    | None -> []
+    | Some (_, Top _) -> []
+    | Some (idk, Element _) ->
+      List.fold_right (fun (idk_, el_) acc ->
+          begin match el_ with
+            | (Top _ | Bottom _) -> acc
+            | Element { value = a_; _} -> a_::acc 
+          end
+        ) (upperset idk l) []
+    | Some (_, Bottom _) -> list_of l
+  
   let lowerset: int -> v el t -> (int * v el) list = 
     fun idk l ->
     let rec lows l covering acc = 
@@ -327,7 +354,7 @@ struct
             reconnect_covered_by x_idk x_cing_idks idk_ l_
           ) x_cby_idks
     in
-    match find_opt a l with
+    match find_binding_opt (fun a' -> a' = a) l with
     | None -> l
     | Some (_, Top _) -> failwith "Lattice.remove : Top is not removable"   
     | Some (idk, Element {covered_by; covering; _}) ->
@@ -336,7 +363,7 @@ struct
 
   let remove_upperset: v -> v el t -> v el t = 
     fun a l -> 
-    match find_opt a l with
+    match find_binding_opt (fun a' -> a' = a) l with
     | None -> l
     | Some (_, Top _) -> failwith "Lattive.remove_upperset : Top is not removable"
     | Some (idk, Element _) ->

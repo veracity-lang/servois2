@@ -187,13 +187,13 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
 
   let solve_inst = solve options.prover spec m_spec n_spec in
 
-  (* Choose the strongest predicates amongst the ones that differentiate
-        and peak the one with the highest rank
+  (* Choose (maybe?) strongest predicates amongst the ones that differentiate
+        or (maybe?) peak the one with the highest rank amongst the same differentiating ones
      1. verify the validity of commute or non_commute formulas
      2. if they hold, then do a DFS to find the weakest predicates that keep the
         validity of formula
      3. if they don't hold, then explore the predicates in the lattice obtained 
-        by substracting the upperset of the chosen predicate
+        after removing the upperset of the chosen predicate
      4. continue in DFS manner
   *)
   let weakerps fn_commute h_prefix minp l = 
@@ -226,10 +226,10 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
     | wps -> wps
   in
 
-  let rec refine_ppeak_wrapped preh maybep l acc = 
-    try refine_ppeak preh maybep l acc  with Failure _ -> answer_incomplete := true; []
-  and refine_ppeak: conjunction -> (predP * float) option -> (predP * float) L.el L.t -> predP list -> predP list = 
-    fun preh maybep l acc ->  
+  let rec refine_ppeak_wrapped preh maybep l = 
+    try refine_ppeak preh maybep l with Failure _ -> answer_incomplete := true
+  and refine_ppeak: conjunction -> (predP * float) option -> (predP * float) L.el L.t -> unit = 
+    fun preh maybep l -> 
     let p_set = List.map fst (L.list_of l) in
     let pred_smt = List.map exp_of_predP p_set in
     let h = match maybep with
@@ -243,18 +243,19 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
           | None ->
              pfv "\nPartial solution for phi: %s\n" 
                (string_of_smt @@ smt_of_conj h);
-            phi := add_disjunct h !phi;
-            acc
+            phi := add_disjunct h !phi
           | Some p -> 
+            pfv "\nPred found for phi: %s" (string_of_predP (fst p));
             let wps = weakerps commute preh p l in
+            pfv "\nWeakers predicates found for phi: [%s]"
+              (String.concat " ; " (List.map (string_of_predP) wps));
             List.iter (fun p_ ->
                 let p' = exp_of_predP p_ in
                 let h' = add_conjunct p' preh in
                 pfv "\nPartial solution for phi: %s\n" 
                   (string_of_smt @@ smt_of_conj h');
                 phi := add_disjunct h' !phi
-              ) wps;
-            wps @ acc
+              ) wps
         end
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
@@ -265,90 +266,45 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
               | None ->
                  pfv "\nPartial solution for phi-tilde: %s\n" 
                    (string_of_smt @@ smt_of_conj h);
-                 phi_tilde := add_disjunct h !phi_tilde;
-                 acc
+                 phi_tilde := add_disjunct h !phi_tilde
               | Some p -> 
+                pfv "\nPred found for phi-tilde: %s" (string_of_predP (fst p));
                 let wps = weakerps non_commute preh p l in
+                pfv "\nWeakers predicates found for phi-tilde: [%s]"
+                  (String.concat " ; " (List.map (string_of_predP) wps));
                 List.iter (fun p_ ->
                     let p' = exp_of_predP p_ in
                     let h' = add_conjunct p' preh in
                     pfv "\nPartial solution for phi-tilde: %s\n" 
                       (string_of_smt @@ smt_of_conj h');
-                    phi_tilde := add_disjunct h' !phi_tilde) wps;
-                wps @ acc
+                    phi_tilde := add_disjunct h' !phi_tilde) wps
             end
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let candidates = PS.gen_next_candidates l rank_pred (com_cex, non_com_cex)  in
+            let next_candidate = PS.mcpeak l rank_pred (com_cex, non_com_cex)  in
             (* current p is not concluding, then 
                - add it to preh, and 
                - remove all its upper set (which comprises weaker predicates)      
             *)
-            let preh, l' = begin match maybep with
+            let preh, l = begin match maybep with
               | None -> preh, l
-              | Some p -> (add_conjunct (exp_of_predP (fst p)) preh), L.remove_upperset p l 
+              | Some p ->
+                pfv "\nUpperset removed: [%s]\n" 
+                  (String.concat " ; " 
+                     (List.map (fun p -> string_of_predP @@ fst p) (L.upperset_of_v p l))); 
+                (add_conjunct (exp_of_predP (fst p)) preh), L.remove_upperset p l 
             end in
-            let pl' = L.list_of l' in
-            let candidates = List.filter (fun p -> List.exists (fun p' -> p = p') pl') candidates in
-            Precond_synth.print_pred_candidates candidates;
-
-            (*
-            ignore @@ List.fold_left (fun res ((p_, d_), l_) ->
-                let handle_next = fun () ->
-                  let new_ps = List.map fst (L.list_of l_) in
-                  Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
-                  let h_ = add_conjunct (exp_of_predP p_) h in
-                  pfv "\n\nNew predicate added to conjunction: %s\n" 
-                    (string_of_smt @@ smt_of_conj h_);
-                  (refine_ppeak_wrapped h_ l_, Some p_)
-                in
-                match res with
-                | false, _ -> handle_next ()
-                | true, Some pp ->
-                  if PS.pequiv pequivc p_ (negate pp) then handle_next ()
-                  else  res
-                | true, None -> raise @@ Failure "Unexpected. Unreachable statement reached"
-              ) (false, None) (pnext l candidates);
-            *)
-            
-            (* begin match pnext l candidates with
-             * | ((p_, d_), l_) :: ps -> let new_ps = List.map fst (L.list_of l_) in
-             *       Predicate_analyzer_logger.log_ppeak_result (p_, d_) new_ps;
-             *       let h_ = add_conjunct (exp_of_predP p_) h in
-             *       pfv "\n\nNew predicate added to conjunction: %s\n" 
-             *         (string_of_smt @@ smt_of_conj h_);
-             *       ignore @@ refine_ppeak_wrapped h_ l_;
-             *       ignore @@ refine_ppeak_wrapped (add_conjunct (exp_of_predP @@ negate p_) h) l_
-             * | [] -> raise @@ Failure "No remaining predicates." end;
-             * false *)
-
-            let rec plgen l ps = 
-              match ps with
-              | [] -> []
-              | p::ps' -> 
-                let l' = L.remove p l in
-                (p, l)::(plgen l' ps')
-            in
-            let rec handle_next pls acc =              
-              begin match pls, acc with
-                | [], _ -> []
-                | (p, l)::pls', [] -> 
-                  handle_next pls' (refine_ppeak_wrapped preh (Some p) l [])
-                | (p, l)::pls', concluding_ps ->                  
-                  if List.exists (fun cp -> PS.pequiv pequivc (fst p) (negate cp)) concluding_ps then
-                    (* negated predicates of concluding predicates *)
-                    handle_next pls' (refine_ppeak_wrapped preh (Some p) l concluding_ps) 
-                  else if List.exists (fun cp -> PS.pequiv pequivc (fst p) cp) concluding_ps then
-                    (* equivalent to already concluding predicates *)
-                    handle_next pls' concluding_ps
-                  else
-                    (* ignore others. revisit this *)
-                    handle_next pls' concluding_ps
-            end
-            in
-            handle_next (plgen l' candidates) []
-        end
+            begin match next_candidate with
+            | None -> raise @@ Failure "No available candidates"
+            | Some p ->
+                (* find the equivalent of non p *)
+                let nonp = PS.pfind (negate (fst p)) pequivc l in 
+                let l = L.remove p l |> L.remove nonp in                
+                refine_ppeak_wrapped preh (Some p) l;                
+                refine_ppeak_wrapped preh (Some nonp) l
+            end            
+        end 
     end
   in
 
@@ -357,7 +313,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars maximiz
     | None -> run 
     | Some f -> run_with_time_limit f
   ) (fun () -> 
-      ignore @@ refine_ppeak_wrapped (Conj []) None l []
+      refine_ppeak_wrapped (Conj []) None l
     ) 
     with Timeout -> 
       pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
