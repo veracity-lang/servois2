@@ -16,6 +16,8 @@ state:
   type: Int
 - name: 'list_memory'
   type: list
+- name: 'get_return'
+  type: Int
 
 
 states_equal:
@@ -60,6 +62,49 @@ methods:
          (= x0_new x0) (= x1_new x1) (= x2_new x2) (= size_new size))
   terms: 
     Int: [0, 1, 'x0', 'x1', 'x2']
+
+- name: get
+  args:
+  - name: index
+    type: Int
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (and (< index size) (>= index 0))
+  ensures: |
+    (and (= size_new size)
+         (= list_memory_new list_memory)
+         (= x0_new x0) (= x1_new x1) (= x2_new x2)
+         (ite (= index 0) (= get_return x0)
+         (ite (= index 1) (= get_return x1)
+         (ite (= index 2) (= get_return x2)
+         true
+         ))))
+  terms: 
+    Int: [0, 1, 'x0', 'x1', 'x2']
+
+- name: get_impl
+  args:
+  - name: index
+    type: Int
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (and (< index size) (>= index 0))
+  ensures: |
+    (and (= size_new size)
+         (= list_memory_new list_memory)
+         (= x0_new x0) (= x1_new x1) (= x2_new x2)
+         (ite (= index 0) (= get_return (head list_memory))
+         (ite (= index 1) (= get_return (head (tail list_memory)))
+         (ite (= index 2) (= get_return (head (tail (tail list_memory))))
+         true
+         ))))
+  terms: 
+    Int: [0, 1, 'x0', 'x1', 'x2']
+
 
 # pre-condition: (and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))
 # ./servois2 verify ../yamls/stack.yml pop:pop_list_impl "(and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))" -vv

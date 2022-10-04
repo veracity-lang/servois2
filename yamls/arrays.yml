@@ -30,10 +30,10 @@ states_equal:
 methods:
 - name: arr_set
   args: 
-    - name: index
-      type: Int
-    - name: value
-      type: Int
+  - name: index
+    type: Int
+  - name: value
+    type: Int
   return:
   - name: result
     type: Bool
@@ -57,8 +57,8 @@ methods:
 
 - name: farr_cons
   args: 
-    - name: value
-      type: Int
+  - name: value
+    type: Int
   return:
   - name: result
     type: Bool
