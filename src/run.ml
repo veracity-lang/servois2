@@ -140,7 +140,7 @@ module RunSynth : Runner = struct
                                          timeout = !timeout;
                                          lattice = !lattice
       } in
-      Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars
+      Synth.synth ~options:synth_options spec method1 method2 !mc_vars
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in

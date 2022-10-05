@@ -51,61 +51,6 @@ let string_of_benches benches = sp
     benches.synth_time
 
 type counterex = exp bindlist
-(*
-let synth ?(options = default_synth_options) spec m n =
-    let init_time = Unix.gettimeofday () in
-    let init_smt_queries = !Provers.n_queries in
-    let spec = if options.lift then lift spec else spec in
-
-    let m_spec = get_method spec m |> mangle_method_vars true in
-    let n_spec = get_method spec n |> mangle_method_vars false in
-
-    let preds_unfiltered = match options.preds with None -> generate_predicates spec m_spec n_spec | Some x -> x in
-    let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
-
-    let synth_start_time = Unix.gettimeofday () in
-    
-    seq (last_benchmarks := 
-      { predicates = List.length preds_unfiltered
-      ; predicates_filtered = List.length preds
-      ; smtqueries = !Provers.n_queries - init_smt_queries
-      ; time = Float.sub (Unix.gettimeofday ()) init_time 
-      ; synth_time = Float.sub (Unix.gettimeofday ()) synth_start_time }) @@
-      
-    let phi = ref @@ Disj [] in
-    let phi_tilde = ref @@ Disj [] in
-    let answer_incomplete = ref false in
-    
-    let rec refine_wrapped h ps = try refine h ps with Failure _ -> answer_incomplete := true 
-    and refine (h : conjunction) (p_set : pred list) : unit =
-        let solve_inst = solve options.prover spec m_spec n_spec in
-        let pred_smt = List.map smt_of_pred p_set in
-        begin match solve_inst pred_smt @@ commute spec h with
-            | Unsat -> phi := add_disjunct h !phi
-            | Unknown -> raise @@ Failure "commute failure"
-            | Sat vs -> 
-            let com_cex = pred_data_of_values vs in
-            begin match solve_inst pred_smt @@ non_commute spec h with
-                | Unsat -> phi_tilde := add_disjunct h !phi_tilde
-                | Unknown -> raise @@ Failure "non_commute failure"
-                | Sat vs ->
-                let non_com_cex = pred_data_of_values vs in
-                let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = p_set; cex_ncex = (com_cex, non_com_cex) } in
-                    refine_wrapped (add_conjunct (atom_of_pred p) h) (remove p p_set);
-                    refine_wrapped (add_conjunct (not_atom @@ atom_of_pred p) h) (remove p p_set)
-            end
-        end
-    in
-    
-    begin try (match options.timeout with None -> run | Some f -> run_with_time_limit f) (fun () -> 
-        refine_wrapped (Conj []) (List.sort (fun x y -> complexity x - complexity y) @@ preds)
-        ) with Timeout -> pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); answer_incomplete := true
-    end;
-    
-    if !answer_incomplete then pfv "Warning: Answer incomplete.\n";
-    
-    !phi, !phi_tilde
-*)
 
 (* refine with new variant of CHOOSE alg
    1. input:
@@ -140,7 +85,7 @@ let synth ?(options = default_synth_options) spec m n =
 *)
 
 
-let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
+let synth ?(options = default_synth_options) spec m n state_vars =
   let init_time = Unix.gettimeofday () in
   let init_smt_queries = !Provers.n_queries in
 
@@ -149,9 +94,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
   let n_spec = get_method spec n |> mangle_method_vars false in
 
   let preds_unfiltered = match options.preds with
-    | None ->
-      let preds = generate_predicates spec m_spec n_spec in
-      preds
+    | None -> generate_predicates spec m_spec n_spec
     | Some x -> x in
   let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
 
@@ -169,7 +112,6 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
   let module L = PS.L in
   let l = if options.lattice
     then begin
-      Printf.printf "This shouldn't be reached.\n";
       let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
       PS.construct_lattice psmcs pps end
     else
@@ -189,52 +131,22 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
   let answer_incomplete = ref false in
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
-  
 
   let solve_inst = solve options.prover spec m_spec n_spec in
 
   (* Choose (maybe?) strongest predicates amongst the ones that differentiate
         or (maybe?) peak the one with the highest rank amongst the same differentiating ones
      1. verify the validity of commute or non_commute formulas
-     2. if they hold, then do a DFS to find the weakest predicates that keep the
-        validity of formula
+     2. if they hold, disjoin it with the formula
      3. if they don't hold, then explore the predicates in the lattice obtained 
         after removing the upperset of the chosen predicate
      4. continue in DFS manner
   *)
-  let weakerps fn_commute h_prefix minp l = 
-    let rec foldl f ps l acc =
-      match ps with
-      | [] -> acc 
-      | p::ps' ->       
-        let p_cbys = L.coveredbyset p l in
-        begin match p_cbys with
-          | [] -> foldl f ps' l (f p acc)
-          | _ -> 
-            let acc' = foldl f p_cbys l acc in
-            match acc' with
-            | [] -> f p acc'
-            | _ -> acc'
-        end
-    in
-    let commutef p acc = 
-      let p_ = fst p in 
-      let h_ = add_conjunct (exp_of_predP p_) h_prefix in
-      match solve_inst [] @@ fn_commute spec h_ with
-        | Unsat ->
-          pfv "\nWeaker predicate found: %s" (string_of_predP p_);
-          p_::acc 
-        | Unknown -> raise @@ Failure "commute failure"
-        | Sat _ -> acc
-    in
-    match foldl commutef (L.coveredbyset minp l) l [] with
-    | [] -> [fst minp]
-    | wps -> wps
-  in
 
-  let rec refine_ppeak_wrapped preh maybep l = 
-    try refine_ppeak preh maybep l with Failure _ -> answer_incomplete := true
-  and refine_ppeak: conjunction -> (predP * float) option -> (predP * float) L.el L.t -> unit = 
+  (* preh is the h of the last iteration, maybep is Some predicate that was added last iteration. *)
+  let rec refine_wrapped preh maybep l = 
+    try refine preh maybep l with Failure _ -> answer_incomplete := true
+  and refine: conjunction -> (predP * float) option -> (predP * float) L.el L.t -> unit = 
     fun preh maybep l -> 
     let p_set = List.map fst (L.list_of l) in
     let pred_smt = List.map exp_of_predP p_set in
@@ -245,46 +157,17 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
 
     begin match solve_inst pred_smt @@ commute spec h with
       | Unsat -> 
-        begin match maybep with
-          | None ->
-             pfv "\nPartial solution for phi: %s\n" 
-               (string_of_smt @@ smt_of_conj h);
-            phi := add_disjunct h !phi
-          | Some p -> 
-            pfv "\nPred found for phi: %s" (string_of_predP (fst p));
-            let wps = weakerps commute preh p l in
-            pfv "\nWeakers predicates found for phi: [%s]"
-              (String.concat " ; " (List.map (string_of_predP) wps));
-            List.iter (fun p_ ->
-                let p' = exp_of_predP p_ in
-                let h' = add_conjunct p' preh in
-                pfv "\nPartial solution for phi: %s\n" 
-                  (string_of_smt @@ smt_of_conj h');
-                phi := add_disjunct h' !phi
-              ) wps
-        end
+        pfv "\nPred found for phi: %s\n" 
+          (string_of_smt @@ smt_of_conj h);
+        phi := add_disjunct h !phi
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
         begin match solve_inst pred_smt @@ non_commute spec h with
           | Unsat ->
-            begin match maybep with
-              | None ->
-                 pfv "\nPartial solution for phi-tilde: %s\n" 
-                   (string_of_smt @@ smt_of_conj h);
-                 phi_tilde := add_disjunct h !phi_tilde
-              | Some p -> 
-                pfv "\nPred found for phi-tilde: %s" (string_of_predP (fst p));
-                let wps = weakerps non_commute preh p l in
-                pfv "\nWeakers predicates found for phi-tilde: [%s]"
-                  (String.concat " ; " (List.map (string_of_predP) wps));
-                List.iter (fun p_ ->
-                    let p' = exp_of_predP p_ in
-                    let h' = add_conjunct p' preh in
-                    pfv "\nPartial solution for phi-tilde: %s\n" 
-                      (string_of_smt @@ smt_of_conj h');
-                    phi_tilde := add_disjunct h' !phi_tilde) wps
-            end
+            pfv "\nPred found for phi-tilde: %s\n" 
+              (string_of_smt @@ smt_of_conj h);
+            phi_tilde := add_disjunct h !phi_tilde
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
@@ -306,8 +189,8 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
             let p_lattice = PS.pfind p pequivc l in
             let nonp_lattice = PS.pfind (negate p) pequivc l in
             let l = L.remove p_lattice l |> L.remove nonp_lattice in
-            refine_ppeak_wrapped preh (Some p_lattice) l;
-            refine_ppeak_wrapped preh (Some nonp_lattice) l
+            refine_wrapped preh (Some p_lattice) l;
+            refine_wrapped preh (Some nonp_lattice) l
         end 
     end
   in
@@ -317,7 +200,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
     | None -> run 
     | Some f -> run_with_time_limit f
   ) (fun () -> 
-      refine_ppeak_wrapped (Conj []) None l
+      refine_wrapped (Conj []) None l
     ) 
     with Timeout -> 
       pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
@@ -326,5 +209,3 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
 
   if !answer_incomplete then pfv "Warning: Answer incomplete.\n";
   !phi, !phi_tilde
-
-let synth = synth_with_mc
