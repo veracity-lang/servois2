@@ -97,7 +97,6 @@ module RunSynth : Runner = struct
   open CommonOptions
   
   let timeout = ref None
-  let mc_vars = ref []
   let lattice = ref false
 
   let speclist =
@@ -105,19 +104,6 @@ module RunSynth : Runner = struct
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"
     ; "--mcpeak-maxcover", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_cover), " Use model counting based synthesis with strategy: maximum-coverage"
-    ; "--mcvars", Arg.String (fun bss -> 
-          mc_vars := String.split_on_char ';' bss 
-                     |> List.map (fun bs ->
-                         let bs = String.trim bs in
-                         let bs = String.sub bs 1 ((String.length bs) - 2) in
-                         match String.split_on_char ',' bs  with
-                         | t::vs::[] -> (t,
-                                         let vs = String.trim vs in
-                                         String.sub vs 1 ((String.length vs) - 2) 
-                                         |> String.split_on_char '|' 
-                                         |> List.map String.trim)
-                         | _ -> failwith "Incorrect format for vars option"
-                       )), " Variable bindings for model counting queries. Format: (Sort, (Name | ...)); (...)"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication."
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ] @ common_speclist |>
@@ -140,7 +126,7 @@ module RunSynth : Runner = struct
                                          timeout = !timeout;
                                          lattice = !lattice
       } in
-      Synth.synth ~options:synth_options spec method1 method2 !mc_vars
+      Synth.synth ~options:synth_options spec method1 method2
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
