@@ -140,13 +140,15 @@ let synth ?(options = default_synth_options) spec m n =
 *)
 
 
-let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
+let synth_with_mc ?(options = default_synth_options) spec m n =
   let init_time = Unix.gettimeofday () in
   let init_smt_queries = !Provers.n_queries in
 
   let spec = if options.lift then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
   let n_spec = get_method spec n |> mangle_method_vars false in
+
+  let state_vars = spec.state @ (m_spec.args) @ (n_spec.args) in
 
   let preds_unfiltered = match options.preds with
     | None ->
@@ -163,13 +165,14 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
       4. Annotate each predicate with the corresponding split ratio distance from 0.5
       5. Construct the lattice 
    *)
-  let ps, pps, pequivc = Predicate_analyzer.observe_rels_all preds state_vars in
+  let ps, pps, pequivc = Predicate_analyzer.observe_rels preds state_vars in
   Predicate_analyzer_logger.log_predicate_implication_chains ps pps;          
   let module PS = Precond_synth in 
   let module L = PS.L in
   let l = if options.lattice
     then 
-      let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
+      let psmcs = Predicate_analyzer.run_mc preds state_vars 
+                  |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
       PS.construct_lattice psmcs pps 
     else
       (* make trivial lattice *)
@@ -241,7 +244,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
       | None -> preh
       | Some p -> add_conjunct (exp_of_predP (fst p)) preh
     in
-
+    
     begin match solve_inst pred_smt @@ commute spec h with
       | Unsat -> 
         begin match maybep with
@@ -287,7 +290,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } 
+            let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) }
             in
             (* current p is not concluding, then 
                - add it to preh, and 
@@ -302,8 +305,8 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
                 (add_conjunct (exp_of_predP (fst p)) preh), L.remove_upperset p l 
             end in
             (* find the equivalent of non p *)
-            let p_lattice = PS.pfind p pequivc l in
-            let nonp_lattice = PS.pfind (negate p) pequivc l in
+            let p_lattice = if options.lattice then PS.pfind p pequivc l else (p, 0.0) in
+            let nonp_lattice = if options.lattice then PS.pfind (negate p) pequivc l else (negate p, 0.0) in
             let l = L.remove p_lattice l |> L.remove nonp_lattice in
             refine_ppeak_wrapped preh (Some p_lattice) l;
             refine_ppeak_wrapped preh (Some nonp_lattice) l

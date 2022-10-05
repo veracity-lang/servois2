@@ -8,9 +8,9 @@ type 'a maybeRes = Exn of string | Val of 'a
 
 module type PredicateAnalyzerSig = 
 sig
-  val run_mc: pred list -> (string * string list) list -> (pred * mc_result * mc_result) list
-  val observe_rels: pred list -> (string * string list) list -> (predP * predP * int) list
-  val verify_antichain: predP list -> (string * string list) list -> (predP * predP) list
+  val run_mc: pred list -> ty bindlist -> (pred * mc_result * mc_result) list
+  val observe_rels: pred list -> ty bindlist -> (predP * predP * int) list
+  val verify_antichain: predP list -> ty bindlist -> (predP * predP) list
 end
 
 module PredicateAnalyzer: PredicateAnalyzerSig = 
@@ -31,15 +31,15 @@ struct
                    (liftp1 p, liftp2 p') :: acc'
                  else acc'
              ) acc aps)
-       ) []
+       ) [] 
 
-  let string_of_smt_vars: (string * string list) list  -> string = fun sorted_vars ->
-    List.fold_left (fun acc (sort, vars) -> 
-        List.fold_left (fun acc' var -> 
-            (Printf.sprintf "(declare-fun %s () %s)" var sort)::acc'
-          ) acc vars) [] sorted_vars |> String.concat "\n"
-
-   let observe_rels: pred list -> (string * string list) list -> (predP * predP * int) list = 
+  let string_of_smt_vars: ty bindlist -> string = fun tybindings ->
+    List.fold_right (fun (v, t) acc -> 
+      (Printf.sprintf "(declare-fun %s () %s)" (string_of_var v) (string_of_ty t))::acc) 
+      tybindings [] 
+    |> String.concat "\n"
+ 
+  let observe_rels: pred list -> ty bindlist -> (predP * predP * int) list = 
     fun ps vars -> 
     let impl_rels: pred list -> (pred -> predP) * (pred -> predP) -> (predP * predP * int) list = 
       fun ps (liftp1, liftp2) -> 
@@ -71,7 +71,7 @@ struct
     (impl_rels ps ((fun p -> NotP p), (fun p -> P p))) @
     (impl_rels ps ((fun p -> NotP p), (fun p -> NotP p)))
     
-  let verify_antichain: predP list -> (string * string list) list -> (predP * predP) list = 
+  let verify_antichain: predP list -> ty bindlist -> (predP * predP) list = 
     fun ps vars -> 
     let impl_rels: predP list -> (predP * predP * int) list = 
       fun ps -> 
@@ -131,19 +131,6 @@ struct
 end
 
 let observe_rels = fun ps vars -> 
-  let pred_rels = PredicateAnalyzer.observe_rels ps vars in
-  let pred_orderings, pred_unknown_count, pred_unsolved  = List.fold_left (fun acc (p1, p2, res) -> 
-      let (orderings, unknown_count, unsolved) = acc in
-      if (res = 0) then ((p1, p2, res) :: orderings, unknown_count, unsolved)
-      else if (res = 1) then (orderings, unknown_count + 1, unsolved)
-      else (orderings, unknown_count, (p1, p2, res) :: unsolved)) ([], 0, []) pred_rels 
-  in
-  let module PAL = Predicate_analyzer_logger in
-  PAL.log_predicates_impl_queries_result "Predicates IMPLICATION IMPLICATION QUERIES Summary" 
-    pred_orderings pred_unknown_count pred_unsolved;
-  pred_rels
-
-let observe_rels_all = fun ps vars -> 
   let pred_all = List.fold_right (fun p acc -> (P p)::(NotP p)::acc) ps [] in
   let pred_rels = PredicateAnalyzer.observe_rels ps vars in
   let pred_rels_impl = List.fold_right (fun (p1, p2, res) acc -> 
@@ -210,7 +197,7 @@ let observe_rels_all = fun ps vars ->
   PAL.log_predicates_summary "Predicates Summary (initial list)" pred_all;
   PAL.log_predicates_impl_rels 
     "Predicates IMPLICATION REL Summary. Valid Implications" pred_rels_impl;
-  PAL.log_predicates_equal_rels "Predicates EQUAL REL Summary. Valid Equalities" pred_eq;
+  PAL.log_predicates_equal_rels "Predicates EQUIV REL Summary. Valid Equivalences" pred_eq;
   PAL.log_predicates_equiv_classes "Predicates EQUIVALENCE CLASSES Summary" pred_partition;
   PAL.log_predicates_summary "Predicates Summary (after filtering)" pred_all';
   PAL.log_predicates_impl_rels 

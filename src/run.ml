@@ -97,7 +97,6 @@ module RunSynth : Runner = struct
   open CommonOptions
   
   let timeout = ref None
-  let mc_vars = ref []
   let mc_synth = ref false
   let mc_synth_maxcover = ref false
 
@@ -106,19 +105,6 @@ module RunSynth : Runner = struct
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "--mcpeak-bisect", Arg.Unit (fun () -> mc_synth := true), " Use model counting based synthesis with strategy: bisection"
     ; "--mcpeak-maxcover", Arg.Unit (fun () -> mc_synth := true; mc_synth_maxcover := true), " Use model counting based synthesis with strategy: maximum-coverage"
-    ; "--mcvars", Arg.String (fun bss -> 
-          mc_vars := String.split_on_char ';' bss 
-                     |> List.map (fun bs ->
-                         let bs = String.trim bs in
-                         let bs = String.sub bs 1 ((String.length bs) - 2) in
-                         match String.split_on_char ',' bs  with
-                         | t::vs::[] -> (t,
-                                         let vs = String.trim vs in
-                                         String.sub vs 1 ((String.length vs) - 2) 
-                                         |> String.split_on_char '|' 
-                                         |> List.map String.trim)
-                         | _ -> failwith "Incorrect format for vars option"
-                       )), " Variable bindings for model counting queries. Format: (Sort, (Name | ...)); (...)"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ] @ common_speclist |>
     Arg.align
@@ -140,9 +126,9 @@ module RunSynth : Runner = struct
                                          timeout = !timeout
       } in
       if !mc_synth then
-        Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars (* !mc_synth_maxcover *)
+        Synth.synth_with_mc ~options:{ synth_options with lattice = true} spec method1 method2
       else
-        Synth.synth ~options:synth_options spec method1 method2 !mc_vars 
+        Synth.synth ~options:synth_options spec method1 method2
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in
