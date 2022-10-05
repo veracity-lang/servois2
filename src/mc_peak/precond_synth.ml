@@ -79,10 +79,7 @@ let mcpeak =
       if List.exists (fun p' -> p' != p && PO.lte p' p) ps then (sps, ps)
       else (p::sps, ps)) filtered_preds ([], filtered_preds)
   in
-  (* match List.sort cmp strongest_ps with *)
-  match List.sort cmp filtered_preds with
-  | [] -> None
-  | p::_ -> Some p  
+  list_min (fun x y -> cmp x y < 0) Fun.id filtered_preds
   
 let construct_lattice = 
   fun psmcs pps ->
