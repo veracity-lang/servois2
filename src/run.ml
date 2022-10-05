@@ -98,14 +98,13 @@ module RunSynth : Runner = struct
   
   let timeout = ref None
   let mc_vars = ref []
-  let mc_synth = ref false
-  let mc_synth_maxcover = ref false
+  let lattice = ref false
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
-    ; "--mcpeak-bisect", Arg.Unit (fun () -> mc_synth := true), " Use model counting based synthesis with strategy: bisection"
-    ; "--mcpeak-maxcover", Arg.Unit (fun () -> mc_synth := true; mc_synth_maxcover := true), " Use model counting based synthesis with strategy: maximum-coverage"
+    ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"
+    ; "--mcpeak-maxcover", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_cover), " Use model counting based synthesis with strategy: maximum-coverage"
     ; "--mcvars", Arg.String (fun bss -> 
           mc_vars := String.split_on_char ';' bss 
                      |> List.map (fun bs ->
@@ -119,6 +118,7 @@ module RunSynth : Runner = struct
                                          |> List.map String.trim)
                          | _ -> failwith "Incorrect format for vars option"
                        )), " Variable bindings for model counting queries. Format: (Sort, (Name | ...)); (...)"
+    ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication."
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ] @ common_speclist |>
     Arg.align
@@ -137,12 +137,10 @@ module RunSynth : Runner = struct
     let phi_comm, phi_noncomm =
       let synth_options = {
         Synth.default_synth_options with prover = get_prover ();
-                                         timeout = !timeout
+                                         timeout = !timeout;
+                                         lattice = !lattice
       } in
-      if !mc_synth then
-        Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars (* !mc_synth_maxcover *)
-      else
-        Synth.synth ~options:synth_options spec method1 method2 !mc_vars 
+      Synth.synth_with_mc ~options:synth_options spec method1 method2 !mc_vars
     in
 
     let s_phi_comm    = Phi.ToString.t phi_comm in

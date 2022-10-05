@@ -168,9 +168,10 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
   let module PS = Precond_synth in 
   let module L = PS.L in
   let l = if options.lattice
-    then 
+    then begin
+      Printf.printf "This shouldn't be reached.\n";
       let psmcs = Predicate_analyzer.run_mc preds state_vars |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
-      PS.construct_lattice psmcs pps 
+      PS.construct_lattice psmcs pps end
     else
       (* make trivial lattice *)
       PS.construct_lattice (List.map (fun p -> (P p, 0.0)) preds) []
@@ -287,7 +288,7 @@ let synth_with_mc ?(options = default_synth_options) spec m n state_vars =
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } 
+            let p = !choose { solver = solve_inst; spec = spec; h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) }
             in
             (* current p is not concluding, then 
                - add it to preh, and 

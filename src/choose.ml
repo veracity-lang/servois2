@@ -105,4 +105,10 @@ let poke2 env : predP =
         if e_weight < weight then (e, e_cov, e_weight, false) else
         (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
 
+let mc_choose rank_pred env : predP = fst @@ mcpeak env.choose_from rank_pred env.cex_ncex
+
+let mc_max_cover : choose_env -> predP = mc_choose compare_pred_maximum_cover
+
+let mc_bisect : choose_env -> predP = mc_choose compare_pred_bisect
+
 let choose : (choose_env -> predP) ref = ref simple
