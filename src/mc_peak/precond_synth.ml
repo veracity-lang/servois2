@@ -21,12 +21,16 @@ let default_synth_options = {
 }
  
 let order_rels_set = ref []
-module PO: ORDERED with type t = (predP * float) =
+let mc_run_args = ref ([], [])
+let mc_run_time = ref 0.0
+let mcpred_set = ref []  
+
+module PO: ORDERED with type t = predP =
 struct 
-  type t = predP * float
+  type t = predP
   let lte = fun p1 p2 ->
-    List.exists (fun (pa, pb) -> pa = fst p1 && pb = fst p2) !order_rels_set
-  let string_of v = sp "%s [%.2f]" (PAL.string_of_predP @@ fst v) (snd v) 
+    List.exists (fun (pa, pb) -> pa = p1 && pb = p2) !order_rels_set
+  let string_of v = sp "%s" (PAL.string_of_predP v) 
 end
 module L = Lattice(PO)
 
@@ -39,7 +43,7 @@ let pfind: predP -> predP list list -> L.v L.el L.t -> L.v =
   match List.fold_right (fun p res ->
       match res with
       | Some _ -> res
-      | None -> L.find_opt (fun pr -> (fst pr) = p) l 
+      | None -> L.find_opt ((=) p) l 
     ) ps' None with
   | Some pr -> pr
   | None -> raise @@ Failure (sp "Predicate %s not found" (string_of_predP p))
@@ -69,22 +73,34 @@ let differentiate_by_counterex =
   ) ps (List.map2 (fun x y -> (x, y)) a b) []
 
 (* choose the minimal object with the highest rank *)
+
 let mcpeak = 
   fun l cmp cex_ncex ->
+  let psmcs = match !mcpred_set with
+    | [] -> 
+      let start = Unix.gettimeofday () in
+      let psmcs_ = Predicate_analyzer.run_mc (fst !mc_run_args) (snd !mc_run_args) in
+      mcpred_set := psmcs_;
+      mc_run_time := (Float.sub (Unix.gettimeofday ()) start);
+      psmcs_
+    | s -> s
+  in 
   let com, n_com = cex_ncex in
-  let filtered_preds = List.map fst @@ differentiate_by_counterex l com n_com in
+  let filtered_preds = List.map fst @@ differentiate_by_counterex l com n_com
+                       |> List.map (fun p -> (p, List.assoc p psmcs)) in
    pfv "\nFiltered predicates after differentiating: { %s }"
-    (String.concat " ; " (List.map (fun a -> string_of_predP (fst a)) filtered_preds));
-  let strongest_ps, _ = List.fold_right (fun p (sps, ps) ->
-      if List.exists (fun p' -> p' != p && PO.lte p' p) ps then (sps, ps)
-      else (p::sps, ps)) filtered_preds ([], filtered_preds)
+    (String.concat " ; " 
+       (List.map (fun (p, r) -> sp "(%s, %.3f)" (string_of_predP p) r) filtered_preds));
+  let strongest_ps, _ = List.fold_right (fun (p, r) (sps, ps) ->
+      if List.exists (fun (p', r') -> p' != p && PO.lte p' p) ps then (sps, ps)
+      else ((p, r)::sps, ps)) filtered_preds ([], filtered_preds)
   in
-  list_min (fun x y -> cmp x y < 0) Fun.id filtered_preds
+  fst @@ list_min (fun x y -> cmp x y < 0) Fun.id filtered_preds
   
 let construct_lattice = 
-  fun psmcs pps ->
+  fun ps pps ->
   order_rels_set := pps;
-  let l = L.construct psmcs in
+  let l = L.construct ps in
   pfv "\n\nLATTICE:\n%s" (L.string_of l);
   l
 

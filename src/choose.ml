@@ -34,8 +34,7 @@ let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> comp
   | EFunc(_, es) -> List.length es + list_sum (List.map size es)
 *)
 
-let preds_of_lattice l =
-    L.list_of l |> List.map fst
+let preds_of_lattice l = L.list_of l
 
 let complexity : predP -> int = memoize @@ fun p -> match p with 
     | P (_, left, right) -> size left + size right
@@ -105,7 +104,7 @@ let poke2 env : predP =
         if e_weight < weight then (e, e_cov, e_weight, false) else
         (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next'
 
-let mc_choose rank_pred env : predP = fst @@ mcpeak env.choose_from rank_pred env.cex_ncex
+let mc_choose rank_pred env : predP = mcpeak env.choose_from rank_pred env.cex_ncex
 
 let mc_max_cover : choose_env -> predP = mc_choose compare_pred_maximum_cover
 

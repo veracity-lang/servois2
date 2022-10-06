@@ -34,21 +34,27 @@ type benches =
   ; smtqueries : int
   ; time : float
   ; synth_time : float
+  ; mc_run_time: float
+  ; lattice_construct_time: float
   }
 
 let last_benchmarks = ref {predicates = 0; 
                            predicates_filtered = 0; 
                            smtqueries = 0; 
                            time = 0.0; 
-                           synth_time = 0.}
+                           synth_time = 0.0;
+                           mc_run_time = 0.0;
+                           lattice_construct_time = 0.0}
 
 let string_of_benches benches = sp 
-    "predicates, %d\npredicates_filtered, %d\nsmtqueries, %d\ntime, %.6f, \ntime_synth, %.6f" 
+    "predicates, %d\npredicates_filtered, %d\nsmtqueries, %d\nlattice_construct_time, %.6f\ntime_mc_run, %.6f\ntime_synth, %.6f\ntime, %.6f" 
     benches.predicates 
     benches.predicates_filtered 
-    benches.smtqueries 
-    benches.time
+    benches.smtqueries
+    benches.lattice_construct_time
+    benches.mc_run_time
     benches.synth_time
+    benches.time        
 
 type counterex = exp bindlist
 
@@ -86,8 +92,9 @@ type counterex = exp bindlist
 
 
 let synth ?(options = default_synth_options) spec m n =
-  let init_time = Unix.gettimeofday () in
+  let init_time = Unix.gettimeofday () in  
   let init_smt_queries = !Provers.n_queries in
+  let lattice_construct_time = ref 0.0 in
 
   let spec = if options.lift then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
@@ -108,17 +115,19 @@ let synth ?(options = default_synth_options) spec m n =
       4. Annotate each predicate with the corresponding split ratio distance from 0.5
       5. Construct the lattice 
    *)
-  let ps, pps, pequivc = Predicate_analyzer.observe_rels preds state_vars in
-  Predicate_analyzer_logger.log_predicate_implication_chains ps pps;          
+  Precond_synth.mc_run_args := (preds, state_vars);
   let module PS = Precond_synth in 
   let module L = PS.L in
-  let l = if options.lattice then begin 
-      let psmcs = Predicate_analyzer.run_mc preds state_vars 
-                  |> List.filter (fun (p, _) -> List.exists ((=) p) ps) in
-      PS.construct_lattice psmcs pps end 
+  let ps, pps, pequivc, l = if options.lattice then begin
+      let start = Unix.gettimeofday () in
+      let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels preds state_vars in
+      Predicate_analyzer_logger.log_predicate_implication_chains ps_ pps_;
+      let l_ = PS.construct_lattice ps_ pps_ in
+      lattice_construct_time := (Unix.gettimeofday ()) -. start;
+      ps_, pps_, pequivc_, l_ end 
     else
       (* make trivial lattice *)
-      PS.construct_lattice (List.map (fun p -> (P p, 0.0)) preds) []
+      [], [], [], PS.construct_lattice (List.map (fun p -> P p) preds) []
   in
 
   let synth_start_time = Unix.gettimeofday () in
@@ -128,7 +137,9 @@ let synth ?(options = default_synth_options) spec m n =
      ; predicates_filtered = List.length preds
      ; smtqueries = !Provers.n_queries - init_smt_queries
      ; time = Float.sub (Unix.gettimeofday ()) init_time 
-     ; synth_time = Float.sub (Unix.gettimeofday ()) synth_start_time}) @@
+     ; synth_time = (Unix.gettimeofday ()) -. synth_start_time -. !Precond_synth.mc_run_time
+     ; mc_run_time = !Precond_synth.mc_run_time
+     ; lattice_construct_time = !lattice_construct_time }) @@
 
   let answer_incomplete = ref false in
   let phi = ref @@ Disj [] in
@@ -148,13 +159,13 @@ let synth ?(options = default_synth_options) spec m n =
   (* preh is the h of the last iteration, maybep is Some predicate that was added last iteration. *)
   let rec refine_wrapped preh maybep l = 
     try refine preh maybep l with Failure _ -> answer_incomplete := true
-  and refine: conjunction -> (predP * float) option -> (predP * float) L.el L.t -> unit = 
+  and refine: conjunction -> predP option -> predP L.el L.t -> unit = 
     fun preh maybep l -> 
-    let p_set = List.map fst (L.list_of l) in
+    let p_set = L.list_of l in
     let pred_smt = List.map exp_of_predP p_set in
     let h = match maybep with
       | None -> preh
-      | Some p -> add_conjunct (exp_of_predP (fst p)) preh
+      | Some p -> add_conjunct (exp_of_predP p) preh
     in
     
     begin match solve_inst pred_smt @@ commute spec h with
@@ -184,12 +195,12 @@ let synth ?(options = default_synth_options) spec m n =
               | Some p ->
                 pfv "\nUpperset removed: [%s]\n" 
                   (String.concat " ; " 
-                     (List.map (fun p -> string_of_predP @@ fst p) (L.upperset_of_v p l))); 
-                (add_conjunct (exp_of_predP (fst p)) preh), L.remove_upperset p l 
+                     (List.map (fun p -> string_of_predP p) (L.upperset_of_v p l))); 
+                (add_conjunct (exp_of_predP p) preh), L.remove_upperset p l 
             end in
             (* find the equivalent of non p *)
-            let p_lattice = if options.lattice then PS.pfind p pequivc l else (p, 0.0) in
-            let nonp_lattice = if options.lattice then PS.pfind (negate p) pequivc l else (negate p, 0.0) in
+            let p_lattice = if options.lattice then PS.pfind p pequivc l else p in
+            let nonp_lattice = if options.lattice then PS.pfind (negate p) pequivc l else (negate p) in
             let l = L.remove p_lattice l |> L.remove nonp_lattice in
             refine_wrapped preh (Some p_lattice) l;
             refine_wrapped preh (Some nonp_lattice) l
