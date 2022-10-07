@@ -249,3 +249,49 @@ let exp_of_predP: predP -> exp = function
   |P p -> smt_of_pred p
   |NotP p -> EUop (Not, smt_of_pred p)
 let string_of_predP: predP -> string = compose string_of_smt exp_of_predP
+
+let pred_pretty_print ?(negate = false) ?(paran = ("", "")) p =
+  let (op, e1, e2) = p in
+  let op_pretty_print ?(negate = false) o = 
+    match negate, o  with
+      ( _, "+" | _, "-" | _, "*" | _, "div" | _, "mod" | _, "abs") -> o 
+    | false, o -> o 
+    | true, "=" -> "\u{2260}"
+    | true, ">" -> "\u{2264}"
+    | true, ">=" -> "<"
+    | true, "<" -> "\u{2265}"
+    | true, "<=" -> ">"
+    | true, o -> sp "not %s" o 
+  in
+  let rec exp_pretty_print ?(negate = false) e = 
+    match e with
+    |EBop (o, e1, e2) -> sp "(%s %s %s)" 
+                           (exp_pretty_print ~negate:negate e1) 
+                           (op_pretty_print ~negate:negate (To_String.bop o))
+                           (exp_pretty_print ~negate:negate e2)
+    |ELop (Add as o, [e1; e2]) -> sp "(%s %s %s)" 
+                                    (exp_pretty_print ~negate:negate e1) 
+                                    (op_pretty_print ~negate:negate (To_String.lop o))
+                                    (exp_pretty_print ~negate:negate e2)
+    |EFunc (f, es) -> 
+      begin match f, es with
+        | ("+", [e1;e2] | "-", [e1;e2] 
+          | "*", [e1;e2] | "div", [e1;e2] 
+          | "mod", [e1;e2]
+          | "abs", [e1;e2]) ->
+          sp ("%s %s %s") 
+            (exp_pretty_print ~negate:negate e1) 
+            (op_pretty_print ~negate:false f)
+            (exp_pretty_print ~negate:negate e2)
+        | _, _ -> To_String.exp e
+      end
+    | _ -> To_String.exp e
+    in
+    let e1_pp = exp_pretty_print ~negate:negate e1 in
+    let e2_pp = exp_pretty_print ~negate:negate e2 in
+    let op_pp = op_pretty_print ~negate:negate op in
+    sp "%s%s %s %s%s" (fst paran) e1_pp op_pp e2_pp (snd paran)
+
+let predP_pretty_print = function
+  | P p -> pred_pretty_print ~paran:("(", ")") p
+  | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p
