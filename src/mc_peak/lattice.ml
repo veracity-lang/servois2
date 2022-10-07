@@ -103,9 +103,9 @@ struct
 
   let construct : v list -> v el t = 
     fun els -> 
-    let l = List.fold_right (fun el_val l -> 
+    let l = List.fold_left (fun l el_val -> 
         StoreM.add (id_next ()) (Element {value = el_val; covering = []; covered_by = []}) l
-      ) els StoreM.empty
+      ) StoreM.empty els
     in
     let l = StoreM.mapi (fun idk el ->
         match el with

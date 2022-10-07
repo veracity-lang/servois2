@@ -133,7 +133,7 @@ let compare_pred_maximum_cover p1 p2 =
   else if r1 < r2 then 1
   else 0
  
-let pmcs_memo = ref []
+let pmcs_memo: (predP * float) list ref = ref []
 let mc_run_time = ref 0.0
 (* choose the minimal object with the highest rank *)
 let mcpred env ps = 
@@ -161,14 +161,15 @@ let mcpeak cmp env =
   let com, n_com = cex_ncex in
   let filtered_preds = List.map fst @@ differentiating_predicates (preds_of_lattice l) com n_com 
                        |> mcpred env in
-  pfv "\nFiltered predicates after differentiating: { %s }"
+  pfv "\n[mcpeak] Filtered predicates after differentiating: { %s }"
     (String.concat " ; " 
-       (List.map (fun (p, r) -> sp "(%s, %.3f)" (string_of_predP p) r) filtered_preds));   
+       (List.map (fun (p, r) -> sp "(%s, %.3f)" (predP_pretty_print p) r) filtered_preds));   
   (* construct the subset with the strongest predicates amongst the candidates *)
   (* let strongest_ps, _ = List.fold_right (fun (p, r) (sps, ps) ->
    *     if List.exists (fun (p', r') -> p' != p && PO.lte p' p) ps then (sps, ps)
    *     else ((p, r)::sps, ps)) filtered_preds ([], filtered_preds) in *)
   fst @@ list_min (fun x y -> cmp x y < 0) Fun.id filtered_preds
+
 
 let mc_max_cover : choose_env -> predP = mcpeak compare_pred_maximum_cover
 let mc_bisect : choose_env -> predP = mcpeak compare_pred_bisect

@@ -110,8 +110,6 @@ struct
         ["(check-sat)"]
       ) 
     in 
-    pfv "<<< MC SMT QUERY [PREDICATE] >>>:\n%s\n<<< MC END >>>\n" string_of_mc_query;
-   
     create_smt_file string_of_mc_query MC.smt_fname;
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfv "\nModel counting for PREDICATE: \n|?| %s \n|-> Result: %s\n--------------------------\n" 
