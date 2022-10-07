@@ -232,7 +232,7 @@ name_of_yml = {
 table_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX_LATTICE]
 
 table_header = (
-    "ADT & Methods &" + ' & '.join(str(h) for h in table_heuristics)
+    "ADT & Methods & " + ' & '.join(str(h) for h in table_heuristics)
 )
 def find_result(yml, ms, reslist, heuristic):
     for t in reslist:
