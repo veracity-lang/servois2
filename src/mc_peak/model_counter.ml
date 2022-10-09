@@ -20,7 +20,7 @@ module type ModelCounterSig = sig
   val bound_int : int
   val smt_fname : string
   val args : string array
-  val parse_output : string list -> mc_result
+  val parse_output : string list * string list -> mc_result
 end
 
 (* Interface for counting regions of satisfying models where 
@@ -35,25 +35,37 @@ struct
   let name = "abc"
 
   let exec_paths = [
-    "/usr/bin/abc"
+    "/usr/local/bin/abc"
   ]
-
+  
   let smt_fname = "tmp.smt2"
 
   let bound_int = 4
 
   let args = [| ""; "-v"; "0"; "-bi"; string_of_int bound_int; "-i"; smt_fname |]
 
-  let parse_sat = function 
-    | [] -> Unknown
-    | l::ls -> Sat (int_of_string l)
+  let line_count_regex = Str.regexp {|.*report bound: [0-9]+ count: \([0-9]+\) time:.*.*|}
 
-  let rec parse_output = function ls ->  
+  let rec parse_mc_report ls = 
     match ls with
     | [] -> Unknown
-    | l::ls -> 
-      if (String.equal l "sat") then parse_sat ls 
-      else if (String.equal l "unsat") then Unsat else parse_output ls 
+    | l::ls' ->
+       if Str.string_match line_count_regex l 0 then begin
+         Sat (int_of_string @@ Str.matched_group 1 l) end
+       else parse_mc_report ls'
+    
+  let parse_sat (sout, serr) = 
+    match sout, serr with
+    | [], [] -> Unknown
+    | l::ls, _ -> Sat (int_of_string l)
+    | [], rls -> parse_mc_report rls 
+
+  let rec parse_output = function (sout, serr) ->  
+    match sout with
+    | [] -> Unknown
+    | l::ls ->
+      if (String.equal l "sat") then parse_sat (ls, serr)  
+      else if (String.equal l "unsat") then Unsat else parse_output (ls, serr) 
    
 end  
 
@@ -78,13 +90,13 @@ let print_exec_result (out : string list) (err : string list) =
   pfvv "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"
     (String.concat "\n" out) (String.concat "\n" err)
 
-let run_model_counter (counter : (module ModelCounterSig)) : string list =
+let run_model_counter (counter : (module ModelCounterSig)) =
     let module MC = (val counter) in
     let exec = find_exec MC.name MC.exec_paths in
     let sout, serr = run_mc_exec exec MC.args MC.smt_fname in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
-    sout
+    sout, serr
 
 module PredicateModelCount: PredicateModelCountSig = 
 struct        
