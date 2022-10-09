@@ -140,6 +140,13 @@ let synth ?(options = default_synth_options) spec m n =
   }
   in
 
+  let simplify_preh preh p = 
+    let preh = List.flatten @@ List.map (fun mp -> 
+        match predP_of_atom mp with Some p_ -> [p_] | None -> []) (un_conj preh) 
+    in
+    Conj (List.map atom_of_predP @@ List.filter (fun p' -> not @@ PO.lte p p') preh)
+  in
+                                              
   (* preh is the h of the last iteration, maybep is Some predicate that was added last iteration. *)
   let rec refine_wrapped preh maybep l = 
     try refine preh maybep l with Failure _ -> answer_incomplete := true
@@ -149,11 +156,11 @@ let synth ?(options = default_synth_options) spec m n =
     let pred_smt = List.map exp_of_predP p_set in
     let h = match maybep with
       | None -> preh
-      | Some p -> add_conjunct (exp_of_predP p) preh
+      | Some p -> add_conjunct (exp_of_predP p) preh (* (simplify_preh preh p) *)
     in
     
     begin match solve_inst pred_smt @@ commute spec h with
-      | Unsat -> 
+      | Unsat ->         
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
         phi := add_disjunct h !phi

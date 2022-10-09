@@ -27,6 +27,7 @@ end
    conditions hold for ADT's commuting operations *)
 module type PredicateModelCountSig = 
 sig
+  val count_state: spec -> method_spec -> method_spec -> mc_result
   val count_pred: spec -> method_spec -> method_spec -> predP -> mc_result
 end
 
@@ -108,24 +109,12 @@ struct
   let remove_smt_file fname = 
     Sys.remove fname
 
-  let vars_strings = curry3 @@ memoize @@ fun (spec, m1, m2) -> 
-    let tybindings = spec.state @ m1.args @ m2.args in
-    List.map (fun (v, t) -> sp "(declare-fun %s () %s)" (string_of_var v) (string_of_ty t)) 
-      tybindings  
-
-  let count_pred spec m1 m2 p = 
+  let run_mc mc_query = 
     let module MC = ABCModelCounter in
-    let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"] @
-        (vars_strings spec m1 m2) @
-        [sp "(assert %s)" (string_of_predP p)] @
-        ["(check-sat)"]
-      ) 
-    in 
-    create_smt_file string_of_mc_query MC.smt_fname;
+    create_smt_file mc_query MC.smt_fname;
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfv "\nModel counting for PREDICATE: \n|?| %s \n|-> Result: %s\n--------------------------\n" 
-      (Str.global_replace (Str.regexp "\n") "\n|?| " string_of_mc_query) 
+      (Str.global_replace (Str.regexp "\n") "\n|?| " mc_query) 
       (begin match result with
          | Sat c -> sp "Sat; bound %d; count: %d" MC.bound_int  c
          | Unsat -> "Unsat"
@@ -133,7 +122,33 @@ struct
        end);
     remove_smt_file MC.smt_fname;
     result
+
+  let vars_strings = curry3 @@ memoize @@ fun (spec, m1, m2) -> 
+    let tybindings = spec.state @ m1.args @ m2.args in
+    List.filter (fun tb -> not @@ (String.equal (name_of_binding tb) "err")) tybindings
+    |> List.map (fun (v, t) -> sp "(declare-fun %s () %s)" (string_of_var v) (string_of_ty t)) 
+
+  let count_state spec m1 m2 =     
+    let string_of_mc_query = unlines ~trailing_newline: true (
+        ["(set-logic ALL)"] @
+        (vars_strings spec m1 m2) @
+        ["(assert true)"] @
+        ["(check-sat)"]
+      ) 
+    in 
+    run_mc string_of_mc_query
+
+  let count_pred spec m1 m2 p = 
+    let string_of_mc_query = unlines ~trailing_newline: true (
+        ["(set-logic ALL)"] @
+        (vars_strings spec m1 m2) @
+        [sp "(assert %s)" (string_of_predP p)] @
+        ["(check-sat)"]
+      ) 
+    in 
+    run_mc string_of_mc_query
 end
 
+let count_state = PredicateModelCount.count_state 
 let count_pred = PredicateModelCount.count_pred
  

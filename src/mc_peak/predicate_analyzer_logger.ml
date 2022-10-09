@@ -56,7 +56,7 @@ let log_predicates_mc =
            (p, p_mc, notp_mc, (float_of_int v) /. (float_of_int v'))
         | _, _ -> (p, p_mc, notp_mc, -1.)
       ) ps_mc 
-    |> List.sort (fun (_, _, _, v1) (_, _, _, v2) -> 
+    |> List.stable_sort (fun (_, _, _, v1) (_, _, _, v2) -> 
         if (v1 > v2) then 1
         else if (v1 == v2) then 0 
         else -1)

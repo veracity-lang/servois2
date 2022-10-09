@@ -168,11 +168,15 @@ struct
    
   let list_of: v el t -> v list  =
     fun l -> 
-    List.fold_right (fun (idk, el) acc -> 
-      match el with
-        | Element {value = p; _} -> p::acc
-        | (Bottom _ | Top _) -> acc 
-      ) (StoreM.bindings l) []
+    (* List.fold_right (fun (idk, el) acc ->
+     *     match el with
+     *     | Element {value = p; _} -> p::acc
+     *     | (Bottom _ | Top _) -> acc
+     *   ) (StoreM.bindings l) [] *)
+    List.flatten @@ List.map (fun (_, el) ->
+        match el with
+        | Element {value = p; _} -> [p]
+        | (Bottom _ | Top _) -> []) (StoreM.bindings l)
 
   let bottom: v el t -> v el option = fun l -> StoreM.find_opt id_bottom l
   let top: v el t -> v el option = fun l -> StoreM.find_opt id_top l 

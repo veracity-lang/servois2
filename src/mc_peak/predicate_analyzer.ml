@@ -70,14 +70,22 @@ struct
     (impl_rels ps ((fun p -> P p), (fun p -> P p))) @ 
     (impl_rels ps ((fun p -> P p), (fun p -> NotP p))) @
     (impl_rels ps ((fun p -> NotP p), (fun p -> P p))) @
-    (impl_rels ps ((fun p -> NotP p), (fun p -> NotP p)))
-    
-   let run_mc = 
+    (impl_rels ps ((fun p -> NotP p), (fun p -> NotP p))) 
+
+  let state_mc = curry3 @@ memoize (fun (spec, m1, m2) ->
+      Model_counter.count_state spec m1 m2)
+      
+  let run_mc = 
     fun spec m1 m2 ps ->
     List.fold_left (fun acc p' ->
         let p = P p' in
         let p_mc = Model_counter.count_pred spec m1 m2 p in
-        let not_p_mc = Model_counter.count_pred spec m1 m2 (negate p) in 
+        let not_p_mc = match p_mc, state_mc spec m1 m2 with
+          | Sat x, Sat s -> Sat (s-x)
+          | Sat _, stmc -> stmc
+          | Unsat, stmc -> stmc
+          | Unknown, stmc -> Unknown
+        in 
         (p, p_mc, not_p_mc) :: acc) [] ps
 end
 
@@ -98,12 +106,25 @@ let observe_rels = fun spec m1 m2 ps ->
   let impl_antisymmetry (p1, p2) (pa, pb) = 
     (p1 = pb && p2 = pa)
   in
-   let pred_eq = List.fold_right (fun pp1 acc ->
-      List.fold_right (fun pp2 acc' ->
-          if (impl_antisymmetry pp1 pp2) then pp1::acc'
-          else acc'
-        ) pred_rels_impl acc) pred_rels_impl []
+  let pred_eq = 
+    let rec eqs all pps acc = 
+      match pps with
+      | [] -> acc
+      | pp1::pps' ->
+        if not @@ List.exists ((=) (snd pp1, fst pp1)) acc then begin
+          if List.exists (impl_antisymmetry pp1) all then pp1::(eqs all pps' acc) 
+          else (eqs all pps' acc) end
+        else (eqs all pps' acc)
+    in
+    eqs pred_rels_impl pred_rels_impl []
   in
+
+  (*  let pred_eq = List.fold_right (fun pp1 acc ->
+   *     List.fold_right (fun pp2 acc' ->
+   *         if (impl_antisymmetry pp1 pp2) then pp1::acc'
+   *         else acc'
+   *       ) pred_rels_impl acc) pred_rels_impl []
+   * in *)
   let pred_equiv_classes: predP list -> (predP * predP) list -> predP list list = 
     fun ps pps ->
       let rec equiv_classes xs eqrels acc =
@@ -111,8 +132,8 @@ let observe_rels = fun spec m1 m2 ps ->
         | [] -> acc
         | x::xs' -> 
           let xeqrel = List.filter (fun (y1, y2) -> x = y1 || x = y2) eqrels in
-          let xeqc = List.fold_right (
-              fun (y1, y2) xyacc -> 
+          let xeqc = List.rev @@ List.fold_left (
+              fun xyacc (y1, y2)-> 
                 let append_y = 
                   if (x = y1) then Some y2
                   else if (x = y2) then Some y1
@@ -123,7 +144,7 @@ let observe_rels = fun spec m1 m2 ps ->
                   if (List.find_opt ((=) y) xyacc) = None then y::xyacc
                   else xyacc
                 | None -> xyacc
-            ) xeqrel [x]
+            ) [x] xeqrel  
           in
           let new_xs' = List.filter (fun x' -> (List.find_opt ((=) x') xeqc) = None) xs' in
           let new_xrels' = List.filter (fun (x', y') -> 
@@ -131,7 +152,7 @@ let observe_rels = fun spec m1 m2 ps ->
           in 
           equiv_classes new_xs' new_xrels' (xeqc::acc)
       in
-      equiv_classes ps pps []
+      List.rev @@ equiv_classes ps pps []
   in
   let pred_partition = pred_equiv_classes pred_all pred_eq in
   let pred_all', pred_rels_impl' = 

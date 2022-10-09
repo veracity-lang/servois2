@@ -35,6 +35,15 @@ let string_of_disj d = smt_of_disj d |> string_of_smt
 
 let atom_of_pred ((f, e1, e2) : Smt.pred) : atom = EFunc(f, [e1; e2])
 
+let predP_of_atom : atom -> predP option = function
+  | EFunc (f, [e1; e2]) ->Some (P (f, e1, e2))
+  | EUop (Not, EFunc (f, [e1; e2])) -> Some (NotP (f, e1, e2))
+  | _ -> None  
+
+let atom_of_predP = function
+  | P p -> atom_of_pred p
+  | NotP p -> EUop (Not, atom_of_pred p)
+
 module ToString = struct
   let t = string_of_disj
 end

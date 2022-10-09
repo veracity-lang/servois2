@@ -124,6 +124,8 @@ let compare_pred_bisect p1 p2 =
   let r2 = snd p2 in 
   if (Float.abs r1) < (Float.abs r2) then -1
   else if (Float.abs r1) > (Float.abs r2) then 1
+  else if r1 > r2 then -1
+  else if r1 < r2 then 1
   else 0
 
 let compare_pred_maximum_cover p1 p2 = 
@@ -141,12 +143,12 @@ let mcpred env ps =
   let pmcs = match pmcs_miss with
     | [] -> !pmcs_memo
     | pmcs_miss -> 
-      let pmcs_miss' = List.fold_right (fun p acc -> 
+      let pmcs_miss' = List.fold_left (fun acc p -> 
           begin match p with
             | (P p' | NotP p') -> 
               begin match List.find_opt ((=) p') acc with None -> p'::acc | Some _ -> acc end
           end
-        ) pmcs_miss [] in
+        ) [] pmcs_miss in
       let start = Unix.gettimeofday () in
       let pmcs_ = Predicate_analyzer.run_mc env.spec env.m_spec env.n_spec pmcs_miss' in
       pmcs_memo := !pmcs_memo @ pmcs_;
@@ -161,7 +163,7 @@ let mcpeak cmp env =
   let com, n_com = cex_ncex in
   let filtered_preds = List.map fst @@ differentiating_predicates (preds_of_lattice l) com n_com 
                        |> mcpred env in
-  pfv "\n[mcpeak] Filtered predicates after differentiating: { %s }"
+  pfv "\n[mcpeak] Filtered predicates after differentiating (before sorting): { %s }"
     (String.concat " ; " 
        (List.map (fun (p, r) -> sp "(%s, %.3f)" (predP_pretty_print p) r) filtered_preds));   
   (* construct the subset with the strongest predicates amongst the candidates *)
