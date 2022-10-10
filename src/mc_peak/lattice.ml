@@ -103,9 +103,9 @@ struct
 
   let construct : v list -> v el t = 
     fun els -> 
-    let l = List.fold_right (fun el_val l -> 
+    let l = List.fold_left (fun l el_val -> 
         StoreM.add (id_next ()) (Element {value = el_val; covering = []; covered_by = []}) l
-      ) els StoreM.empty
+      ) StoreM.empty els
     in
     let l = StoreM.mapi (fun idk el ->
         match el with
@@ -168,11 +168,15 @@ struct
    
   let list_of: v el t -> v list  =
     fun l -> 
-    List.fold_right (fun (idk, el) acc -> 
-      match el with
-        | Element {value = p; _} -> p::acc
-        | (Bottom _ | Top _) -> acc 
-      ) (StoreM.bindings l) []
+    (* List.fold_right (fun (idk, el) acc ->
+     *     match el with
+     *     | Element {value = p; _} -> p::acc
+     *     | (Bottom _ | Top _) -> acc
+     *   ) (StoreM.bindings l) [] *)
+    List.flatten @@ List.map (fun (_, el) ->
+        match el with
+        | Element {value = p; _} -> [p]
+        | (Bottom _ | Top _) -> []) (StoreM.bindings l)
 
   let bottom: v el t -> v el option = fun l -> StoreM.find_opt id_bottom l
   let top: v el t -> v el option = fun l -> StoreM.find_opt id_top l 
