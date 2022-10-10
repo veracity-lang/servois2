@@ -56,6 +56,9 @@ class AdditionalOptions(Enum):
     LEFT_MOVER = 0
     RIGHT_MOVER = 1
     
+    def __str__(self):
+        return string_of_options[self]
+    
 string_of_options = {
     AdditionalOptions.LEFT_MOVER:  "--leftmover",
     AdditionalOptions.RIGHT_MOVER: "--rightmover"
