@@ -9,14 +9,12 @@ type 'a maybeRes = Exn of string | Val of 'a
 module type PredicateAnalyzerSig = 
 sig
   val run_mc: spec -> method_spec -> method_spec -> pred list -> (predP * mc_result * mc_result) list
-  val observe_rels: spec -> method_spec -> method_spec ->pred list -> (predP * predP * int) list
+  val observe_rels: (module Prover) -> spec -> method_spec -> method_spec ->pred list -> (predP * predP * int) list
 end
 
-module PredicateAnalyzer: PredicateAnalyzerSig = 
+module PredicateAnalyzer: PredicateAnalyzerSig =
 struct
  
-  let prover: (module Prover) = (module Provers.ProverCVC4)
-
   let pred_rel_set: pred list -> (pred -> predP) * (pred -> predP) -> (predP * predP) list = 
     fun ps (liftp1, liftp2)->
     (* let ps = List.filteri (fun i p -> i < 30) ps in *)
@@ -38,7 +36,8 @@ struct
       tybindings 
  
   let observe_rels = 
-    fun spec m1 m2 ps  ->    
+    fun (prover: (module Prover)) spec m1 m2 ps  -> 
+    let module P = (val prover) in
     let impl_rels ps (liftp1, liftp2) = 
         pred_rel_set ps (liftp1, liftp2) 
         |> fun pps -> 
@@ -58,7 +57,7 @@ struct
         in
         pfvv "\nPRED RELS >>> \n%s\n" string_of_smt_query;
         flush stdout;
-        let out = Provers.run_prover prover string_of_smt_query in
+        let out = Provers.run_prover (module P) string_of_smt_query in
         if List.length out != (List.length pps) 
         then failwith "eval_predicates_rels";
         List.mapi(fun i (p1, p2) -> 
@@ -92,9 +91,10 @@ end
 let pequiv: predP list list -> predP -> predP -> bool = 
   fun pps p p' -> List.exists (fun ps -> List.mem p ps && List.mem p' ps) pps
 
-let observe_rels = fun spec m1 m2 ps -> 
+let observe_rels (prover: (module Prover)) spec m1 m2 ps =
+  let module PA = PredicateAnalyzer in
   let pred_all = List.fold_right (fun p acc -> (P p)::(NotP p)::acc) ps [] in
-  let pred_rels = PredicateAnalyzer.observe_rels spec m1 m2 ps in
+  let pred_rels = PA.observe_rels prover spec m1 m2 ps in
   let pred_rels_impl = List.fold_right (fun (p1, p2, res) acc -> 
       if (res = 0) then ((p1, p2)::acc)
       else acc) pred_rels []
@@ -119,12 +119,6 @@ let observe_rels = fun spec m1 m2 ps ->
     eqs pred_rels_impl pred_rels_impl []
   in
 
-  (*  let pred_eq = List.fold_right (fun pp1 acc ->
-   *     List.fold_right (fun pp2 acc' ->
-   *         if (impl_antisymmetry pp1 pp2) then pp1::acc'
-   *         else acc'
-   *       ) pred_rels_impl acc) pred_rels_impl []
-   * in *)
   let pred_equiv_classes: predP list -> (predP * predP) list -> predP list list = 
     fun ps pps ->
       let rec equiv_classes xs eqrels acc =
@@ -180,7 +174,8 @@ let observe_rels = fun spec m1 m2 ps ->
   (pred_all', pred_rels_impl', pred_partition)
                           
 let run_mc = fun spec m1 m2 ps ->
-  let pred_mcs = PredicateAnalyzer.run_mc spec m1 m2 ps in
+  let module PA = PredicateAnalyzer in
+  let pred_mcs = PA.run_mc spec m1 m2 ps in
   let module PAL = Predicate_analyzer_logger in
   PAL.log_predicates_mc "Predicates MODEL COUNT Summary" ps pred_mcs;
   let pred_mcs_simplified = 

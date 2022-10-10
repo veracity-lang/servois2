@@ -90,7 +90,8 @@ let synth ?(options = default_synth_options) spec m n =
          2.Find all pairs (p1, p2) s.t. p1 => p2
          3.Construct the lattice *)
       let start = Unix.gettimeofday () in
-      let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels spec m_spec n_spec preds in
+      let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
+          options.prover spec m_spec n_spec preds in
       Predicate_analyzer_logger.log_predicate_implication_chains ps_ pps_;
       let l_ = construct_lattice ps_ pps_ in
       lattice_construct_time := (Unix.gettimeofday ()) -. start;
@@ -140,12 +141,12 @@ let synth ?(options = default_synth_options) spec m n =
   }
   in
 
-  let simplify_preh preh p = 
-    let preh = List.flatten @@ List.map (fun mp -> 
-        match predP_of_atom mp with Some p_ -> [p_] | None -> []) (un_conj preh) 
-    in
-    Conj (List.map atom_of_predP @@ List.filter (fun p' -> not @@ PO.lte p p') preh)
-  in
+  (* let simplify_preh preh p = 
+   *   let preh = List.flatten @@ List.map (fun mp -> 
+   *       match predP_of_atom mp with Some p_ -> [p_] | None -> []) (un_conj preh) 
+   *   in
+   *   Conj (List.map atom_of_predP @@ List.filter (fun p' -> not @@ PO.lte p p') preh)
+   * in *)
                                               
   (* preh is the h of the last iteration, maybep is Some predicate that was added last iteration. *)
   let rec refine_wrapped preh maybep l = 
