@@ -89,7 +89,7 @@ class TestCase():
     def __str__(self):
         return str((str(self.heuristic),) + tuple(map(str, self.opts)))
 
-def make_all_heuristics(test_dict) -> dict[str, dict[tuple[str, str], list[TestCase]]]:
+def make_all_heuristics(test_dict): # -> dict[str, dict[tuple[str, str], list[TestCase]]]:
     return {
         yml: {
             (ms[0], ms[1]): [TestCase(h, ms[2:]) for h in string_of_heuristic]
