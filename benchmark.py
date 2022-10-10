@@ -61,64 +61,6 @@ string_of_options = {
     AdditionalOptions.RIGHT_MOVER: "--rightmover"
 }
 
-
-name_of_yml = {
-    'string.yml': 'Str',
-    'set.yml': 'Set',
-    'hashtable.yml': 'HT',
-    'stack.yml': 'Sta'
-}
-
-testcases = (
-    # First, the cases that are to be run on /all/ heuristics (LIA and String)
-    make_all_heuristics({
-        'string.yml': [
-            ('substr', 'hasChar'),
-            ('substr', 'isEmpty'),
-            ('hasChar', 'concat')
-            ]
-    }) |
-    # Second, the cases that are to be run on non-mc heuristics only.
-    make_gen_heuristics({
-        'set.yml': [
-            ('add', 'add'),
-            ('add', 'contains'),
-            ('add', 'getsize'),
-            ('add', 'remove'),
-            ('contains', 'remove'),
-            ('getsize', 'remove'),
-            ('remove', 'remove')
-            ],
-        'hashtable.yml': [
-            ('get', 'put', AdditionalOptions.RIGHT_MOVER),
-            ('put', 'get', AdditionalOptions.RIGHT_MOVER),
-            ('get', 'remove', AdditionalOptions.RIGHT_MOVER),
-            ('haskey', 'put'),
-            ('haskey', 'remove'),
-            ('put', 'put'),
-            ('put', 'remove'),
-            ('put', 'size'),
-            ('remove', 'remove'),
-            ('remove', 'size')
-            ],
-        'stack.yml' : [
-            ('pop', 'pop'),
-            ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
-            ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
-            ('push', 'push')
-            ]
-    })
-)
-
-def process_output(stdout, stderr):
-    try:
-        res = latex_of_phi(stdout)
-        benches = [line.split(', ') for line in stderr.split()]
-        time = float(benches[-1][-1])
-    except:
-        raise Exception(stdout, stderr)
-    return res, time
-
 class TestCase():
     def __init__(self, heuristic, opts = ()):
         self.heuristic = heuristic
@@ -167,6 +109,63 @@ def make_gen_heuristics(test_dict):
             }
         for yml in test_dict
         }
+
+name_of_yml = {
+    'string.yml': 'Str',
+    'set.yml': 'Set',
+    'hashtable.yml': 'HT',
+    'stack.yml': 'Sta'
+}
+
+testcases = {
+    # First, the cases that are to be run on /all/ heuristics (LIA and String)
+    ** make_all_heuristics({
+        'string.yml': [
+            ('substr', 'hasChar'),
+            ('substr', 'isEmpty'),
+            ('hasChar', 'concat')
+            ]
+    }),
+    # Second, the cases that are to be run on non-mc heuristics only.
+    ** make_gen_heuristics({
+        'set.yml': [
+            ('add', 'add'),
+            ('add', 'contains'),
+            ('add', 'getsize'),
+            ('add', 'remove'),
+            ('contains', 'remove'),
+            ('getsize', 'remove'),
+            ('remove', 'remove')
+            ],
+        'hashtable.yml': [
+            ('get', 'put', AdditionalOptions.RIGHT_MOVER),
+            ('put', 'get', AdditionalOptions.RIGHT_MOVER),
+            ('get', 'remove', AdditionalOptions.RIGHT_MOVER),
+            ('haskey', 'put'),
+            ('haskey', 'remove'),
+            ('put', 'put'),
+            ('put', 'remove'),
+            ('put', 'size'),
+            ('remove', 'remove'),
+            ('remove', 'size')
+            ],
+        'stack.yml' : [
+            ('pop', 'pop'),
+            ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
+            ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
+            ('push', 'push')
+            ]
+    })
+}
+
+def process_output(stdout, stderr):
+    try:
+        res = latex_of_phi(stdout)
+        benches = [line.split(', ') for line in stderr.split()]
+        time = float(benches[-1][-1])
+    except:
+        raise Exception(stdout, stderr)
+    return res, time
 
 # LaTeX utilities:
 NA_STRING = '--'
