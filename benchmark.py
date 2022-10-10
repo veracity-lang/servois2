@@ -98,13 +98,13 @@ testcases = (
             ('put', 'put'),
             ('put', 'remove'),
             ('put', 'size'),
-            ('remove', 'remove')
+            ('remove', 'remove'),
             ('remove', 'size')
             ],
         'stack.yml' : [
             ('pop', 'pop'),
-            ('push', 'pop', AdditionalOptions.RIGHT_MOVER)
-            ('pop', 'push', AdditionalOptions.RIGHT_MOVER)
+            ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
+            ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
             ('push', 'push')
             ]
     })
