@@ -35,8 +35,9 @@ module ABCModelCounter : ModelCounterSig =
 struct
   let name = "abc"
 
-  let exec_paths = [
-    "/usr/local/bin/abc"
+  let exec_paths = [    
+    "/usr/local/bin/abc";
+    "/usr/bin/abc"
   ]
   
   let smt_fname = "tmp.smt2"
