@@ -120,6 +120,8 @@ name_of_yml = {
     'stack.yml': 'Sta'
 }
 
+table_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX_LATTICE]
+
 testcases = {
     # First, the cases that are to be run on /all/ heuristics (LIA and String)
     ** make_all_heuristics({
@@ -249,9 +251,6 @@ def string_of_ms(ms):
     else:
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
-
-table_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX_LATTICE]
-
 table_header = (
     "\\renewcommand{\\arraystretch}{\\benchtablerowstretch}\\setlength{\\tabcolsep}{\\benchtabletabcolsep}\\footnotesize" +
     "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in table_heuristics]) + "|} \\hline" +
@@ -259,7 +258,7 @@ table_header = (
 )
 
 table_footer = (
-    "\\end{table}"
+    "\\end{tabular} \\end{table}"
 )
 
 def find_result(yml, ms, reslist, heuristic):
