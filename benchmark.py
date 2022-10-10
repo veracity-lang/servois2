@@ -73,7 +73,9 @@ testcases = (
     # First, the cases that are to be run on /all/ heuristics (LIA and String)
     make_all_heuristics({
         'string.yml': [
-            ('substr', 'charAt')
+            ('substr', 'hasChar'),
+            ('substr', 'isEmpty'),
+            ('hasChar', 'concat')
             ]
     }) |
     # Second, the cases that are to be run on non-mc heuristics only.

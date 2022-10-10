@@ -18,7 +18,7 @@ methods:
       - name: result
         type: Bool
     requires: |
-      (>= start 0)
+      (and (>= start 0) (<= end (str.len data)) (<= start end) (< start (str.len data)))
     ensures: |
       (and
           (= data_new (str.substr data start end))
@@ -27,26 +27,60 @@ methods:
     terms:
       Int: [0, 1, start, end, (str.len data)]
       String: [data, (str.substr data start end)]
-  - name: charAt
-    args:
-      - name: loc
-        type: Int
+  - name: isEmpty
+    args: []
     return:
       - name: result
-        type: String
+        type: Bool
     requires: |
-      (and (>= loc 0) (< loc (str.len data)))
+      true
     ensures: |
       (and
           (= data_new data)
-          (= result (str.at data loc))
+          (= result (= (str.len data) 0))
       )
     terms:
       Int: [0, 1, (str.len data)]
-      String: [data, (str.at data loc)]
+      String: [data]
+  - name: hasChar
+    args:
+      - name: chara
+        type: String
+    return:
+      - name: result
+        type: Bool
+    requires: | 
+      (= (str.len chara) 1)
+    ensures: |
+      (and
+          (= data_new data)
+          (= result (str.contains data chara))
+      )
+    terms:
+      Int: [0, 1, (str.len data)]
+      String: [data, chara]
+  - name: concat
+    args:
+      - name: other
+        type: String
+    return:
+      - name: result
+        type: Bool
+    requires: | 
+      true
+    ensures: |
+      (and
+          (= data_new (str.++ data other))
+          (= result true)
+      )
+    terms:
+      Int: [0, 1, (str.len data), (str.len other)]
+      String: [data, other]
 
 predicates:
   - name: "="
+    type: [Int, Int]
+  - name: "<="
     type: [Int, Int]
   - name: "="
     type: [String, String]
