@@ -15,6 +15,8 @@ servois2 = servois2_dir + 'src/servois2'
 
 timeout = 30
 
+# TODO: speedup of poke2-lattice over poke? poke2 over poke?
+
 class Heuristic(Enum):
     SIMPLE = 0
     POKE = 11
@@ -59,6 +61,53 @@ string_of_options = {
     AdditionalOptions.RIGHT_MOVER: "--rightmover"
 }
 
+
+name_of_yml = {
+    'string.yml': 'Str',
+    'set.yml': 'Set',
+    'hashtable.yml': 'HT',
+    'stack.yml': 'Sta'
+}
+
+testcases = (
+    # First, the cases that are to be run on /all/ heuristics (LIA and String)
+    make_all_heuristics({
+        'string.yml': [
+            ('substr', 'charAt')
+            ]
+    }) |
+    # Second, the cases that are to be run on non-mc heuristics only.
+    make_gen_heuristics({
+        'set.yml': [
+            ('add', 'add'),
+            ('add', 'contains'),
+            ('add', 'getsize'),
+            ('add', 'remove'),
+            ('contains', 'remove'),
+            ('getsize', 'remove'),
+            ('remove', 'remove')
+            ],
+        'hashtable.yml': [
+            ('get', 'put', AdditionalOptions.RIGHT_MOVER),
+            ('put', 'get', AdditionalOptions.RIGHT_MOVER),
+            ('get', 'remove', AdditionalOptions.RIGHT_MOVER),
+            ('haskey', 'put'),
+            ('haskey', 'remove'),
+            ('put', 'put'),
+            ('put', 'remove'),
+            ('put', 'size'),
+            ('remove', 'remove')
+            ('remove', 'size')
+            ],
+        'stack.yml' : [
+            ('pop', 'pop'),
+            ('push', 'pop', AdditionalOptions.RIGHT_MOVER)
+            ('pop', 'push', AdditionalOptions.RIGHT_MOVER)
+            ('push', 'push')
+            ]
+    })
+)
+
 def process_output(stdout, stderr):
     try:
         res = latex_of_phi(stdout)
@@ -84,7 +133,7 @@ class TestCase():
             result, time = process_output(stdout, stderr)
         except Exception as err:
             result = "false"
-            time = 0
+            time = None
             sys.stdout.write(f'\nFailure: {str(err.args)}\n')
 
         sys.stdout.write(f'Done.\n')
@@ -116,32 +165,6 @@ def make_gen_heuristics(test_dict):
             }
         for yml in test_dict
         }
-
-testcases = (
-    # First, the cases that are to be run on /all/ heuristics (LIA and String)
-    make_all_heuristics({
-        'string.yml': [
-            ('substr', 'charAt')
-            ]
-    }) |
-    # Second, the cases that are to be run on non-mc heuristics only.
-    make_gen_heuristics({
-        'set.yml': [
-            ('add', 'add'),
-            ('contains', 'remove'),
-            ('remove', 'remove')
-            ],
-        'hashtable.yml': [
-            # TODO: get/put left/right movers?
-            ('put', 'put'),
-            ('remove', 'remove')
-            ]
-    })
-)
-
-
-if __name__ == '__main__':
-    print(testcases)
 
 # LaTeX utilities:
 NA_STRING = '--'
@@ -223,22 +246,23 @@ def string_of_ms(ms):
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
 
-name_of_yml = {
-    'string.yml': 'String',
-    'set.yml': 'Set',
-    'hashtable.yml': 'HT'
-}
-
 table_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX_LATTICE]
 
 table_header = (
-    "ADT & Methods & " + ' & '.join(str(h) for h in table_heuristics)
+    "\\renewcommand{\\arraystretch}{\\benchtablerowstretch}\\setlength{\\tabcolsep}{\\benchtabletabcolsep}\\footnotesize" +
+    "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in table_heuristics]) + "|} \\hline" +
+    "ADT & Methods & " + ' & '.join(str(h) for h in table_heuristics) + "\\\\\n"
 )
+
+table_footer = (
+    "\\end{table}"
+)
+
 def find_result(yml, ms, reslist, heuristic):
     for t in reslist:
         if t.heuristic is heuristic:
             if not t.ran: t.run(yml, ms[0], ms[1]) # Run test cases lazily
-            return "{:.3f}".format(t.time)
+            return "{:.3f}".format(t.time) if t.time else NA_STRING
     else:
         return NA_STRING
 
@@ -251,6 +275,7 @@ def make_table(cases):
             fr = lambda h: find_result(yml, ms, results, h)
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([fr(h) for h in table_heuristics]) + "\\\\\n"
         table += section
+    table += table_footer
     return table
 
 def run_command(command : List[str]):
@@ -264,8 +289,7 @@ def run_command(command : List[str]):
     return out, err
 
 
-
-
 if __name__ == '__main__':
-    pass
-    print(make_table(testcases))
+    table = make_table(testcases)
+    with open("benchmarks.tex", 'w') as f:
+        f.write(table)
