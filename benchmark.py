@@ -115,6 +115,7 @@ def make_gen_heuristics(test_dict):
 
 name_of_yml = {
     'string.yml': 'Str',
+    'lia.yml': 'LIA'
     'set.yml': 'Set',
     'hashtable.yml': 'HT',
     'stack.yml': 'Sta'
@@ -129,7 +130,12 @@ testcases = {
             ('substr', 'hasChar'),
             ('substr', 'isEmpty'),
             ('hasChar', 'concat')
-            ]
+        ],
+        'lia.yml': [
+            ('sum', 'posSum'),
+            ('sum', 'multiVarSum'),
+            ('multiVarCondA', 'multiVarCondB')
+        ]
     }),
     # Second, the cases that are to be run on non-mc heuristics only.
     ** make_gen_heuristics({

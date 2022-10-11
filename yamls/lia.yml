@@ -1,0 +1,110 @@
+name: lia
+
+state:
+  - name: x
+    type: Int
+  - name: 'y'
+    type: Int
+  - name: z
+    type: Int
+  - name: i
+    type: Int
+
+states_equal:
+  definition: |
+    (and (= x_1 x_2) (= y_1 y_2) (= z_1 z_2) (= i_1 i_2))
+    
+methods:
+  - name: sum
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (= x_new (+ x y))
+        (= y_new y)
+        (= z_new z)
+        (= i_new i)
+        (= result true))
+    terms:
+      Int: [x, "y", (+ x y)]
+
+  - name: posSum
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite (> x 0) (= x_new (+ x y)) (= x_new (+ (- x) y)))
+        (= y_new y)
+        (= z_new z)
+        (= i_new i)
+        (= result true))
+    terms:
+      Int: [0, x, "y", (+ x y), (- x y)]
+
+  - name: multiVarSum
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (ite (> x 0)
+             (and (= x_new (+ y i)) (= z_new z))
+             (and (= x_new x) (= z_new (+ x y))))
+        (= y_new y)
+        (= i_new i)
+        (= result true))
+    terms:
+      Int: [0, x, "y", z, i, (+ y i), (+ x y)]
+
+  - name: multiVarCondA
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (ite (> x 0)
+             (and (= x_new (+ (* 2 x) y)) (= y_new y))  
+             (and (= x_new x) (= y_new y)))
+        (= z_new z)
+        (= i_new i)
+        (= result true))
+    terms:
+      Int: [0, 2, x, "y",  (* 2 x), (+ (* 2 x) y)]
+
+  - name: multiVarCondB
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite (> x y)
+             (and (= x_new (+ x (- (* 2 y)))) (= y_new y))
+             (and (= x_new (+ x (- y))) (= y_new y)))
+        (= z_new z)
+        (= i_new i)
+        (= result true))
+    terms:
+      Int: [x, "y", (* 2 y), (+ x (- (* 2 y))), (- y), (+ x (- y))]
+      
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
