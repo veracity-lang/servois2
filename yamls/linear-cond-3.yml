@@ -1,0 +1,50 @@
+name: linear-bool
+
+state:
+  - name: x
+    type: Int
+  - name: 'y'
+    type: Int
+    
+states_equal:
+  definition: |
+    (and (= x_1 x_2) (= y_1 y_2))
+
+methods:
+  - name: alpha
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (ite (> x 0)
+             (and (= x_new (+ (* 2 x) y)) (= y_new y))  
+             (and (= x_new x) (= y_new y)))
+        (= result true))
+    terms:
+      Int: [0, 2, x, "y",  (* 2 x), (+ (* 2 x) y)]
+
+  - name: beta
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite (> x y)
+             (and (= x_new (+ x (- (* 2 y)))) (= y_new y))
+             (and (= x_new (+ x (- y))) (= y_new y)))
+        (= result true))
+    terms:
+      Int: [x, "y", (* 2 y), (+ x (- (* 2 y))), (- y), (+ x (- y))]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]

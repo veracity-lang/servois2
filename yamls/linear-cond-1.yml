@@ -1,0 +1,54 @@
+name: linear-bool
+
+state:
+  - name: x
+    type: Int
+  - name: 'y'
+    type: Int
+  - name: z
+    type: Int
+
+states_equal:
+  definition: |
+    (and (= x_1 x_2) (= y_1 y_2) (= z_1 z_2))
+
+methods:
+  - name: alpha
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (= x_new (+ y z))
+        (= y_new y)
+        (= z_new z)
+        (= result true))
+    terms:
+      Int: [x, "y", z, (+ y z)]
+
+  - name: beta
+    args: []
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite (> x 0) (= x_new (+ y z)) (= x_new (+ y (- z))))
+        (= y_new y)
+        (= z_new z)
+        (= result true))
+    terms:
+      Int: [0, x, "y", z, (+ y z), (+ y (-z))]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
+
+)
