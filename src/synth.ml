@@ -18,6 +18,7 @@ type synth_options =
   ; lift : bool
   ; timeout : float option
   ; lattice : bool
+  ; stronger_predicates_first: bool
   }
 
 let default_synth_options =
@@ -26,11 +27,13 @@ let default_synth_options =
   ; lift = true
   ; timeout = None
   ; lattice = false
+  ; stronger_predicates_first = false
   }
 
 type benches =
   { predicates : int
   ; predicates_filtered : int
+  ; predicates_in_lattice: int
   ; smtqueries : int
   ; mcqueries : int
   ; time : float
@@ -40,7 +43,8 @@ type benches =
   }
 
 let last_benchmarks = ref {predicates = 0; 
-                           predicates_filtered = 0; 
+                           predicates_filtered = 0;
+                           predicates_in_lattice = 0;
                            smtqueries = 0;
                            mcqueries = 0;
                            time = 0.0; 
@@ -49,9 +53,10 @@ let last_benchmarks = ref {predicates = 0;
                            lattice_construct_time = 0.0}
 
 let string_of_benches benches = sp 
-    "predicates, %d\npredicates_filtered, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run, %.6f\ntime_synth, %.6f\ntime, %.6f" 
+    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f" 
     benches.predicates 
     benches.predicates_filtered 
+    benches.predicates_in_lattice
     benches.smtqueries
     benches.mcqueries
     benches.lattice_construct_time
@@ -115,12 +120,13 @@ let synth ?(options = default_synth_options) spec m n =
   let synth_start_time = Unix.gettimeofday () in
 
   seq (last_benchmarks :=
-     { predicates = List.length preds_unfiltered
-     ; predicates_filtered = List.length preds
+     { predicates = 2 * (List.length preds_unfiltered)
+     ; predicates_filtered = 2 * (List.length preds)
+     ; predicates_in_lattice = if options.lattice then L.length l else 0
      ; smtqueries = !Provers.n_queries - init_smt_queries
      ; mcqueries = !Model_counter.n_queries - init_mc_queries
      ; time = Float.sub (Unix.gettimeofday ()) init_time 
-     ; synth_time = (Unix.gettimeofday ()) -. synth_start_time -. !Choose.mc_run_time
+     ; synth_time = (Unix.gettimeofday ()) -. synth_start_time
      ; mc_run_time = !Choose.mc_run_time
      ; lattice_construct_time = !lattice_construct_time }) @@
 
@@ -137,6 +143,7 @@ let synth ?(options = default_synth_options) spec m n =
     n_spec = n_spec;
     h = Conj [];
     choose_from = l;
+    choose_stronger_predicates = options.stronger_predicates_first;
     cex_ncex = ([], [])
   }
   in
