@@ -115,7 +115,7 @@ def make_gen_heuristics(test_dict):
 
 name_of_yml = {
     'string.yml': 'Str',
-    'lia.yml': 'LIA'
+    'lia.yml': 'LIA',
     'set.yml': 'Set',
     'hashtable.yml': 'HT',
     'stack.yml': 'Sta'
