@@ -33,7 +33,7 @@ type choose_env =
 let differentiating_predicates (ps : predP list) (a : bool list) b : ((predP * bool) list) = 
   (* The bool should be true if the predicate is true in the commute (first list) case *)
   (* TODO: Account for a/b not being simple true/false *)
-  List.fold_right2 (fun p (x, y) acc -> if (x != y) then (p, y) :: acc else acc) 
+  List.fold_right2 (fun p (x, y) acc -> match p with | P _ -> if (x != y) then (p, y) :: acc else acc | _ -> acc) 
     ps (List.map2 (fun x y -> (x, y)) a b) []
 
 let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> compose List.length
