@@ -152,7 +152,7 @@ let mcpred env ps =
         ) [] pmcs_miss in
       let start = Unix.gettimeofday () in
       let pmcs_ = Predicate_analyzer.run_mc env.spec env.m_spec env.n_spec pmcs_miss' in
-      pmcs_memo := !pmcs_memo @ pmcs_;
+      pmcs_memo := pmcs_ @ !pmcs_memo;
       mc_run_time := !mc_run_time +. ((Unix.gettimeofday ()) -. start);
       !pmcs_memo
   in
