@@ -67,7 +67,7 @@ string_of_options = {
     AdditionalOptions.RIGHT_MOVER: "--rightmover"
 }
 
-benches_type = {
+benches_type = defaultdict(lambda: str, {
     'predicates': int,
     'predicates_filtered': int,
     'smtqueries': int,
@@ -76,8 +76,7 @@ benches_type = {
     'time_mc_run': float,
     'time_synth': float,
     'time': float
-}
-benches_type = defaultdict(lambda: str, benches_type)
+})
 
 class TestCase():
     def __init__(self, heuristic, opts = ()):
@@ -145,7 +144,9 @@ name_of_yml = {
     'stack.yml': 'Sta'
 }
 
-table_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX_LATTICE]
+table1_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.MC_MAX]
+
+table2_heuristics = [Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX, Heuristic.MC_MAX_LATTICE]
 
 testcases = {
     # First, the cases that are to be run on /all/ heuristics (LIA and String)
@@ -280,13 +281,15 @@ def string_of_ms(ms):
     else:
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
-table_header = (
+mkheader = lambda cols : (
     "\\renewcommand{\\arraystretch}{\\benchtablerowstretch}\\setlength{\\tabcolsep}{\\benchtabletabcolsep}\\footnotesize" +
-    "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in table_heuristics]) + "|} \\hline" +
-    "ADT & Methods & " + ' & '.join(str(h) for h in table_heuristics) + "\\\\\n"
+    "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline" +
+    "ADT & Methods & " + ' & '.join(str(h) for h in cols) + "\\\\\n"
 )
 
-table_footer = (
+table1_header = mkheader(table1_heuristics)
+
+table1_footer = (
     "\\end{tabular} \\end{table}"
 )
 
@@ -294,20 +297,52 @@ def find_result(yml, ms, reslist, heuristic):
     for t in reslist:
         if t.heuristic is heuristic:
             if not t.ran: t.run(yml, ms[0], ms[1]) # Run test cases lazily
-            return "{:.3f}".format(float(t.benches["time"])) if t.benches else NA_STRING
+            return t.benches
     else:
-        return NA_STRING
+        return None
 
-def make_table(cases):
-    table = table_header
+def make_table1(cases):
+    table = table1_header
     for yml in cases:
         section = name_of_yml[yml]
         for ms in cases[yml]:
             results = cases[yml][ms]
-            fr = lambda h: find_result(yml, ms, results, h)
-            section += f' & {string_of_ms(ms)} & ' + ' & '.join([fr(h) for h in table_heuristics]) + "\\\\\n"
+            def time(h):
+                tmp = find_result(yml, ms, results, h)
+                if tmp: return "{:.3f}".format(t.benches["time"])
+                else: return NA_STRING
+            section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table1_heuristics]) + "\\\\\n"
         table += section
-    table += table_footer
+    table += table1_footer
+    return table
+
+is_lattice = defaultdict(lambda: False, {
+    Heuristics.POKE2_LATTICE: True,
+    Heuristics.MC_MAX_LATTICE: True,
+    Heuristics.MC_BISECT_LATTICE: True
+    }
+)
+
+table2_header = mkheader(table2_heuristics)
+table2_footer = table1_footer
+
+def make_table2(cases):
+    table = table2_header
+    for yml in cases:
+        section = name_of_yml[yml]
+        for ms in cases[yml]:
+            results = cases[yml][ms]
+            def time(h):
+                tmp = find_result(yml, ms, results, h)
+                if tmp:
+                    if is_lattice[h]:
+                        return "{:.3f}(\\textbf\{ {:.3f} \}".format(t.benches["time"], t.benches["time_synth"])
+                    else:
+                        return "{:.3f}".format(t.benches["time"])
+                else: return NA_STRING
+            section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table2_heuristics]) + "\\\\\n"
+        table += section
+    table += table2_footer
     return table
 
 def run_command(command : List[str]):
@@ -324,6 +359,9 @@ def run_command(command : List[str]):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         N_TRIALS = int(sys.argv[1])
-    table = make_table(testcases)
-    with open("benchmarks.tex", 'w') as f:
-        f.write(table)
+    table1 = make_table1(testcases)
+    with open("benchmarks_1.tex", 'w') as f:
+        f.write(table1)
+    table2 = make_table2(testcases)
+    with open("benchmarks_2.tex", 'w') as f:
+        f.write(table2)
