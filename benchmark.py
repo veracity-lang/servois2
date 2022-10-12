@@ -101,7 +101,7 @@ class TestCase():
                         benches[bench] += res
                     elif bench not in benches:
                         benches[bench] = res
-            if not benches: raise Exception(stdout, stderr)
+            if not "time" in benches: raise Exception(stdout, stderr)
             benches = { k: v/N_TRIALS if benches_type[k] is float else v for (k, v) in benches.items() }
         except Exception as err:
             result = "false"

@@ -144,7 +144,7 @@ let find_exec (name : string) (progs : string list) : string =
   match List.find_opt Sys.file_exists progs with
   | Some s -> s
   | None ->
-    Printf.eprintf "%s not found at locations %s\n" name @@
+    Printf.eprintf "error: %s not found at locations %s\n" name @@
       String.concat ", " progs;
     exit 1
 
