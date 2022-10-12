@@ -8,6 +8,7 @@ from typing import Tuple, List
 import re
 from enum import Enum
 from collections import defaultdict
+from functools import reduce
 
 servois2_dir = './'
 yml_dir = './yamls/'
@@ -290,7 +291,7 @@ mkheader = lambda cols : (
 table1_header = mkheader(table1_heuristics)
 
 table1_footer = (
-    "\\end{tabular} \\end{table}"
+    "\\end{tabular} \\end{table}\n"
 )
 
 def find_result(yml, ms, reslist, heuristic):
@@ -301,6 +302,9 @@ def find_result(yml, ms, reslist, heuristic):
     else:
         return None
 
+prod = lambda l: reduce(lambda x, y: x * y, l, 1)
+geomean = lambda l: prod(l) ** (1 // len(l)) if l else 1
+
 def make_table1(cases):
     table = table1_header
     for yml in cases:
@@ -309,17 +313,33 @@ def make_table1(cases):
             results = cases[yml][ms]
             def time(h):
                 tmp = find_result(yml, ms, results, h)
-                if tmp: return "{:.3f}".format(t.benches["time"])
+                if tmp: return "{:.3f}".format(tmp["time"])
                 else: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table1_heuristics]) + "\\\\\n"
         table += section
     table += table1_footer
+    
+    # Speedup relative to poke
+    poke2_speedup = []
+    mc_max_speedup = []
+    for yml in cases:
+        for ms in cases[yml]:
+            poke_time = find_result(yml, ms, results, Heuristic.POKE)["time"]
+            poke2_speedup.append(find_result(yml, ms, results, Heuristic.POKE2)["time"] / poke_time)
+            tmp = find_result(yml, ms, results, Heuristic.MC_MAX)
+            if tmp:
+                mc_max_speedup.append(tmp["time"] / poke_time)
+    # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
+    table += (
+        "\\newcommand{{\\poketwospeedup}}{:.3f}\n".format(geomean(poke2_speedup)) + 
+        "\\newcommand{{\\mcmaxspeedup}}{:.3f}\n".format(geomean(mc_max_speedup))
+    )
     return table
 
 is_lattice = defaultdict(lambda: False, {
-    Heuristics.POKE2_LATTICE: True,
-    Heuristics.MC_MAX_LATTICE: True,
-    Heuristics.MC_BISECT_LATTICE: True
+    Heuristic.POKE2_LATTICE: True,
+    Heuristic.MC_MAX_LATTICE: True,
+    Heuristic.MC_BISECT_LATTICE: True
     }
 )
 
@@ -336,9 +356,9 @@ def make_table2(cases):
                 tmp = find_result(yml, ms, results, h)
                 if tmp:
                     if is_lattice[h]:
-                        return "{:.3f}(\\textbf\{ {:.3f} \}".format(t.benches["time"], t.benches["time_synth"])
+                        return "{:.3f}(\\textbf{{{:.3f}}}".format(tmp["time"], tmp["time_synth"])
                     else:
-                        return "{:.3f}".format(t.benches["time"])
+                        return "{:.3f}".format(tmp["time"])
                 else: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table2_heuristics]) + "\\\\\n"
         table += section
