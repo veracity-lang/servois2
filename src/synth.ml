@@ -145,27 +145,13 @@ let synth ?(options = default_synth_options) spec m n =
     choose_from = l;
     choose_stronger_predicates = options.stronger_predicates_first;
     cex_ncex = ([], [])
-  }
-  in
+  } in
 
-  (* let simplify_preh preh p = 
-   *   let preh = List.flatten @@ List.map (fun mp -> 
-   *       match predP_of_atom mp with Some p_ -> [p_] | None -> []) (un_conj preh) 
-   *   in
-   *   Conj (List.map atom_of_predP @@ List.filter (fun p' -> not @@ PO.lte p p') preh)
-   * in *)
-                                              
-  (* preh is the h of the last iteration, maybep is Some predicate that was added last iteration. *)
-  let rec refine_wrapped preh maybep l = 
-    try refine preh maybep l with Failure _ -> answer_incomplete := true
-  and refine: conjunction -> predP option -> predP L.el L.t -> unit = 
-    fun preh maybep l -> 
+  let rec refine_wrapped h l = 
+    try refine h l with Failure _ -> answer_incomplete := true
+  and refine (h : conjunction) (l : predP L.el L.t) : unit = 
     let p_set = L.list_of l in
     let pred_smt = List.map exp_of_predP p_set in
-    let h = match maybep with
-      | None -> preh
-      | Some p -> add_conjunct (exp_of_predP p) preh (* (simplify_preh preh p) *)
-    in
     
     begin match solve_inst pred_smt @@ commute spec h with
       | Unsat ->         
@@ -183,26 +169,23 @@ let synth ?(options = default_synth_options) spec m n =
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let p = !choose { env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) }
-            in
-            (* current p is not concluding, then 
-               - add it to preh, and 
-               - remove all its upper set (which comprises weaker predicates)      
-            *)
-            let preh, l = begin match maybep with
-              | None -> preh, l
-              | Some p ->
-                pfv "\nUpperset removed: [%s]\n" 
-                  (String.concat " ; " 
-                     (List.map (fun p -> string_of_predP p) (L.upperset_of_v p l))); 
-                (add_conjunct (exp_of_predP p) preh), L.remove_upperset p l 
-            end in
-            (* find the equivalent of non p *)
+            let p = !choose { env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } in
+            let neg_p = negate p in
+            (* Find lattice keys *)
             let p_lattice = if options.lattice then pfind p pequivc l else p in
-            let nonp_lattice = if options.lattice then pfind (negate p) pequivc l else (negate p) in
-            let l = L.remove p_lattice l |> L.remove nonp_lattice in
-            refine_wrapped preh (Some p_lattice) l;
-            refine_wrapped preh (Some nonp_lattice) l
+            let negp_lattice = if options.lattice then pfind neg_p pequivc l else neg_p in
+            let l' = l |> L.remove p_lattice |> L.remove negp_lattice in
+            (* current p is not concluding, then remove its upper set (which comprises weaker predicates) *)
+            let l_pos = L.remove_upperset p l' |>
+              seq @@ pfv "\nUpperset removed: [%s]\n" (String.concat " ; " 
+              (List.map string_of_predP @@ L.upperset_of_v p l'))
+            in
+            let l_neg = L.remove_upperset neg_p l' |>
+              seq @@ pfv "\nUpperset removed: [%s]\n" (String.concat " ; " 
+              (List.map string_of_predP @@ L.upperset_of_v neg_p l'))
+            in
+            refine_wrapped (add_conjunct (exp_of_predP p) h) l_pos;
+            refine_wrapped (add_conjunct (exp_of_predP neg_p) h) l_neg
         end 
     end
   in
@@ -212,7 +195,7 @@ let synth ?(options = default_synth_options) spec m n =
     | None -> run 
     | Some f -> run_with_time_limit f
   ) (fun () -> 
-      refine_wrapped (Conj []) None l
+      refine_wrapped (Conj []) l
     ) 
     with Timeout -> 
       pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
