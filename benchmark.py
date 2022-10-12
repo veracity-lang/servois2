@@ -146,9 +146,9 @@ name_of_yml = {
     'stack.yml': 'Sta'
 }
 
-table1_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.MC_MAX, Heuristic.MC_BISECT]
+table1_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.MC_MAX]
 
-table2_heuristics = [Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX, Heuristic.MC_MAX_LATTICE, Heuristic.MC_BISECT, Heuristic.MC_BISECT_LATTICE]
+table2_heuristics = [Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX, Heuristic.MC_MAX_LATTICE]
 
 testcases = {
     # First, the cases that are to be run on /all/ heuristics (LIA and String)
@@ -294,7 +294,7 @@ table1_footer = (
     "\\hline\n"+
     "\\end{tabular}\n" +
     "\\\\\n" +
-    "\\caption{\\label{\\table:one}Total execution time comparison between \\poke{} and new heuristics. Speedup relative to \\poke{} is given in parentheses.}\n" +
+    "\\caption{\\label{table:one}Total execution time comparison between \\poke{} and new heuristics. Speedup relative to \\poke{} is given in parentheses. All times are given in seconds.}\n" +
     "\\end{table}\n"
 )
 
@@ -319,7 +319,7 @@ def make_table1(cases):
                 try:
                     tmp = find_result(yml, ms, results, h)
                     if h is Heuristic.POKE: return "{:.2f}".format(tmp["time"])
-                    else: return "{:.2f}({:.1f}\\times)".format(tmp["time"], tmp["time"] / find_result(yml, ms, results, Heuristic.POKE)["time"])
+                    else: return "{:.2f}({:.1f}$\\times$)".format(tmp["time"], find_result(yml, ms, results, Heuristic.POKE)["time"] / tmp["time"])
                 except: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table1_heuristics]) + "\\\\\n"
         table += section
@@ -354,7 +354,7 @@ table2_footer = (
     "\\hline\n"+
     "\\end{tabular}\n" +
     "\\\\\n" +
-    "\\caption{\\label{\\table:two}Comparison of times taken with use of the predicate lattice. Time in parentheses is synth only time.}\n" +
+    "\\caption{\\label{table:two}Comparison of times taken with use of the predicate lattice. Time in parentheses is synth only time. All times are given in seconds.}\n" +
     "\\end{table}\n"
 )
 
