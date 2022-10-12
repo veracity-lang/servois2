@@ -59,7 +59,7 @@ predicates:
   type: [(Array Int String), (Array Int String)]
 - name: "="
   type: [(Array Int Int), (Array Int Int)]
-- name: ">"
-  type: [Int, Int]
+# - name: ">"
+#   type: [Int, Int]
 - name: "="
   type: [Int, Int]

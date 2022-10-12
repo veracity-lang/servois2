@@ -51,7 +51,7 @@ methods:
 predicates:
 - name:  "="
   type:  [(Array Int String), (Array Int String)]
-- name:  ">"
-  type:  [Int, Int]
+# - name:  ">"
+#   type:  [Int, Int]
 - name:  "="
   type:  [Int, Int]
