@@ -318,8 +318,8 @@ def make_table1(cases):
             def time(h):
                 try:
                     tmp = find_result(yml, ms, results, h)
-                    if h is Heuristic.POKE: return "{:.3f}".format(tmp["time"])
-                    else: return "{:.3f}({:.2f}\\times)".format(tmp["time"], tmp["time"] / find_result(yml, ms, results, Heuristic.POKE)["time"])
+                    if h is Heuristic.POKE: return "{:.2f}".format(tmp["time"])
+                    else: return "{:.2f}({:.1f}\\times)".format(tmp["time"], tmp["time"] / find_result(yml, ms, results, Heuristic.POKE)["time"])
                 except: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table1_heuristics]) + "\\\\\n"
         table += section
@@ -337,8 +337,8 @@ def make_table1(cases):
                 mc_max_speedup.append(tmp["time"] / poke_time)
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
     table += (
-        "\\newcommand{{\\poketwospeedup}}{:.3f}\n".format(geomean(poke2_speedup)) + 
-        "\\newcommand{{\\mcmaxspeedup}}{:.3f}\n".format(geomean(mc_max_speedup))
+        "\\newcommand{{\\poketwospeedup}}{:.1f}\n".format(geomean(poke2_speedup)) + 
+        #"\\newcommand{{\\mcmaxspeedup}}{:.1f}\n".format(geomean(mc_max_speedup))
     )
     return table
 
@@ -368,9 +368,9 @@ def make_table2(cases):
                 tmp = find_result(yml, ms, results, h)
                 if tmp:
                     if is_lattice[h]:
-                        return "{:.3f}(\\textbf{{{:.3f}}})".format(tmp["time"], tmp["time_synth"])
+                        return "{:.2f}(\\textbf{{{:.2f}}})".format(tmp["time"], tmp["time_synth"])
                     else:
-                        return "{:.3f}".format(tmp["time"])
+                        return "{:.2f}".format(tmp["time"])
                 else: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table2_heuristics]) + "\\\\\n"
         table += section
