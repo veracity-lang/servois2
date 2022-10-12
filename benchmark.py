@@ -7,13 +7,16 @@ from pathlib import Path
 from typing import Tuple, List
 import re
 from enum import Enum
+from collections import defaultdict
 
 servois2_dir = './'
 yml_dir = './yamls/'
 
 servois2 = servois2_dir + 'src/servois2'
 
-timeout = 30
+TIMEOUT = 30
+
+N_TRIALS = 1
 
 # TODO: speedup of poke2-lattice over poke? poke2 over poke?
 
@@ -64,6 +67,18 @@ string_of_options = {
     AdditionalOptions.RIGHT_MOVER: "--rightmover"
 }
 
+benches_type = {
+    'predicates': int,
+    'predicates_filtered': int,
+    'smtqueries': int,
+    'mcqueries': int,
+    'time_lattice_construct': float,
+    'time_mc_run': float,
+    'time_synth': float,
+    'time': float
+}
+benches_type = defaultdict(lambda: str, benches_type)
+
 class TestCase():
     def __init__(self, heuristic, opts = ()):
         self.heuristic = heuristic
@@ -72,12 +87,21 @@ class TestCase():
     def run(self, yml, m, n):
         command_infer = [
             servois2, 'synth', '-q',
-            '--timeout', str(timeout), '--prover', 'cvc4'
+            '--timeout', str(TIMEOUT), '--prover', 'cvc4'
         ] + list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
-            stdout, stderr = run_command(command_infer)
-            result, benches = process_output(stdout, stderr)
+            benches = defaultdict(float) # Doesn't only contain floats, but only will blindly query for them.
+            for x in range(N_TRIALS):
+                stdout, stderr = run_command(command_infer)
+                result, benches_trial = process_output(stdout, stderr)
+                for bench in benches_trial:
+                    res = benches_type[bench](benches_trial[bench])
+                    if benches_type[bench] is float:
+                        benches[bench] += res
+                    elif bench not in benches:
+                        benches[bench] = res
+            benches = { k: v/N_TRIALS if benches_type[k] is float else v for (k, v) in benches.items() }
         except Exception as err:
             result = "false"
             benches = None
@@ -298,6 +322,8 @@ def run_command(command : List[str]):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        N_TRIALS = int(sys.argv[1])
     table = make_table(testcases)
     with open("benchmarks.tex", 'w') as f:
         f.write(table)
