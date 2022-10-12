@@ -23,6 +23,8 @@ sig
 
   val list_of: v el t -> v list
 
+  val length: v el t -> int
+
   val find_opt: (v -> bool) -> v el t -> v option
 
   (* val add: v -> v el t -> v el t *)
@@ -168,11 +170,6 @@ struct
    
   let list_of: v el t -> v list  =
     fun l -> 
-    (* List.fold_right (fun (idk, el) acc ->
-     *     match el with
-     *     | Element {value = p; _} -> p::acc
-     *     | (Bottom _ | Top _) -> acc
-     *   ) (StoreM.bindings l) [] *)
     List.flatten @@ List.map (fun (_, el) ->
         match el with
         | Element {value = p; _} -> [p]
@@ -180,6 +177,14 @@ struct
 
   let bottom: v el t -> v el option = fun l -> StoreM.find_opt id_bottom l
   let top: v el t -> v el option = fun l -> StoreM.find_opt id_top l 
+
+  let length: v el t -> int = 
+    fun l -> 
+    let sz = StoreM.cardinal l in
+    match bottom l, top l with
+    | Some _, Some _ -> sz - 2
+    | (Some _, None | None, Some _) -> sz - 1
+    | None, None -> sz 
 
   let coveredbyset: v -> v el t -> v list = 
     fun a l -> 

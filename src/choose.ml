@@ -24,6 +24,7 @@ type choose_env =
   ; n_spec: method_spec
   ; h : conjunction
   ; choose_from : L.v L.el L.t
+  ; choose_stronger_predicates: bool
   ; cex_ncex : bool list * bool list
   }
 
@@ -165,15 +166,20 @@ let mcpeak cmp env =
                        |> mcpred env in
   pfv "\n[mcpeak] Filtered predicates after differentiating (before sorting): { %s }"
     (String.concat " ; " 
-       (List.map (fun (p, r) -> sp "(%s, %.3f)" (predP_pretty_print p) r) filtered_preds));   
+       (List.map (fun (p, r) -> sp "(%s, %.3f)" (predP_pretty_print p) r) filtered_preds));
+  let filtered_preds = if env.choose_stronger_predicates then begin
   (* construct the subset with the strongest predicates amongst the candidates *)
-  (* let strongest_ps, _ = List.fold_right (fun (p, r) (sps, ps) ->
-   *     if List.exists (fun (p', r') -> p' != p && PO.lte p' p) ps then (sps, ps)
-   *     else ((p, r)::sps, ps)) filtered_preds ([], filtered_preds) in *)
+      fst @@  List.fold_right (fun (p, r) (sps, ps) ->
+          if List.exists (fun (p', r') -> p' != p && PO.lte p' p) ps then (sps, ps)
+          else ((p, r)::sps, ps)) filtered_preds ([], filtered_preds) end 
+    else
+      filtered_preds
+  in
+      
   fst @@ list_min (fun x y -> cmp x y < 0) Fun.id filtered_preds
 
 
-let mc_max_cover : choose_env -> predP = mcpeak compare_pred_maximum_cover
+let mc_max : choose_env -> predP = mcpeak compare_pred_maximum_cover
 let mc_bisect : choose_env -> predP = mcpeak compare_pred_bisect
 
 let choose : (choose_env -> predP) ref = ref simple

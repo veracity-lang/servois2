@@ -98,12 +98,14 @@ module RunSynth : Runner = struct
   
   let timeout = ref None
   let lattice = ref false
+  let stronger_pred_first = ref false
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
-    ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"
-    ; "--mcpeak-maxcover", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_cover), " Use model counting based synthesis with strategy: maximum-coverage"
+    ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"    
+    ; "--mcpeak-max", Arg.Unit (fun () -> Choose.choose := Choose.mc_max), " Use model counting based synthesis with strategy: maximum-coverage"
+    ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication."
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ] @ common_speclist |>
@@ -124,7 +126,8 @@ module RunSynth : Runner = struct
       let synth_options = {
         Synth.default_synth_options with prover = get_prover ();
                                          timeout = !timeout;
-                                         lattice = !lattice
+                                         lattice = !lattice;
+                                         stronger_predicates_first = !stronger_pred_first;
       } in
       Synth.synth ~options:synth_options spec method1 method2
     in
