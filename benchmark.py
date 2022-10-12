@@ -77,17 +77,17 @@ class TestCase():
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
             stdout, stderr = run_command(command_infer)
-            result, time = process_output(stdout, stderr)
+            result, benches = process_output(stdout, stderr)
         except Exception as err:
             result = "false"
-            time = None
+            benches = None
             sys.stdout.write(f'\nFailure: {str(err.args)}\n')
 
         sys.stdout.write(f'Done.\n')
         sys.stdout.flush()
 
         self.res = result
-        self.time = time
+        self.benches = benches
         self.ran = True
     def __str__(self):
         return str((str(self.heuristic),) + tuple(map(str, self.opts)))
@@ -172,11 +172,10 @@ testcases = {
 def process_output(stdout, stderr):
     try:
         res = latex_of_phi(stdout)
-        benches = [line.split(', ') for line in stderr.split()]
-        time = float(benches[-1][-1])
+        benches = dict(line.split(', ') for line in stderr.strip().split('\n'))
     except:
         raise Exception(stdout, stderr)
-    return res, time
+    return res, benches
 
 # LaTeX utilities:
 NA_STRING = '--'
@@ -271,7 +270,7 @@ def find_result(yml, ms, reslist, heuristic):
     for t in reslist:
         if t.heuristic is heuristic:
             if not t.ran: t.run(yml, ms[0], ms[1]) # Run test cases lazily
-            return "{:.3f}".format(t.time) if t.time else NA_STRING
+            return "{:.3f}".format(float(t.benches["time"])) if t.benches else NA_STRING
     else:
         return NA_STRING
 
