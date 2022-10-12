@@ -285,7 +285,7 @@ def string_of_ms(ms):
 
 mkheader = lambda cols : (
     "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
-    "ADT & Methods & " + ' & '.join(str(h) for h in cols) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
 )
 
 table1_header = mkheader(table1_heuristics)
@@ -307,34 +307,38 @@ def find_result(yml, ms, reslist, heuristic):
         return None
 
 prod = lambda l: reduce(lambda x, y: x * y, l, 1)
-geomean = lambda l: prod(l) ** (1 // len(l)) if l else 1
+geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 
 def make_table1(cases):
     table = table1_header
-    for yml in cases:
-        section = "\\hline\n" + name_of_yml[yml]
-        for ms in cases[yml]:
-            results = cases[yml][ms]
-            def time(h):
-                try:
-                    tmp = find_result(yml, ms, results, h)
-                    if h is Heuristic.POKE: return "{:.2f}".format(tmp["time"])
-                    else: return "{:.2f}({:.1f}$\\times$)".format(tmp["time"], find_result(yml, ms, results, Heuristic.POKE)["time"] / tmp["time"])
-                except: return NA_STRING
-            section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table1_heuristics]) + "\\\\\n"
-        table += section
-    table += table1_footer
-    
     # Speedup relative to poke
     poke2_speedup = []
     mc_max_speedup = []
     for yml in cases:
+        section = "\\hline\n" + name_of_yml[yml]
         for ms in cases[yml]:
-            poke_time = find_result(yml, ms, results, Heuristic.POKE)["time"]
-            poke2_speedup.append(find_result(yml, ms, results, Heuristic.POKE2)["time"] / poke_time)
-            tmp = find_result(yml, ms, results, Heuristic.MC_MAX)
-            if tmp:
-                mc_max_speedup.append(tmp["time"] / poke_time)
+            results = cases[yml][ms]
+            row_heurs = defaultdict(lambda: None)
+            for heur in table1_heuristics:
+                try:
+                    row_heurs[heur] = find_result(yml, ms, results, heur)["time"]
+                except:
+                    pass
+            poke2_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.POKE2])
+            if Heuristic.MC_MAX in row_heurs:
+                mc_max_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.MC_MAX])
+            def str_of_heur(h):
+                try:
+                    if h is min(row_heurs, key=row_heurs.get):
+                        if h is Heuristic.POKE: return "\\bf{{{:.2f}}}".format(row_heurs[h])
+                        else: return "\\bf{{{:.2f}}}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                    else:
+                        if h is Heuristic.POKE: return "{:.2f}".format(row_heurs[h])
+                        else: return "{:.2f}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                except: return NA_STRING
+            section += f' & {string_of_ms(ms)} & ' + ' & '.join([str_of_heur(h) for h in table1_heuristics]) + "\\\\\n"
+        table += section
+    table += table1_footer
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
     table += (
         "\\newcommand{{\\poketwospeedup}}{:.1f}\n".format(geomean(poke2_speedup)) + 
@@ -363,9 +367,8 @@ def make_table2(cases):
     for yml in cases:
         section = "\\hline\n" + name_of_yml[yml]
         for ms in cases[yml]:
-            results = cases[yml][ms]
             def time(h):
-                tmp = find_result(yml, ms, results, h)
+                tmp = find_result(yml, ms, cases[yml][ms], h)
                 if tmp:
                     if is_lattice[h]:
                         return "{:.2f}(\\textbf{{{:.2f}}})".format(tmp["time"], tmp["time_synth"])
@@ -374,6 +377,24 @@ def make_table2(cases):
                 else: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([time(h) for h in table2_heuristics]) + "\\\\\n"
         table += section
+        
+    # Calc spedups
+    poke2_lattice_speedup = []
+    mc_max_lattice_speedup = []
+    for yml in cases:
+        for ms in cases[yml]:
+            pokeres = find_result(yml, ms, cases[yml][ms], Heuristic.POKE)
+            poke2res = find_result(yml, ms, cases[yml][ms], Heuristic.POKE2_LATTICE)
+            mcmaxres = find_result(yml, ms, cases[yml][ms], Heuristic.MC_MAX_LATTICE)
+            if not pokeres: continue
+            if poke2res: poke2_lattice_speedup.append(pokeres["time"] / poke2res["time"])
+            if mcmaxres: mc_max_lattice_speedup.append(pokeres["time"] / mcmaxres["time"])
+    
+    table += (
+        "\\newcommand{{\\poketwolatticespeedup}}{:.1f}\n".format(geomean(poke2_lattice_speedup)) + 
+        "\\newcommand{{\\mcmaxlatticespeedup}}{:.1f}\n".format(geomean(mc_max_lattice_speedup))
+    )
+    
     table += table2_footer
     return table
 
