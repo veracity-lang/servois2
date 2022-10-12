@@ -46,8 +46,8 @@ command_of_heuristic = {
     Heuristic.POKE: ["--poke"],
     Heuristic.POKE2: ["--poke2"],
     Heuristic.POKE2_LATTICE: ["--poke2", "--lattice"],
-    Heuristic.MC_MAX: ["--mcpeak-maxcover"],
-    Heuristic.MC_MAX_LATTICE: ["--mcpeak-maxcover", "--lattice"],
+    Heuristic.MC_MAX: ["--mcpeak-max"],
+    Heuristic.MC_MAX_LATTICE: ["--mcpeak-max", "--lattice"],
     Heuristic.MC_BISECT: ["--mcpeak-bisect"],
     Heuristic.MC_BISECT_LATTICE: ["--mcpeak-bisect", "--lattice"]
 }
