@@ -338,7 +338,7 @@ def make_table1(cases):
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
     table += (
         "\\newcommand{{\\poketwospeedup}}{:.1f}\n".format(geomean(poke2_speedup)) + 
-        #"\\newcommand{{\\mcmaxspeedup}}{:.1f}\n".format(geomean(mc_max_speedup))
+        "\\newcommand{{\\mcmaxspeedup}}{:.1f}\n".format(geomean(mc_max_speedup))
     )
     return table
 
