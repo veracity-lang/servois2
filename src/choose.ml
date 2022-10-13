@@ -33,6 +33,12 @@ type choose_env =
 let differentiating_predicates (ps : predP list) (a : bool list) b : ((predP * bool) list) = 
   (* The bool should be true if the predicate is true in the commute (first list) case *)
   (* TODO: Account for a/b not being simple true/false *)
+  List.fold_right2 (fun p (x, y) acc -> if (x != y) then (p, y) :: acc) 
+    ps (List.map2 (fun x y -> (x, y)) a b) []
+
+let differentiating_predicates_sym (ps : predP list) (a : bool list) b : ((predP * bool) list) = 
+  (* The bool should be true if the predicate is true in the commute (first list) case *)
+  (* TODO: Account for a/b not being simple true/false *)
   List.fold_right2 (fun p (x, y) acc -> match p with | P _ -> if (x != y) then (p, y) :: acc else acc | _ -> acc) 
     ps (List.map2 (fun x y -> (x, y)) a b) []
 
@@ -56,11 +62,11 @@ let complexity : predP -> int = memoize @@ fun p -> match p with
     | NotP (_, left, right) -> 1 + size left + size right
 
 let simple env : predP =
-    differentiating_predicates (preds_of_lattice env.choose_from) (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
+    differentiating_predicates_sym (preds_of_lattice env.choose_from) (fst env.cex_ncex) (snd env.cex_ncex) |> List.hd |> fst
 
 let poke env : predP =
     let com, n_com = env.cex_ncex in
-    let next = differentiating_predicates (preds_of_lattice env.choose_from) com n_com in
+    let next = differentiating_predicates_sym (preds_of_lattice env.choose_from) com n_com in
     let diff_preds = List.map fst next in
     let smt_diff_preds = List.map exp_of_predP diff_preds in
     let weight_fn p =
@@ -74,7 +80,7 @@ let poke env : predP =
                 | Unsat -> 0
                 | Unknown -> List.length smt_diff_preds
                 | Sat vs -> begin let non_com_cex = pred_data_of_values vs in
-                    differentiating_predicates diff_preds com_cex non_com_cex |> List.length
+                    differentiating_predicates_sym diff_preds com_cex non_com_cex |> List.length
                     end
                 end in
         weight_fn_inner h' h' + weight_fn_inner h'' h'' in
@@ -89,7 +95,7 @@ let poke env : predP =
 
 let poke2 env : predP =
     let com, n_com = env.cex_ncex in
-    let next = differentiating_predicates (preds_of_lattice env.choose_from) com n_com in
+    let next = differentiating_predicates_sym (preds_of_lattice env.choose_from) com n_com in
     let diff_preds = List.map fst next in
     let smt_diff_preds = List.map exp_of_predP diff_preds in
     let weight_fn p cov =
@@ -107,7 +113,7 @@ let poke2 env : predP =
             | Unsat -> 0
             | Unknown -> List.length smt_diff_preds
             | Sat vs -> begin let non_com_cex = pred_data_of_values vs in
-                differentiating_predicates diff_preds com_cex non_com_cex |> List.length
+                differentiating_predicates_sym diff_preds com_cex non_com_cex |> List.length
                 end
             end in
     fst4 @@ match next with 
