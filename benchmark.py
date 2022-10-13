@@ -284,7 +284,7 @@ def string_of_ms(ms):
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
 mkheader = lambda cols : (
-    "\\begin{table} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
+    "\\begin{table} \\begin{center} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
     "\\bf{ADT} & \\bf{Methods} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
 )
 
@@ -293,7 +293,7 @@ table1_header = mkheader(table1_heuristics)
 table1_footer = (
     "\\hline\n"+
     "\\end{tabular}\n" +
-    "\\\\\n" +
+    "\\end{center}\n" +
     "\\caption{\\label{table:one}Total execution time comparison between \\poke{} and new heuristics. Speedup relative to \\poke{} is given in parentheses. All times are given in seconds.}\n" +
     "\\end{table}\n"
 )
@@ -341,8 +341,8 @@ def make_table1(cases):
     table += table1_footer
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
     table += (
-        "\\newcommand{{\\poketwospeedup}}{:.1f}\n".format(geomean(poke2_speedup)) + 
-        "\\newcommand{{\\mcmaxspeedup}}{:.1f}\n".format(geomean(mc_max_speedup))
+        "\\newcommand{{\\poketwospeedup}}{{{:.2f}}}\n".format(geomean(poke2_speedup)) + 
+        "\\newcommand{{\\mcmaxspeedup}}{{{:.2f}}}\n".format(geomean(mc_max_speedup))
     )
     return table
 
@@ -357,7 +357,7 @@ table2_header = mkheader(table2_heuristics)
 table2_footer = (
     "\\hline\n"+
     "\\end{tabular}\n" +
-    "\\\\\n" +
+    "\\end{center}\n" +
     "\\caption{\\label{table:two}Comparison of times taken with use of the predicate lattice. Time in parentheses is synth only time. All times are given in seconds.}\n" +
     "\\end{table}\n"
 )
@@ -387,15 +387,16 @@ def make_table2(cases):
             poke2res = find_result(yml, ms, cases[yml][ms], Heuristic.POKE2_LATTICE)
             mcmaxres = find_result(yml, ms, cases[yml][ms], Heuristic.MC_MAX_LATTICE)
             if not pokeres: continue
-            if poke2res: poke2_lattice_speedup.append(pokeres["time"] / poke2res["time"])
-            if mcmaxres: mc_max_lattice_speedup.append(pokeres["time"] / mcmaxres["time"])
-    
-    table += (
-        "\\newcommand{{\\poketwolatticespeedup}}{:.1f}\n".format(geomean(poke2_lattice_speedup)) + 
-        "\\newcommand{{\\mcmaxlatticespeedup}}{:.1f}\n".format(geomean(mc_max_lattice_speedup))
-    )
+            if poke2res: poke2_lattice_speedup.append(pokeres["time"] / poke2res["time_synth"])
+            if mcmaxres: mc_max_lattice_speedup.append(pokeres["time"] / mcmaxres["time_synth"])
     
     table += table2_footer
+    
+    table += (
+        "\\newcommand{{\\poketwolatticespeedup}}{{{:.2f}}}\n".format(geomean(poke2_lattice_speedup)) + 
+        "\\newcommand{{\\mcmaxlatticespeedup}}{{{:.2f}}}\n".format(geomean(mc_max_lattice_speedup))
+    )
+    
     return table
 
 def run_command(command : List[str]):
