@@ -2,6 +2,85 @@ open Spec
 open Smt
 open Util
 
+
+let rec find_ty (e: exp) (spec: spec) : ty option =
+  match e with 
+  | EVar (Var v) | EVar (VarPost v) | EVar (VarM (_, v)) -> 
+      List.assoc_opt (Var v) spec.state
+  | EFunc (str, expl) -> 
+    begin match str with
+    | "member" -> Some TBool
+    | "union" -> begin match find_ty (List.hd expl) spec with Some ety -> Some (TSet ety) | None -> failwith "no type found" end
+    | "str.len" -> Some TInt
+    | "str.substr" -> Some TString
+    | "str.++" -> Some TString
+    | "str.contains" -> Some TBool
+    | "insert" -> find_ty (List.hd @@ List.tl expl) spec
+    | "select" -> begin match find_ty (List.hd expl) spec with Some (TArray (ty1,ty2)) -> Some ty2 | _ -> failwith "no type found" end
+    | "store" -> find_ty (List.hd expl) spec
+    | "singleton" -> find_ty (List.hd expl) spec
+    | "setminus" -> find_ty (List.hd expl) spec
+    | _ -> failwith ("this function is not defined: "^str)
+    end
+  | _ -> Some TInt
+
+let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
+  (* let e = m.post in  *)
+  (* let all_terms = ref [] in  *)
+  let rec get_terms (e: exp) = 
+    match e with 
+    | EVar v -> 
+      begin match v with
+      | VarPost vp | VarM (_, vp) -> begin match find_ty (EVar (Var vp)) spec with | Some ety -> [(ety, EVar (Var vp))] | None -> [] end
+      | Var _ -> begin match find_ty e spec with | Some ety -> [(ety, e)] | None -> [] end
+      (* | VarM _ -> [] *)
+      end
+    | EArg _ -> [(TInt, e)] (* correct? *) 
+    | EConst c ->
+      begin match c with 
+      | CInt i -> if i > 0 then [(TInt, EConst (CInt 0)); (TInt, EConst (CInt 1)); (TInt, e)] else [(TInt, e)]
+      | CBool _ -> [(TBool, e)]
+      | CString _ -> [(TString, e)]
+      end
+    | EBop (bop, exp1, exp2) -> 
+      let t1 = get_terms exp1 in
+      let t2 = get_terms exp2 in 
+      begin match bop with 
+      | Eq -> t1 @ t2
+      | Lt | Gt | Lte | Gte -> (TBool, e) :: t1 @ t2
+      | _ -> begin match find_ty exp1 spec with | Some ety -> (ety, e) :: t1 @ t2 | None -> t1 @ t2 end
+      end
+    | EUop (uop, exp) -> 
+      let t = get_terms exp in
+      begin match find_ty exp spec with | Some ety -> (ety, e) :: t | None -> t end
+    | ELop (lop, expl) -> 
+      let expl_terms = (List.concat_map get_terms expl) in
+      begin match lop with 
+      | Add -> begin match find_ty (List.hd expl) spec with | Some ety -> (ety, e) :: expl_terms | None -> expl_terms end
+      | _ -> expl_terms
+      end
+      
+    | ELet (expBindlist, exp) -> 
+      let eb = List.concat_map (fun (var, ex) -> let vexp = EVar var in begin match find_ty vexp spec with | Some ety -> (ety, vexp) :: (get_terms ex) | None -> get_terms ex end) expBindlist in
+      eb @ (get_terms exp)
+    | EFunc (str, expl) -> 
+      let expl_terms = (List.concat_map get_terms expl) in
+      begin match find_ty e spec with | Some ety -> (ety, e) :: expl_terms | None -> expl_terms end 
+    | EITE (e1, e2, e3) -> (get_terms e1) @ (get_terms e2)@ (get_terms e3)
+    | _ -> []
+  in 
+  let method_terms = get_terms m.post @ get_terms m.pre @ (List.map (fun (var, ty) -> (ty, EVar var)) m.args) in 
+  let unique_terms = Util.remove_duplicate method_terms in
+  let terms = ref [] in
+  List.iter (fun (ty, e) -> 
+          let mem = List.find_opt (fun (typ, _) -> String.equal (string_of_ty ty) (string_of_ty typ)) !terms in
+          begin match mem with
+          | None -> terms := !terms @ [(ty, ref [e])] 
+          | Some (t, mlist) -> mlist := !mlist @ [e]
+          end
+  ) unique_terms;
+  List.map (fun (t, mlist) -> (t, !mlist)) !terms
+
 let is_reflx (op: string) (exp1: exp) (exp2: exp) : bool =
   match op with
   | "=" -> 
@@ -43,43 +122,13 @@ let add_terms (type_terms) (tl: term_list list) =
   ) tl;
   type_terms
 
-(* let add_manual_pred (pc: exp) (pl: pred list) : pred list = 
-  match pc with 
-  | EITE (e, _, _) -> 
-    begin match e with
-    | EBop (bop, e1, e2)
+let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) =
+  let type_terms = Hashtbl.create 2000 in
 
-    end 
-  | _ -> pl
-  pl *)
+  let mterms1 = generate_method_terms spec method1 in
+  let mterms2 = generate_method_terms spec method2 in
 
-let rec add_manual_pred (pc: exp) (pl: pred list) : pred list =
-  match pc with
-  | EITE (e1, _, _) -> (add_manual_pred e1 pl)
-  | EBop (bop, e1, e2) -> 
-    let bStr = begin match bop with
-    (* | Eq  -> "=" *)
-    | Lt  -> "<"
-    | Gt  -> ">"
-    | Lte -> "<="
-    | Gte -> ">="
-    | _ -> ""
-    end in
-    if (not (String.equal "" bStr)) && (not (List.mem (bStr, e1, e2) pl)) then begin 
-      let p1 = add_manual_pred e1 pl in 
-      let p2 = add_manual_pred e2 p1 in
-      (bStr, e1, e2) :: p2
-      end 
-    else 
-      pl
-  | ELop (lop, expl) -> List.fold_left (fun plist -> fun exp -> add_manual_pred exp plist) pl expl
-  | _ -> pl
-
-
-let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) : pred list =
-  let type_terms = Hashtbl.create 100 in
-
-  let all_terms = add_terms (add_terms type_terms method1.terms) method2.terms in
+  let all_terms = add_terms (add_terms type_terms mterms1) mterms2 in
 
   let pred_list = ref [] in
   List.iter (fun [@warning "-8"] (PredSig (name,[ty1;ty2])) ->
@@ -95,36 +144,9 @@ let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spe
     ) (Hashtbl.find all_terms ty1) (Hashtbl.find all_terms ty2)
   ) spec.preds;
 
-  Printf.printf "=============== size: %d\n" (List.length !pred_list);
-  Printf.printf "%s\n" (ToMLString.list (string_of_pred) !pred_list);
-
-  pred_list := add_manual_pred method2.post (add_manual_pred method1.post !pred_list);
+  (* Printf.printf "%s\n" (ToMLString.list (string_of_pred) !pred_list); *)
+  (* pred_list := add_manual_pred method2.post (add_manual_pred method1.post !pred_list); *)
   
   pfv "Preds: %s\n" @@ ToMLString.list (string_of_pred) !pred_list;
 
-  Printf.printf "=============== size: %d\n" (List.length !pred_list);
-  Printf.printf "%s\n" (ToMLString.list (string_of_pred) !pred_list);
   !pred_list
-
-(* 
-let add_pred (p: pred) (pl: pred list) : pred list =
-  if (not (List.mem p pred_list)) (* TODO: filtering  *) then
-    (p :: pl)
-
-let extract_pred (e: exp) (pl: pred list) : pred list = 
-  match e with
-  | EVar var -> 
-  | EArg of int
-  | EConst of const
-  | EBop (bop, exp1, exp2) -> 
-    ((string_of_bop bop), exp1, exp2) ::
-    extract_pred exp1 pl @
-    extract_pred exp2 pl 
-  | EUop of uop * exp
-  | ELop of lop * exp list
-
-let generate_predicates2 (spec: spec) (method1: method_spec) (method2: method_spec) : pred list =
-  let post1 = method1.post in 
-  let post2 = method2.post in 
-  let pred_list = ref [] in
-  extract_pred post2 (extract_pred post1 pred_list) *)

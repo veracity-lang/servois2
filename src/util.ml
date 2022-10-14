@@ -312,3 +312,26 @@ let run_with_time_limit (limit : float) f =
   Fun.protect f ~finally:(fun () ->
     ignore @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }
   )
+
+let remove_duplicate lst =
+  let rec is_member n mlst =
+    match mlst with
+    | [] -> false
+    | h::tl ->
+        begin
+          if h=n then true
+          else is_member n tl
+        end
+  in
+  let rec loop lbuf =
+    match lbuf with
+    | [] -> []
+    | h::tl ->
+        begin
+        let rbuf = loop tl
+        in
+          if is_member h rbuf then rbuf
+          else h::rbuf
+        end
+  in
+  loop lst
