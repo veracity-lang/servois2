@@ -39,5 +39,5 @@ methods:
 predicates:
   - name: '='
     type: [Int, Int]
-  - name: '>'
-    type: [Int, Int]
+  # - name: '>'
+  #   type: [Int, Int]
