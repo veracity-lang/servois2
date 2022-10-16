@@ -93,22 +93,46 @@ let synth ?(options = default_synth_options) spec m n =
     l
   in
   
-  let ps, pps, pequivc, l = if options.lattice then begin
-      (* One-time analysis of predicates: 
-         1.Get all predicates generated from specs. 
-           Append their negated form to the set of candidates
-         2.Find all pairs (p1, p2) s.t. p1 => p2
-         3.Construct the lattice *)
+  let pequivc, l = if options.lattice then begin
+      (* check for a previous lattice construction, and 
+         - if found, load lattice from disk
+         - if not found, construct it and save it to disk
+      *)
       let start = Unix.gettimeofday () in
-      let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
-          options.prover spec m_spec n_spec preds in
-      Predicate_analyzer_logger.log_predicate_implication_chains ps_ pps_;
-      let l_ = construct_lattice ps_ pps_ in
-      lattice_construct_time := (Unix.gettimeofday ()) -. start;
-      ps_, pps_, pequivc_, l_ end 
+      let lattice_fname = sp "%s.lattice" spec.name in
+      let equivc_fname = sp "%s.equivc" spec.name in
+      match Sys.file_exists lattice_fname, Sys.file_exists equivc_fname with
+      | true, true -> 
+        let inc = open_in lattice_fname in
+        let l_ = L.load inc in
+        close_in inc;
+        let inc = open_in equivc_fname in
+        let pequivc_ = Predicate_analyzer.load_equivc inc in
+        close_in inc;
+        Predicate_analyzer_logger.log_predicates_equiv_classes "Equiv classes loaded from disk"
+          pequivc_;
+        pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
+        lattice_construct_time := (Unix.gettimeofday ()) -. start;
+        pequivc_, l_
+      | (false, _ | _, false) -> 
+        (* One-time analysis of predicates: 
+           1.Get all predicates generated from specs. 
+             Append their negated form to the set of candidates
+           2.Find all pairs (p1, p2) s.t. p1 => p2
+           3.Construct the lattice *)        
+        let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
+            options.prover spec m_spec n_spec preds in
+        let l_ = construct_lattice ps_ pps_ in
+        lattice_construct_time := (Unix.gettimeofday ()) -. start;
+        Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
+        let outc = open_out lattice_fname in
+        L.save l_ outc; close_out outc;
+        let outc = open_out equivc_fname in
+        Predicate_analyzer.save_equivc outc pequivc_; close_out outc;
+        pequivc_, l_ end 
     else
       (* make trivial lattice *)
-      [], [], [], construct_lattice (List.map (fun p -> P p) preds) []
+      [], construct_lattice (List.map (fun p -> P p) preds) []
   in
 
   let pfind p pequivc l =
@@ -179,7 +203,7 @@ let synth ?(options = default_synth_options) spec m n =
             (* Find lattice keys *)
             let p_lattice = if options.lattice then pfind p pequivc l else p in
             let negp_lattice = if options.lattice then pfind neg_p pequivc l else neg_p in
-            let l' = l |> L.remove p_lattice |> L.remove negp_lattice in
+            let l' = l |> L.remove_v p_lattice |> L.remove_v negp_lattice in
             (* current p is not concluding, then remove its upper set (which comprises weaker predicates) *)
             let l_pos = L.remove_upperset p l' |>
               seq @@ pfv "\nUpperset removed: [%s]\n" (String.concat " ; " 

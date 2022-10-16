@@ -86,20 +86,8 @@ let log_ppeak_result =
     (predP_pretty_print p) 
     (List.length ps)
 
-let log_predicate_implication_chains : predP list -> (predP * predP) list -> unit =
-  fun ps prels ->
-  let module PO: ORDERED with type t = predP =
-    struct 
-      type t = predP 
-      let lte = fun p1 p2 ->
-        List.exists (fun (pa, pb) -> pa = p1 && pb = p2) prels
-      let string_of = predP_pretty_print
-    end 
-  in
-  let module L = Lattice(PO) in
-  let l = L.construct ps in
-  pfv "\n\nLATTICE.\n %s" (L.string_of l);
-  let cs = L.chains_of l in
+let log_predicate_implication_chains : predP list list -> unit =
+  fun cs ->
   pfv "\n\nIMPLICATION CHAINS [%d]: \n%s\n\n"
     (List.length cs)
     (String.concat "\n" (List.map (
