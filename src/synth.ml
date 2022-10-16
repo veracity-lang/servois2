@@ -72,12 +72,17 @@ let synth ?(options = default_synth_options) spec m n =
   let init_mc_queries = !Model_counter.n_queries in
   let lattice_construct_time = ref 0.0 in
 
+  let unlifted_spec = spec in 
   let spec = if options.lift then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
   let n_spec = get_method spec n |> mangle_method_vars false in
 
   let preds_unfiltered = match options.preds with
-    | None -> generate_predicates spec m_spec n_spec
+    | None -> begin 
+      let m_spec2 = get_method unlifted_spec m |> mangle_method_vars true in
+      let n_spec2 = get_method unlifted_spec n |> mangle_method_vars false in
+      generate_predicates unlifted_spec m_spec2 n_spec2
+    end
     | Some x -> x in
   let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
   
