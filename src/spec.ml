@@ -56,7 +56,7 @@ let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_
   let mangle_var = function
     | Var v ->
       if List.mem v local_names
-      then VarM (is_left, v)
+      then VarM (is_left, sp "%s_%s" name v)
       else Var v
     | VarPost v ->
       if List.mem v local_names
@@ -71,6 +71,7 @@ let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_
   in
   
   (* Mangle variables in appropriate fields of method spec *)
+  let name = if is_left then "m1_" ^ name else "m2_" ^ name in
   let args  = List.map (first mangle_var) args in
   let ret   = List.map (first mangle_var) ret in
   let pre   = mangle_exp pre in

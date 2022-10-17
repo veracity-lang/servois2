@@ -285,18 +285,21 @@ type command =
   | CmdSynth (* Synthesize phi *)
   | CmdVerify (* Verify validity of commutativity condition *)
   | CmdParse (* Parse YAML *)
+  | CmdLattice
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdSynth
   ; "verify",   CmdVerify
   ; "parse",    CmdParse
+  ; "lattice",  CmdLattice
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdSynth,    (module RunSynth)
   ; CmdVerify,   (module RunVerify)
-  ; CmdParse,  (module RunParse)
+  ; CmdParse,    (module RunParse)
+  ; CmdLattice,  (module RunLattice)
   ]
 
 let display_help_message exe_name = 
