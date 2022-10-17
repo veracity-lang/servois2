@@ -33,11 +33,6 @@ struct
              ) acc aps)
        ) [] 
 
-  let vars_strings = curry3 @@ memoize @@ fun (spec, m1, m2) -> 
-    let tybindings = spec.state @ m1.args @ m2.args in
-    List.map (fun (v, t) -> sp "(declare-fun %s () %s)" (string_of_var v) (string_of_ty t)) 
-      tybindings 
- 
   let observe_rels = 
     fun (prover: (module Prover)) spec ps  -> 
     let module P = (val prover) in
@@ -135,18 +130,18 @@ let observe_rels (prover: (module Prover)) spec ps =
                 in
                 match append_y with
                 | Some y -> 
-                  if (List.find_opt ((=) y) xyacc) = None then y::xyacc
+                  if not @@ List.exists ((=) y) xyacc then y::xyacc
                   else xyacc
                 | None -> xyacc
             ) [x] xeqrel  
           in
-          let new_xs' = List.filter (fun x' -> (List.find_opt ((=) x') xeqc) = None) xs' in
+          let new_xs' = List.filter (fun x' -> not @@ List.exists ((=) x') xeqc) xs' in
           let new_xrels' = List.filter (fun (x', y') -> 
-              (List.find_opt (fun x -> x = x' || x = y') xeqc) = None) eqrels
+              not @@ List.exists (fun x -> x = x' || x = y') xeqc) eqrels
           in 
           equiv_classes new_xs' new_xrels' (xeqc::acc)
       in
-      List.rev @@ equiv_classes ps pps []
+      equiv_classes ps pps [] |> List.map (List.sort (fun x y -> let f = compose size exp_of_predP in f x - f y)) |> List.rev
   in
   let pred_partition = pred_equiv_classes pred_all pred_eq in
   let pred_all', pred_rels_impl' = 

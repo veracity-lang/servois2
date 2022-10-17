@@ -46,19 +46,6 @@ let differentiating_predicates_sym (ps : predP list) (a : bool list) b : ((predP
   List.fold_right2 (fun p (x, y) acc -> match p with | P _ -> if (x != y) then (p, y) :: acc else acc | _ -> acc) 
     ps (List.map2 (fun x y -> (x, y)) a b) []
 
-let (* rec *) size = string_of_smt |> compose (String.split_on_char ' ') |> compose List.length
-(* function
-  | EVar _ -> 0
-  | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
-  | EConst _ -> 0
-  | EBop(_, e1, e2) -> 2 + size e1 + size e2
-  | EUop(_, e) -> 1 + size e
-  | ELop(_, es) -> List.length es + list_sum (List.map size es)
-  | ELet(_, e) -> 1 + size e
-  | EITE(e1, e2, e3) -> 3 + size e1 + size e2 + size e3
-  | EFunc(_, es) -> List.length es + list_sum (List.map size es)
-*)
-
 let preds_of_lattice l = L.list_of l
 
 let complexity : predP -> int = memoize @@ fun p -> match p with 

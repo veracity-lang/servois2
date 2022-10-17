@@ -23,6 +23,8 @@ type mode = Bowtie | LeftMover | RightMover
 
 let mode = ref Bowtie
 
+let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n"
+
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     unlines [
         sp "(define-fun %s" name;
@@ -36,6 +38,8 @@ let smt_of_spec = memoize @@ fun spec ->
     unlines ~trailing_newline:false @@ [
         sp ";; BEGIN: smt_of_spec " ^ spec.name;
         ""] @
+        (* Make a variable for each state variable in each post state *)
+        List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
         begin match spec.preamble with
             | Some s -> [s]
             | None -> [] end @ [
@@ -50,7 +54,6 @@ let smt_of_spec = memoize @@ fun spec ->
 
 let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let (datanames : string list) = List.map name_of_binding spec.state in
-    let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
     let post_args_list old_postfix new_postfix argslist ret = String.concat " "
         (List.map (fun a -> a ^ old_postfix) datanames @
@@ -71,7 +74,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     
     (* Make a variable for each state variable in each post state *)
     iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
-        spec.state [""; "1"; "2"; "12"; "21"];
+        spec.state ["1"; "2"; "12"; "21"];
     (* TODO: What if result is in datanames? *)
     
     (* Make results for m1, then m2, for each of the times we call them in the diamond. *)
