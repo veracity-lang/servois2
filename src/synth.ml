@@ -18,6 +18,7 @@ type synth_options =
   ; lift : bool
   ; timeout : float option
   ; lattice : bool
+  ; no_cache : bool
   ; stronger_predicates_first: bool
   }
 
@@ -27,6 +28,7 @@ let default_synth_options =
   ; lift = true
   ; timeout = None
   ; lattice = false
+  ; no_cache = false
   ; stronger_predicates_first = false
   }
 
@@ -101,8 +103,8 @@ let synth ?(options = default_synth_options) spec m n =
       let start = Unix.gettimeofday () in
       let lattice_fname = sp "%s.lattice" spec.name in
       let equivc_fname = sp "%s.equivc" spec.name in
-      match Sys.file_exists lattice_fname, Sys.file_exists equivc_fname with
-      | true, true -> 
+      if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
+      then begin
         let inc = open_in lattice_fname in
         let l_ = L.load inc in
         close_in inc;
@@ -114,7 +116,7 @@ let synth ?(options = default_synth_options) spec m n =
         pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
         lattice_construct_time := (Unix.gettimeofday ()) -. start;
         pequivc_, l_
-      | (false, _ | _, false) -> 
+      end else begin
         (* One-time analysis of predicates: 
            1.Get all predicates generated from specs. 
              Append their negated form to the set of candidates
@@ -125,12 +127,14 @@ let synth ?(options = default_synth_options) spec m n =
         let l_ = construct_lattice ps_ pps_ in
         lattice_construct_time := (Unix.gettimeofday ()) -. start;
         Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
+        (if not options.no_cache then
         let outc = open_out lattice_fname in
         L.save l_ outc; close_out outc;
         let outc = open_out equivc_fname in
-        Predicate_analyzer.save_equivc outc pequivc_; close_out outc;
-        pequivc_, l_ end 
-    else
+        Predicate_analyzer.save_equivc outc pequivc_; close_out outc else ());
+        pequivc_, l_
+      end
+    end else
       (* make trivial lattice *)
       [], construct_lattice (List.map (fun p -> P p) preds) []
   in

@@ -99,6 +99,7 @@ module RunSynth : Runner = struct
   let timeout = ref None
   let lattice = ref false
   let stronger_pred_first = ref false
+  let no_cache = ref false
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
@@ -109,6 +110,7 @@ module RunSynth : Runner = struct
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"
+    ; "--no-cache", Arg.Unit (fun () -> no_cache := true), " Do not used cached implication lattice"
     ] @ common_speclist |>
     Arg.align
 
@@ -128,6 +130,7 @@ module RunSynth : Runner = struct
         Synth.default_synth_options with prover = get_prover ();
                                          timeout = !timeout;
                                          lattice = !lattice;
+                                         no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
       } in
       Synth.synth ~options:synth_options spec method1 method2
