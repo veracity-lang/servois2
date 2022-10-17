@@ -124,15 +124,12 @@ let add_terms (type_terms) (tl: term_list list) =
 
 let autogen_terms = ref false
 
-let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) =
+let generate_predicates (spec: spec) (methods : method_spec list) =
   let type_terms = Hashtbl.create 2000 in
 
   let term_fn = if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
-  
-  let mterms1 = term_fn method1 in
-  let mterms2 = term_fn method2 in
 
-  let all_terms = add_terms (add_terms type_terms mterms1) mterms2 in
+  let all_terms = List.fold_left (fun acc m -> add_terms acc (term_fn m)) type_terms methods in
 
   let pred_list = ref [] in
   List.iter (fun [@warning "-8"] (PredSig (name,[ty1;ty2])) ->

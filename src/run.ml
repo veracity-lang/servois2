@@ -230,6 +230,56 @@ module RunVerify : Runner = struct
       | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
+module RunLattice : Runner = struct
+    let usage_msg = sp "Usage: %s lattice <yaml file> [flags]"
+    
+    open CommonOptions
+    
+    let speclist = 
+      [ "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"] @
+      common_speclist |> Arg.align
+    
+    let run_lattice yaml =
+        
+        let spec =
+          Yaml_util.yaml_of_file yaml |>
+          Spec.spec_of_yaml
+        in
+        
+        let prover = get_prover () in
+        
+        let start_time = Unix.gettimeofday () in
+        
+        let all_ms_mangled = List.concat_map (fun m -> [Spec.mangle_method_vars true m; Spec.mangle_method_vars false m]) spec.methods in
+        
+        let preds_unfiltered = Predicate.generate_predicates spec all_ms_mangled in
+        let preds = Solve.filter_predicates prover spec preds_unfiltered in
+        
+        let ps, pps, pequivc = Predicate_analyzer.observe_rels prover spec preds in
+        let l = Choose.L.construct ps in
+        
+        let lattice_construct_time = Unix.gettimeofday () -. start_time in
+        
+        let lattice_fname = sp "%s.lattice" @@ if !output_file = "" then spec.name else !output_file in
+        let equivc_fname = sp "%s.equivc_fname" @@ if !output_file = "" then spec.name else !output_file in
+        
+        let outc = open_out lattice_fname in
+        Choose.L.save l outc; close_out outc;
+        let outc = open_out equivc_fname in
+        Predicate_analyzer.save_equivc outc pequivc;
+        close_out outc;
+        
+        epf "time_lattice_construct, %.6f" (lattice_construct_time)
+    
+    let run () =
+      Arg.current := 1;
+      Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+      let anons = List.rev (!anons) in
+      match anons with
+      | [prog] -> run_lattice prog
+      | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
+end
+
 type command =
   | CmdHelp (* Show help info *)
   | CmdSynth (* Synthesize phi *)

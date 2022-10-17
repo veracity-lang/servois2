@@ -83,10 +83,10 @@ let synth ?(options = default_synth_options) spec m n =
     | None -> begin 
       let m_spec2 = get_method unlifted_spec m |> mangle_method_vars true in
       let n_spec2 = get_method unlifted_spec n |> mangle_method_vars false in
-      generate_predicates unlifted_spec m_spec2 n_spec2
+      generate_predicates unlifted_spec [m_spec2; n_spec2]
     end
     | Some x -> x in
-  let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
+  let preds = filter_predicates options.prover spec preds_unfiltered in
   
   let construct_lattice ps pps = 
     Choose.order_rels_set := pps;
@@ -95,12 +95,12 @@ let synth ?(options = default_synth_options) spec m n =
     l
   in
   
+  let lattice_start_time = Unix.gettimeofday () in
   let pequivc, l = if options.lattice then begin
       (* check for a previous lattice construction, and 
          - if found, load lattice from disk
          - if not found, construct it and save it to disk
       *)
-      let start = Unix.gettimeofday () in
       let lattice_fname = sp "%s.lattice" spec.name in
       let equivc_fname = sp "%s.equivc" spec.name in
       if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
@@ -114,7 +114,6 @@ let synth ?(options = default_synth_options) spec m n =
         Predicate_analyzer_logger.log_predicates_equiv_classes "Equiv classes loaded from disk"
           pequivc_;
         pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
-        lattice_construct_time := (Unix.gettimeofday ()) -. start;
         pequivc_, l_
       end else begin
         (* One-time analysis of predicates: 
@@ -123,9 +122,8 @@ let synth ?(options = default_synth_options) spec m n =
            2.Find all pairs (p1, p2) s.t. p1 => p2
            3.Construct the lattice *)        
         let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
-            options.prover spec m_spec n_spec preds in
+            options.prover spec preds in
         let l_ = construct_lattice ps_ pps_ in
-        lattice_construct_time := (Unix.gettimeofday ()) -. start;
         Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
         (if not options.no_cache then
         let outc = open_out lattice_fname in
@@ -138,6 +136,7 @@ let synth ?(options = default_synth_options) spec m n =
       (* make trivial lattice *)
       [], construct_lattice (List.map (fun p -> P p) preds) []
   in
+  lattice_construct_time := (Unix.gettimeofday ()) -. lattice_start_time;
 
   let pfind p pequivc l =
       let ps' = List.find (fun ps -> List.mem p ps) pequivc in

@@ -147,13 +147,12 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   flush stdout;
   run_prover prover s |> parse_prover_output prover
 
-let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) =
+let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
     let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
 
     let full_input = unlines @@
         [ "(set-logic ALL)"
-        ; smt_of_spec spec
-        ; generate_bowtie spec m1 m2] @
+        ; smt_of_spec spec] @
         List.concat_map (fun p -> let e = smt_of_pred p in
             [query e; query (EUop(Not, e))]) preds in
             

@@ -5,13 +5,14 @@ open Smt_parsing
 open Phi
 open Spec
 open Util
+open Solve
 
 type 'a maybeRes = Exn of string | Val of 'a 
 
 module type PredicateAnalyzerSig = 
 sig
   val run_mc: spec -> method_spec -> method_spec -> pred list -> (predP * mc_result * mc_result) list
-  val observe_rels: (module Prover) -> spec -> method_spec -> method_spec ->pred list -> (predP * predP * int) list
+  val observe_rels: (module Prover) -> spec ->pred list -> (predP * predP * int) list
 end
 
 module PredicateAnalyzer: PredicateAnalyzerSig =
@@ -38,24 +39,21 @@ struct
       tybindings 
  
   let observe_rels = 
-    fun (prover: (module Prover)) spec m1 m2 ps  -> 
+    fun (prover: (module Prover)) spec ps  -> 
     let module P = (val prover) in
     let impl_rels ps (liftp1, liftp2) = 
         pred_rel_set ps (liftp1, liftp2) 
         |> fun pps -> 
         let pred_rel p1 p2 = ELop (Smt.Or, [exp_of_predP (negate p1); exp_of_predP p2]) in
         let query_rel e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
+        
         let string_of_smt_query = unlines ~trailing_newline: true (
-            ["(set-logic ALL);"] @
-            begin match spec.preamble with
-              | Some s -> [s]
-              | None -> []
-            end @ 
-            (vars_strings spec m1 m2) @
+           [ "(set-logic ALL);"
+           ; smt_of_spec spec] @
             (List.map (fun (p1, p2) -> 
                  let e = pred_rel p1 p2 
                  in query_rel e
-               ) pps)) 
+               ) pps))
         in
         pfvv "\nPRED RELS >>> \n%s\n" string_of_smt_query;
         flush stdout;
@@ -93,10 +91,10 @@ end
 let pequiv: predP list list -> predP -> predP -> bool = 
   fun pps p p' -> List.exists (fun ps -> List.mem p ps && List.mem p' ps) pps
 
-let observe_rels (prover: (module Prover)) spec m1 m2 ps =
+let observe_rels (prover: (module Prover)) spec ps =
   let module PA = PredicateAnalyzer in
   let pred_all = List.fold_right (fun p acc -> (P p)::(NotP p)::acc) ps [] in
-  let pred_rels = PA.observe_rels prover spec m1 m2 ps in
+  let pred_rels = PA.observe_rels prover spec ps in
   let pred_rels_impl = List.fold_right (fun (p1, p2, res) acc -> 
       if (res = 0) then ((p1, p2)::acc)
       else acc) pred_rels []
@@ -212,4 +210,3 @@ let load_equivc inc =
     with End_of_file -> 
       acc
   in add_c inc []
-       
