@@ -106,8 +106,9 @@ module RunSynth : Runner = struct
     ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"    
     ; "--mcpeak-max", Arg.Unit (fun () -> Choose.choose := Choose.mc_max), " Use model counting based synthesis with strategy: maximum-coverage"
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
-    ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication."
+    ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
+    ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"
     ] @ common_speclist |>
     Arg.align
 
