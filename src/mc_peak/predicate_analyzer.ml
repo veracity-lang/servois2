@@ -1,6 +1,8 @@
 open Provers
 open Model_counter
 open Smt
+open Smt_parsing
+open Phi
 open Spec
 open Util
 
@@ -191,3 +193,23 @@ let run_mc = fun spec m1 m2 ps ->
   in
   pred_mcs_simplified
     
+let save_equivc outc pequivc = 
+  Printf.fprintf outc "%s" 
+    (String.concat "\n" 
+       (List.map (fun ps -> String.concat "," @@ List.map string_of_predP ps) pequivc))
+
+let load_equivc inc = 
+  let rec add_c inc acc = 
+    try
+      let line = input_line inc in
+      let predP_of_string s = 
+        match predP_of_atom @@ exp_of_string s with
+        | None -> raise @@ Failure (sp "Error parsing predicate %s" s)
+        | Some p -> p
+      in
+      let ps = String.split_on_char ',' line |> List.map predP_of_string
+      in add_c inc ([ps] @ acc)
+    with End_of_file -> 
+      acc
+  in add_c inc []
+       

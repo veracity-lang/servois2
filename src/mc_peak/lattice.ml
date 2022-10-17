@@ -5,6 +5,7 @@ sig
   type t
   val lte : t -> t -> bool
   val string_of: t -> string
+  val v_of_string: string -> t
 end
 
 module type LATTICE = functor(Elem: ORDERED) ->
@@ -13,13 +14,17 @@ sig
   type 'a el
   type 'a t
 
-  (* val join: v el -> v el -> v el 
-   * val meet: v el -> v el -> v el *)
+  val join: v el -> v el -> v el t -> v el 
+  val meet: v el -> v el -> v el t -> v el
+  val lte: v -> v -> v el t -> bool option
 
   val top: v el t -> v el option
   val bottom: v el t -> v el option
 
   val construct: v list -> v el t
+
+  val save: v el t -> out_channel -> unit
+  val load: in_channel -> v el t
 
   val list_of: v el t -> v list
 
@@ -29,7 +34,9 @@ sig
 
   (* val add: v -> v el t -> v el t *)
 
-  val remove: v -> v el t -> v el t
+  val remove: int -> v el t -> v el t
+
+  val remove_v: v -> v el t -> v el t
 
   val remove_upperset: v -> v el t -> v el t
 
@@ -168,6 +175,62 @@ struct
      StoreM.add id_bottom (Bottom {covered_by = bottom_covered_by}) l
      |> StoreM.add id_top (Top {covering = top_covering })
    
+  let save l oc = 
+    let encode_el = function
+      | Top {covering} -> sp "[%s]" (String.concat ";" (List.map string_of_int covering))
+      | Element {value; covering; covered_by} -> 
+        sp "%s,[%s],[%s]" (Elem.string_of value)
+          (String.concat ";" (List.map string_of_int covering))
+          (String.concat ";" (List.map string_of_int covered_by))
+      | Bottom {covered_by} -> sp "[%s]" (String.concat ";" (List.map string_of_int covered_by))
+    in
+    let snapshot_of l = String.concat "\n" @@ 
+      List.map (fun (id, el) -> sp "%d,%s" id (encode_el el)) (StoreM.bindings l)
+    in 
+    Printf.fprintf oc "%s" (snapshot_of l)  
+ 
+  let load ic = 
+    let parse_el_top s = 
+      let s_length = String.length s in     
+      let covering_s = String.sub s 1 (s_length - 2) in 
+      let covering = List.map int_of_string (String.split_on_char ';' covering_s) in
+      Top {covering = covering}
+    in
+    let parse_el_bottom s = 
+      let s_length = String.length s in     
+      let covered_by_s = String.sub s 1 (s_length - 2) in 
+      let covered_by = List.map int_of_string (String.split_on_char ';' covered_by_s) in
+      Bottom {covered_by = covered_by}
+    in
+    let parse_el s = 
+      let s_length = String.length s in
+      let v_delim = String.index_from s 0 ',' in
+      let v_s = String.sub s 0 v_delim in
+      let v = Elem.v_of_string v_s in 
+      let cing_delim = String.index_from s (v_delim + 1) ',' in
+      let covering_s = String.sub s (v_delim + 2) (cing_delim - v_delim - 3) in
+      let covering = List.map int_of_string (String.split_on_char ';' covering_s) in
+      let covered_by_s = String.sub s (cing_delim + 2) (s_length - cing_delim - 3) in
+      let covered_by = List.map int_of_string (String.split_on_char ';' covered_by_s) in
+      Element {value = v; covering = covering; covered_by = covered_by}
+    in
+    let parse_el_binding s = 
+      let id_el_split = String.index_from s 0 ',' in
+      let id = int_of_string (String.sub s 0 id_el_split) in
+      let el_s = String.sub s (id_el_split + 1) ((String.length s) - id_el_split - 1) in
+      if id = id_bottom then (id_bottom, (parse_el_bottom el_s)) 
+      else if id = id_top then (id_top, (parse_el_top el_s))
+      else (id, (parse_el el_s))
+    in
+    let rec add_el inc l = 
+      try
+        let line = input_line inc in
+        let id, el = parse_el_binding line in
+        add_el inc (StoreM.add id el l)
+      with End_of_file ->
+        l
+    in add_el ic StoreM.empty
+
   let list_of: v el t -> v list  =
     fun l -> 
     List.flatten @@ List.map (fun (_, el) ->
@@ -176,7 +239,7 @@ struct
         | (Bottom _ | Top _) -> []) (StoreM.bindings l)
 
   let bottom: v el t -> v el option = fun l -> StoreM.find_opt id_bottom l
-  let top: v el t -> v el option = fun l -> StoreM.find_opt id_top l 
+  let top: v el t -> v el option = fun l -> StoreM.find_opt id_top l     
 
   let length: v el t -> int = 
     fun l -> 
@@ -272,6 +335,72 @@ struct
     | Some (Element {covering; _} as el) -> lows l covering [(idk, el)]
     | Some Bottom _ -> []
 
+  let meet a b l = 
+    (* compute the lowerset of b and then, 
+       starting with "a" by breadth-first-searching the graph
+       for an element that is in the lowerset of b. 
+       The first element found is the meet *)
+    let rec find_meet las lowb =   
+      match las with
+      | [] -> raise @@ Failure "Unreachable state. Bottom should have been found"
+      | la::las' ->
+        if (List.exists ((=) la) lowb) then StoreM.find la l
+        else begin
+          match StoreM.find la l with
+          | Top _ -> raise @@ Failure "Top should not appear in covering set"
+          | Element {covering; _} -> find_meet (las @ covering) lowb
+          | (Bottom _) as bottom -> bottom 
+        end 
+    in
+    if (a = b) then a 
+    else begin
+      let b_key, _ = StoreM.choose @@ StoreM.filter (fun _ el -> el = b) l in
+      let lowb = List.map fst (lowerset b_key l) |> List.filter ((!=) b_key) in
+      match a with
+      | Top _ -> b
+      | Element {covering; _} -> find_meet covering lowb
+      | Bottom _ -> a 
+    end
+
+  let join a b l = 
+    (* compute the upperset of b and then, 
+       starting with "a" by breadth-first-searching the graph
+       for an element that is in the upperset of b. 
+       The first element found is the join *)
+    let rec find_join uas upb =   
+      match uas with
+      | [] -> raise @@ Failure "Unreachable state. Top should have been found"
+      | ua::uas' ->
+        if (List.exists ((=) ua) upb) then StoreM.find ua l
+        else begin
+          match StoreM.find ua l with
+          | (Top _) as top -> top
+          | Element {covered_by; _} -> find_join (uas @ covered_by) upb
+          | Bottom _ -> raise @@ Failure "Bottom should not appear in covering set" 
+        end 
+    in
+    if (a = b) then a
+    else begin
+      let b_key, _ = StoreM.choose @@ StoreM.filter (fun _ el -> el = b) l in
+      let upb = List.map fst (upperset b_key l) |> List.filter ((!=) b_key) in
+      match a with
+      | Top _ -> a
+      | Element {covered_by; _} -> find_join covered_by upb
+      | Bottom _ -> b 
+    end
+    
+  let lte va vb l = 
+    match (find_binding_opt ((=) va) l), (find_binding_opt ((=) vb) l) with
+    | None, _ -> None
+    | _ , None -> None
+    | Some (_, Top _), _ -> Some false
+    | Some (_, Bottom _), _ -> Some true
+    | _, Some (_, Top _) -> Some true
+    | _, Some (_, Bottom _) -> Some false
+    | Some (_, a), Some (_, b) -> 
+      let meet_ab = meet a b l in
+      if a = meet_ab then Some true else Some false
+
   let el_covering_update: int -> int list -> v el t -> v el t = 
     fun idk new_covering l -> 
     StoreM.update idk (Option.map (
@@ -292,7 +421,7 @@ struct
             Element {elc with covering = covering @ idks_to_append }
           | Bottom _ -> el   
       )) l
-
+  
   let el_covered_by_update: int -> int list -> v el t -> v el t = 
     fun idk new_covered_by l -> 
     StoreM.update idk (Option.map (
@@ -317,8 +446,8 @@ struct
   (* let add: v -> v el t -> v el t = 
    *   failwith "Add element to lattice is undefined" *)
     
-  let remove: v -> v el t -> v el t = 
-    fun a l -> 
+  let remove: int -> v el t -> v el t = 
+    fun idk l ->
     let reconnect_covering x_idk x_cby_idks y_idk l = 
        match StoreM.find_opt y_idk l with
          | None -> l 
@@ -363,26 +492,36 @@ struct
             reconnect_covered_by x_idk x_cing_idks idk_ l_
           ) x_cby_idks
     in
-    match find_binding_opt (fun a' -> a' = a) l with
+    match StoreM.find_opt idk l with
+    | None -> l
+    | Some Top _ -> failwith "Lattice.remove : Top is not removable"   
+    | Some Element {covered_by; covering; _} ->
+      reconnect_nodes idk covering covered_by l |> StoreM.remove idk
+    | Some Bottom _ -> failwith "Lattice.remove : Bottom is not removable"
+
+  let remove_v: v -> v el t -> v el t = 
+    fun a l -> 
+    match find_binding_opt ((=) a) l with
     | None -> l
     | Some (_, Top _) -> failwith "Lattice.remove : Top is not removable"   
-    | Some (idk, Element {covered_by; covering; _}) ->
-      reconnect_nodes idk covering covered_by l |> StoreM.remove idk
-    | Some (_, Bottom _) -> failwith "Lattice.remove : Bottom is not removable"     
+    | Some (idk, Element _) -> remove idk l
+    | Some (_, Bottom _) -> failwith "Lattice.remove : Bottom is not removable"
 
   let remove_upperset: v -> v el t -> v el t = 
     fun a l -> 
+    let rec rm els l_ = 
+      match els with
+      | [] -> l_
+      | (idk, el)::els' -> 
+        begin match el with 
+          | ( Top _ | Bottom _ )  -> rm els' l_
+          | Element _ -> rm els' (remove idk l_)
+        end
+    in
     match find_binding_opt (fun a' -> a' = a) l with
     | None -> l
     | Some (_, Top _) -> failwith "Lattive.remove_upperset : Top is not removable"
-    | Some (idk, Element _) ->
-      List.fold_right (
-        fun (idk_, el_) l_ ->
-          begin match el_ with
-            | (Top _ | Bottom _) -> l_
-            | Element { value = a_; _} -> remove a_ l_
-          end
-      ) (upperset idk l) l
+    | Some (idk, Element _) -> rm (upperset idk l) l
     | Some (_, Bottom _) -> failwith "Lattice.remove_upperset : Bottom is not removable"
 
   let chains_of: v el t -> v list list = 
@@ -409,5 +548,5 @@ struct
       let wl = List.map (fun idk -> (idk, [])) covered_by in
       to_chains wl [] |> List.map List.rev
     | Some _ -> []
-   
+
 end 

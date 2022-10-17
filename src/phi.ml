@@ -35,9 +35,21 @@ let string_of_disj d = smt_of_disj d |> string_of_smt
 
 let atom_of_pred ((f, e1, e2) : Smt.pred) : atom = EFunc(f, [e1; e2])
 
-let predP_of_atom : atom -> predP option = function
+let predP_of_atom : atom -> predP option = 
+  fun e -> 
+  match e with
   | EFunc (f, [e1; e2]) ->Some (P (f, e1, e2))
+  | EBop (o, e1, e2) -> 
+    begin match o with
+      | (Imp | Eq | Lt | Gt | Lte | Gte ) -> Some (P (To_String.bop o, e1, e2))
+      | _ -> None
+    end
   | EUop (Not, EFunc (f, [e1; e2])) -> Some (NotP (f, e1, e2))
+  | EUop (Not, EBop (o, e1, e2)) -> 
+    begin match o with
+      | (Imp | Eq | Lt | Gt | Lte | Gte ) -> Some (NotP (To_String.bop o, e1, e2))
+      | _ -> None
+    end
   | _ -> None  
 
 let atom_of_predP = function

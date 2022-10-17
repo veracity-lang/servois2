@@ -13,7 +13,11 @@ struct
   type t = predP
   let lte = fun p1 p2 ->
     List.exists (fun (pa, pb) -> pa = p1 && pb = p2) !order_rels_set
-  let string_of v = sp "%s" (string_of_predP v) 
+  let string_of v = sp "%s" (string_of_predP v)
+  let v_of_string s =
+    match predP_of_atom @@ exp_of_string s with
+    | None -> raise @@ Failure (sp "Error parsing predicate %s" s)
+    | Some p -> p
 end
 module L = Lattice(PO)
 
@@ -158,7 +162,7 @@ let mcpred env ps =
         ) [] pmcs_miss in
       let start = Unix.gettimeofday () in
       let pmcs_ = Predicate_analyzer.run_mc env.spec env.m_spec env.n_spec pmcs_miss' in
-      pmcs_memo := !pmcs_memo @ pmcs_;
+      pmcs_memo := pmcs_ @ !pmcs_memo;
       mc_run_time := !mc_run_time +. ((Unix.gettimeofday ()) -. start);
       !pmcs_memo
   in
