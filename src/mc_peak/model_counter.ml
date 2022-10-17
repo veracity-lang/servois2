@@ -2,6 +2,7 @@ open Smt
 open Spec
 open Phi
 open Util
+open Solve
 
 type mc_result = 
   | Sat of int
@@ -124,27 +125,22 @@ struct
     remove_smt_file MC.smt_fname;
     result
 
-  let vars_strings = curry3 @@ memoize @@ fun (spec, m1, m2) -> 
-    let tybindings = spec.state @ m1.args @ m2.args in
-    List.filter (fun tb -> not @@ (String.equal (name_of_binding tb) "err")) tybindings
-    |> List.map (fun (v, t) -> sp "(declare-fun %s () %s)" (string_of_var v) (string_of_ty t)) 
-
   let count_state spec m1 m2 =     
     let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"] @
-        (vars_strings spec m1 m2) @
-        ["(assert true)"] @
-        ["(check-sat)"]
+        [ "(set-logic ALL)"
+        ; smt_of_spec spec
+        ; "(assert true)"
+        ; "(check-sat)" ]
       ) 
     in 
     run_mc string_of_mc_query
 
   let count_pred spec m1 m2 p = 
     let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"] @
-        (vars_strings spec m1 m2) @
-        [sp "(assert %s)" (string_of_predP p)] @
-        ["(check-sat)"]
+        ["(set-logic ALL)"
+        ; smt_of_spec spec
+        ; sp "(assert %s)" (string_of_predP p)
+        ; "(check-sat)"]
       ) 
     in 
     run_mc string_of_mc_query
