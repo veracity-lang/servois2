@@ -113,6 +113,7 @@ struct
 
   let run_mc mc_query = 
     let module MC = ABCModelCounter in
+    pfvv "Model counter query: \n%s\n" mc_query;
     create_smt_file mc_query MC.smt_fname;
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfv "\nModel counting for PREDICATE: \n|?| %s \n|-> Result: %s\n--------------------------\n" 

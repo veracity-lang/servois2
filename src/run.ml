@@ -99,7 +99,7 @@ module RunSynth : Runner = struct
   let timeout = ref None
   let lattice = ref false
   let stronger_pred_first = ref false
-  let no_cache = ref false
+  let no_cache = ref true
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
@@ -110,7 +110,7 @@ module RunSynth : Runner = struct
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"
-    ; "--no-cache", Arg.Unit (fun () -> no_cache := true), " Do not used cached implication lattice"
+    ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ] @ common_speclist |>
     Arg.align
 
