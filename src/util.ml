@@ -49,6 +49,7 @@ let memoize f =
     end
 
 (* Global options *)
+let quiet = ref false
 let verbosity = ref false
 let very_verbose = ref false
 let if_verbose action = if !verbosity || !very_verbose then action () else ()
@@ -61,6 +62,7 @@ let sp = Printf.sprintf
 let epf = Printf.eprintf
 let pfv fmt = printf_verbose fmt
 let pfvv fmt = printf_very_verbose fmt
+let pfnq fmt = if !quiet then Printf.ifprintf stdout fmt else Printf.printf fmt
 
 (* Randomize order of items in a list *)
 let shuffle =

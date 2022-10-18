@@ -7,7 +7,6 @@ end
 
 module CommonOptions = struct
   let debug = ref false
-  let quiet = ref false
   let anons = ref []
   let output_file = ref ""
   let prover_name = ref ""
@@ -17,8 +16,8 @@ module CommonOptions = struct
     ; "-d",      Arg.Set debug, " Short for --debug"
     ; "-o",      Arg.Set_string output_file, "<file> File to output to. Default file is stdout"
     ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
-    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
-    ; "-q", Arg.Set quiet, " Short for --quiet"
+    ; "--quiet", Arg.Set Util.quiet, " Print only the smt expression for the commutativity condition"
+    ; "-q", Arg.Set Util.quiet, " Short for --quiet"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
     ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
     ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
