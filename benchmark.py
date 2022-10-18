@@ -86,11 +86,11 @@ class TestCase():
         self.opts = opts
         self.ran = False
     def run(self, yml, m, n, additional_flags = []):
-        command_infer = [
+        command_infer = ([
             servois2, 'synth', '-q',
             '--timeout', str(TIMEOUT), '--prover', 'cvc4'
             ] + additional_flags + (['--cache'] if cache else []) +
-            list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
+            list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n])
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
             benches = defaultdict(float) # Doesn't only contain floats, but only will blindly query for them.
@@ -467,4 +467,4 @@ if __name__ == '__main__':
         f.write(speedup)
 
     no_autogen_time, autogen_time = run_auto_terms(testcases)
-    print('No Autogen Time: {:.3f}\nAutogen Time: {:.3f}\n'.format(no_autogen_time, autogen_time)
+    print('No Autogen Time: {:.3f}\nAutogen Time: {:.3f}\n'.format(no_autogen_time, autogen_time))
