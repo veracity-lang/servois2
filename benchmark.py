@@ -423,7 +423,7 @@ def make_cache(testcases):
             for bench in benches_trial:
                 benches = dict(line.split(', ') for line in stderr.strip().split('\n'))
             if not "time_synth" in benches: raise Exception(stdout, stderr)
-            print(f'{} lattice construction time: {:.2f}\s'.format(adt, benches[time_synth]))
+            print('{} lattice construction time: {:.2f}\s'.format(adt, benches[time_synth]))
         except Exception as err:
             sys.stdout.write(f'\nFailure: {str(err.args)}\n')
 
