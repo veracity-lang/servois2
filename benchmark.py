@@ -20,6 +20,7 @@ TIMEOUT = 30
 N_TRIALS = 1
 
 speedup = ""
+cache = False
 
 class Heuristic(Enum):
     SIMPLE = 0
@@ -87,8 +88,8 @@ class TestCase():
     def run(self, yml, m, n):
         command_infer = [
             servois2, 'synth', '-q',
-            '--timeout', str(TIMEOUT), '--prover', 'cvc4'
-        ] + list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
+            '--timeout', str(TIMEOUT), '--prover', 'cvc4', '--auto-terms'
+        ] + (['--cache'] if cache else []) + list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
             benches = defaultdict(float) # Doesn't only contain floats, but only will blindly query for them.
@@ -409,10 +410,30 @@ def run_command(command : List[str]):
         raise Exception(err)
     return out, err
 
+def make_cache(testcases):
+    # Make clean?
+    for adt in testcases:
+        command_lattice = [
+            servois2, 'lattice', '-q', '--prover', 'cvc4',
+        ] + [yml_dir + yml, m, n]
+        sys.stdout.write(f'Running command: {str(command_lattice)}\n')
+        try:
+            stdout, stderr = run_command(command_infer)
+            result, benches_trial = process_output(stdout, stderr)
+            for bench in benches_trial:
+                benches = dict(line.split(', ') for line in stderr.strip().split('\n'))
+            if not "time_synth" in benches: raise Exception(stdout, stderr)
+            print(f'{} lattice construction time: {:.2f}\s'.format(adt, benches[time_synth]))
+        except Exception as err:
+            sys.stdout.write(f'\nFailure: {str(err.args)}\n')
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        N_TRIALS = int(sys.argv[1])
+        try:
+            N_TRIALS = int(sys.argv[1])
+        except:
+            pass
+    if "--cache" in sys.argv: cache = True
     table1 = make_table1(testcases)
     with open("benchmarks_1.tex", 'w') as f:
         f.write(table1)
