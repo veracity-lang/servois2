@@ -19,7 +19,7 @@ TIMEOUT = 30
 
 N_TRIALS = 1
 
-# TODO: speedup of poke2-lattice over poke? poke2 over poke?
+speedup = ""
 
 class Heuristic(Enum):
     SIMPLE = 0
@@ -340,7 +340,7 @@ def make_table1(cases):
         table += section
     table += table1_footer
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
-    table += (
+    speedup += (
         "\\newcommand{{\\poketwospeedup}}{{{:.2f}}}\n".format(geomean(poke2_speedup)) + 
         "\\newcommand{{\\mcmaxspeedup}}{{{:.2f}}}\n".format(geomean(mc_max_speedup))
     )
@@ -392,7 +392,7 @@ def make_table2(cases):
     
     table += table2_footer
     
-    table += (
+    speedup += (
         "\\newcommand{{\\poketwolatticespeedup}}{{{:.2f}}}\n".format(geomean(poke2_lattice_speedup)) + 
         "\\newcommand{{\\mcmaxlatticespeedup}}{{{:.2f}}}\n".format(geomean(mc_max_lattice_speedup))
     )
@@ -419,3 +419,5 @@ if __name__ == '__main__':
     table2 = make_table2(testcases)
     with open("benchmarks_2.tex", 'w') as f:
         f.write(table2)
+    with open("speedup.tex", 'w') as f:
+        f.write(speedup)
