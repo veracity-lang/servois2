@@ -85,11 +85,12 @@ class TestCase():
         self.heuristic = heuristic
         self.opts = opts
         self.ran = False
-    def run(self, yml, m, n):
+    def run(self, yml, m, n, additional_flags = []):
         command_infer = [
             servois2, 'synth', '-q',
-            '--timeout', str(TIMEOUT), '--prover', 'cvc4', '--auto-terms'
-        ] + (['--cache'] if cache else []) + list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
+            '--timeout', str(TIMEOUT), '--prover', 'cvc4'
+            ] + additional_flags + (['--cache'] if cache else []) +
+            list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
             benches = defaultdict(float) # Doesn't only contain floats, but only will blindly query for them.
@@ -307,6 +308,13 @@ def find_result(yml, ms, reslist, heuristic):
     else:
         return None
 
+def find_testcase(yml, ms, reslist, heuristic):
+    for t in reslist:
+        if t.heuristic is heuristic:
+            return t
+    else:
+        return None
+
 prod = lambda l: reduce(lambda x, y: x * y, l, 1)
 geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 
@@ -429,6 +437,19 @@ def make_cache(testcases):
         except Exception as err:
             sys.stdout.write(f'\nFailure: {str(err.args)}\n')
 
+# Should only be run AFTER all other analyses -- overwrites benchmarking data.
+# Could write it more elegantly but probably not necc?
+def run_auto_terms(cases):
+    no_autogen_time = 0.0
+    autogen_time = 0.0
+    for yml in cases:
+        for ms in cases[yml]:
+            poke2case = find_testcase(yml, ms, cases[yml][ms], Heuristic.POKE2)
+            no_autogen_time += poke2case.benches["time"]
+            poke2case.run(yml, ms[0], ms[1], ['--auto-terms'])
+            autogen_time += poke2case.benches["time"]
+    return no_autogen_time, autogen_time
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         try:
@@ -444,3 +465,6 @@ if __name__ == '__main__':
         f.write(table2)
     with open("speedup.tex", 'w') as f:
         f.write(speedup)
+
+    no_autogen_time, autogen_time = run_auto_terms(testcases)
+    print('No Autogen Time: {:.3f}\nAutogen Time: {:.3f}\n'.format(no_autogen_time, autogen_time)
