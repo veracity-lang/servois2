@@ -311,6 +311,7 @@ prod = lambda l: reduce(lambda x, y: x * y, l, 1)
 geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 
 def make_table1(cases):
+    nonlocal speedup
     table = table1_header
     # Speedup relative to poke
     poke2_speedup = []
@@ -364,6 +365,7 @@ table2_footer = (
 )
 
 def make_table2(cases):
+    nonlocal speedup
     table = table2_header
     for yml in cases:
         section = "\\hline\n" + name_of_yml[yml]
