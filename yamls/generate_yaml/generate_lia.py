@@ -2,14 +2,14 @@ import sys
 from jinja2 import Environment, FileSystemLoader, Template
 
 
-def make_vars(var_prefix, n):
-    return [var_prefix + str(i) for i in range(n)]
+def make_vars(n, vname_fmt):
+    return [vname_fmt.format(i+1) for i in range(n)]
 
 class LiaScaleX:
     def __init__(self, n):
         self.sizeOfX = n
-        self.xVarName = 'x'
-        self.X = make_vars('x', n)
+        self.varNameFormat = 'x{}b'
+        self.X = make_vars(n, self.varNameFormat)
 
     def spec_for_stateVariablesDeclaration(self):
         return '\n'.join(map((lambda v: f'- name: {v}\n  type: Int'), self.X))
@@ -31,18 +31,14 @@ class LiaScaleX:
         
         return {
             'condX': specCond,
-            'xVarTerm': self.xVarName + str(self.sizeOfX -1),
+            'xVarTerm': self.varNameFormat.format(self.sizeOfX),
             'XEqual': specXEqual
         }
 
     def spec_for_terms(self):
         return ", ".join(self.X)
 
-if __name__ == '__main__':
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-    if n < 1:
-        raise Exception("Minimum # of vars is 1")
-        
+def gen_nvars_spec(n):
     lia = LiaScaleX(n)
     data = {
         'Xsize': n,
@@ -56,6 +52,13 @@ if __name__ == '__main__':
     # load template
     env = Environment(loader = FileSystemLoader('./'), trim_blocks = True)
     template = env.get_template('lia_scale_var_template.j2')
-    file = open(f'lia_{lia.sizeOfX}vars.yaml', 'w')
-    file.write(template.render(d = data))
-    file.close()
+    with open(f'lia_{lia.sizeOfX}vars.yaml', 'w') as f:
+        f.write(template.render(d = data))
+
+if __name__ == '__main__':
+    n = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    if n < 1:
+        raise Exception("Minimum # of vars is 1")
+    for i in range(n):
+        gen_nvars_spec(i+1)
+    
