@@ -37,11 +37,11 @@ class Heuristic(Enum):
 
 string_of_heuristic = {
     Heuristic.SIMPLE: "simple",
-    Heuristic.POKE: "poke",
-    Heuristic.POKE2: "poke2",
-    Heuristic.POKE2_LATTICE: "poke2-lattice",
-    Heuristic.MC_MAX: "mc-max",
-    Heuristic.MC_MAX_LATTICE: "mc-max-lattice",
+    Heuristic.POKE: "\\poke{}",
+    Heuristic.POKE2: "\\poketwo{}",
+    Heuristic.POKE2_LATTICE: "\\poketwo{}-lattice",
+    Heuristic.MC_MAX: "\\mcmax{}",
+    Heuristic.MC_MAX_LATTICE: "\\mcmax{}-lattice",
     Heuristic.MC_BISECT: "mc-bisect",
     Heuristic.MC_BISECT_LATTICE: "mc-bisect-lattice"
 }
@@ -285,12 +285,11 @@ def string_of_ms(ms):
     else:
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
-mkheader = lambda cols : (
-    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in cols]) + "} \\toprule\n" +
-    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
+table1_header = (
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table1_heuristics]) + "} \\toprule\n" +
+    " & & " + ' & '.join(f'\\multicolumn{{l}}{{c|}}{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\bf{Time (Speedup)}' for h in table1_heuristics) + "\\\\\n"
 )
-
-table1_header = mkheader(table1_heuristics)
 
 table1_footer = (
     "\\bottomrule\n"+
@@ -363,7 +362,13 @@ is_lattice = defaultdict(lambda: False, {
     }
 )
 
-table2_header = mkheader(table2_heuristics)
+table2_header = (
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table2_heuristics]) + "} \\toprule\n" +
+    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\\n".format(reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1), table2_heuristics, 0)) +
+    "\\toprule\n" +
+    " & & " + ' & '.join('\\multicolumn{{{0}}}{{c|}}{{\\bf{{{1}}}}}'.format(2 if is_lattice[h] else 1, str(h)) for h in table2_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\multicolumn{1}{r}{Total}' if not is_lattice[h] else '\\multicolumn{1}{r|}{Synth} & Total' for h in table2_heuristics) + "\\\\\n"
+)
 table2_footer = (
     "\\bottomrule\n"+
     "\\end{tabular}\n" +
