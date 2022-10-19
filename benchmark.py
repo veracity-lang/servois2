@@ -286,14 +286,14 @@ def string_of_ms(ms):
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
 mkheader = lambda cols : (
-    "\\begin{table} \\begin{center} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in cols]) + "} \\toprule\n" +
     "\\bf{ADT} & \\bf{Methods} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
 )
 
 table1_header = mkheader(table1_heuristics)
 
 table1_footer = (
-    "\\hline\n"+
+    "\\bottomrule\n"+
     "\\end{tabular}\n" +
     "\\end{center}\n" +
     "\\caption{\\label{table:one}Total execution time comparison between \\poke{} and new heuristics. Speedup relative to \\poke{} is given in parentheses. All times are given in seconds.}\n" +
@@ -325,7 +325,7 @@ def make_table1(cases):
     poke2_speedup = []
     mc_max_speedup = []
     for yml in cases:
-        section = "\\hline\n" + name_of_yml[yml]
+        section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             results = cases[yml][ms]
             row_heurs = defaultdict(lambda: None)
@@ -365,7 +365,7 @@ is_lattice = defaultdict(lambda: False, {
 
 table2_header = mkheader(table2_heuristics)
 table2_footer = (
-    "\\hline\n"+
+    "\\bottomrule\n"+
     "\\end{tabular}\n" +
     "\\end{center}\n" +
     "\\caption{\\label{table:two}Comparison of times taken with use of the predicate lattice. Time in parentheses is synth only time. All times are given in seconds.}\n" +
@@ -376,7 +376,7 @@ def make_table2(cases):
     global speedup
     table = table2_header
     for yml in cases:
-        section = "\\hline\n" + name_of_yml[yml]
+        section = ("\\hline\n" if not table is table2_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             def time(h):
                 tmp = find_result(yml, ms, cases[yml][ms], h)
