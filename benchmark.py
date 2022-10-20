@@ -388,7 +388,7 @@ def make_table2(cases):
                 tmp = find_result(yml, ms, cases[yml][ms], h)
                 if tmp:
                     if is_lattice[h]:
-                        return "{:.2f}(\\textbf{{{:.2f}}})".format(tmp["time"], tmp["time_synth"])
+                        return "{:.2f} % \\textbf{{{:.2f}}}".format(tmp["time"], tmp["time_synth"])
                     else:
                         return "{:.2f}".format(tmp["time"])
                 else: return NA_STRING
