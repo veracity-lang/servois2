@@ -67,7 +67,7 @@ methods:
     terms:
       Int: [0, x, "y", z, i, (+ y i), (+ x y)]
 
-  - name: multiVarCondA
+  - name: multiVarA
     args: []
     return:
       - name: result
@@ -85,7 +85,7 @@ methods:
     terms:
       Int: [0, 2, x, "y",  (* 2 x), (+ (* 2 x) y)]
 
-  - name: multiVarCondB
+  - name: multiVarB
     args: []
     return:
       - name: result

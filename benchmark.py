@@ -163,7 +163,7 @@ testcases = {
         'lia.yml': [
             ('sum', 'posSum'),
             ('sum', 'multiVarSum'),
-            ('multiVarCondA', 'multiVarCondB')
+            ('multiVarA', 'multiVarB')
         ]
     }),
     # Second, the cases that are to be run on non-mc heuristics only.
