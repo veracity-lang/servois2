@@ -287,7 +287,7 @@ def string_of_ms(ms):
 
 table1_header = (
     "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table1_heuristics]) + "} \\toprule\n" +
-    " & & " + ' & '.join(f'\\multicolumn{{l}}{{c|}}{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
+    " & & " + ' & '.join(f'\\multicolumn{{1}}{{c|}}{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
     "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\bf{Time (Speedup)}' for h in table1_heuristics) + "\\\\\n"
 )
 
@@ -362,9 +362,10 @@ is_lattice = defaultdict(lambda: False, {
     }
 )
 
+table2_ndatacols = reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1)
 table2_header = (
-    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table2_heuristics]) + "} \\toprule\n" +
-    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\\n".format(reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1), table2_heuristics, 0)) +
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in range(table2_ndatacols)]) + "} \\toprule\n" +
+    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\n".format(table2_ndatacols, table2_heuristics, 0)) +
     "\\toprule\n" +
     " & & " + ' & '.join('\\multicolumn{{{0}}}{{c|}}{{\\bf{{{1}}}}}'.format(2 if is_lattice[h] else 1, str(h)) for h in table2_heuristics) + "\\\\\n"
     "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\multicolumn{1}{r}{Total}' if not is_lattice[h] else '\\multicolumn{1}{r|}{Synth} & Total' for h in table2_heuristics) + "\\\\\n"
