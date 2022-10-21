@@ -21,12 +21,12 @@ methods:
       true
     ensures: | 
       (and
-        (= a_new (+ a b))
+        (= a_new (- a b))
         (= b_new b)
         {{d.XinMethod1Ensures}}
         (= result true))
     terms:
-      Int: [a, b, {{d.XTerms}}, (+ a b)]
+      Int: [a, b, {{d.XTerms}}, (- a b)]
 
   - name: multiVarCondSum
     args: []
@@ -37,12 +37,12 @@ methods:
       true
     ensures: |
       (and
-        (ite (and (> a 0) {{d.XinMethod2Ensures.condX}}) (= a_new (+ a {{d.XinMethod2Ensures.xVarTerm}})) (= a_new (- {{d.XinMethod2Ensures.xVarTerm}} a)))
+        (ite (and (> a 0) {{d.XinMethod2Ensures.condX}}) (= a_new (+ {{d.XinMethod2Ensures.xVarTerm}} a)) (= a_new (- {{d.XinMethod2Ensures.xVarTerm}} a)))
         (= b_new b)
         {{d.XinMethod2Ensures.XEqual}}
         (= result true))
     terms:
-      Int: [0, a, b, {{d.XTerms}}, (+ a {{d.XinMethod2Ensures.xVarTerm}}), (- {{d.XinMethod2Ensures.xVarTerm}} a)]
+      Int: [0, a, b, {{d.XTerms}}, (+ {{d.XinMethod2Ensures.xVarTerm}} a), (- {{d.XinMethod2Ensures.xVarTerm}} a)]
       
 predicates:
   - name: "="
