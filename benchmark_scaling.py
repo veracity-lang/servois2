@@ -19,7 +19,7 @@ TIMEOUT = 120
 
 N_TRIALS = 1
 
-N_MAX_VARS = 20
+N_MAX_VARS = 30
 
 # TODO: speedup of poke2-lattice over poke? poke2 over poke?
 
@@ -109,7 +109,7 @@ name_of_yml = {
     for i in range(N_MAX_VARS)
 }
 
-table3_heuristics = [Heuristic.POKE, Heuristic.POKE2]
+table3_heuristics = [Heuristic.SIMPLE, Heuristic.POKE, Heuristic.POKE2]
 
 testcases = {
     # First, the cases that are to be run on /all/ heuristics (LIA and String)
@@ -208,7 +208,7 @@ def string_of_ms(ms):
 
 mkheader = lambda cols : (
     "\\begin{table} \\begin{center} \\begin{tabular}{|l|c|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
-    "\\bf{ADT} & \\bf{Methods} & \\bf{NPreds} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & \\bf{\\#Preds} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
 )
 
 table3_header = mkheader(table3_heuristics)
@@ -217,7 +217,7 @@ table3_footer = (
     "\\hline\n"+
     "\\end{tabular}\n" +
     "\\end{center}\n" +
-    "\\caption{\\label{table:one}Total execution time comparison between \\poke{} and new heuristics when scaling the number of variables/predicates (Timout set to 60s). Speedup relative to \\poke{} is given in parentheses. All times are given in seconds.}\n" +
+    "\\caption{\\label{table:one}Heuristics' total execution time when scaling the number of variables/predicates " + "(Timeout set to {}s). ".format(TIMEOUT) + "All times are given in seconds.}\n" +
     "\\end{table}\n"
 )
 
@@ -235,8 +235,6 @@ geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 def make_table3(cases):
     table = table3_header
     # Speedup relative to poke
-    poke2_speedup = []
-    mc_max_speedup = []
     predicates_size = 0
     for yml in cases:
         section = "\\hline\n" + name_of_yml[yml]
@@ -248,27 +246,25 @@ def make_table3(cases):
                     row_heurs[heur] = find_result(yml, ms, results, heur)["time"]
                 except:
                     pass
-            poke2_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.POKE2])
-            if Heuristic.MC_MAX in row_heurs:
-                mc_max_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.MC_MAX])
             predicates_size = find_result(yml, ms, results, Heuristic.POKE2)["predicates_filtered"]
             def str_of_heur(h):
                 try:
-                    if h is min(row_heurs, key=row_heurs.get):
-                        if h is Heuristic.POKE: return "\\bf{{{:.2f}}}".format(row_heurs[h])
-                        else: return "\\bf{{{:.2f}}}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                    if row_heurs[h] >= TIMEOUT:
+                        return "$\\StopWatchEnd$"
                     else:
-                        if h is Heuristic.POKE: return "{:.2f}".format(row_heurs[h])
-                        else: return "{:.2f}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                        if h is min(row_heurs, key=row_heurs.get):
+                            return "\\bf{{{:.2f}}}".format(row_heurs[h])
+                        else:
+                            return "{:.2f}".format(row_heurs[h])
                 except: return NA_STRING
             section += f' & {string_of_ms(ms)} ' + f' & {predicates_size} & ' + ' & '.join([str_of_heur(h) for h in table3_heuristics]) + "\\\\\n"
         table += section
     table += table3_footer
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
-    table += (
-        "\\newcommand{{\\poketwospeedup}}{{{:.2f}}}\n".format(geomean(poke2_speedup)) + 
-        "\\newcommand{{\\mcmaxspeedup}}{{{:.2f}}}\n".format(geomean(mc_max_speedup))
-    )
+    # table += (
+    #     "\\newcommand{{\\poketwospeedup}}{{{:.2f}}}\n".format(geomean(poke2_speedup)) + 
+    #     "\\newcommand{{\\mcmaxspeedup}}{{{:.2f}}}\n".format(geomean(mc_max_speedup))
+    # )
     return table
 
 

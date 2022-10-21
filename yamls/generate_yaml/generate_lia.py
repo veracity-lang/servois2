@@ -25,7 +25,7 @@ class LiaScaleX:
         for i in range(self.sizeOfX - 1):
             xi = self.X[i]
             xj = self.X[i+1]
-            specCond = specCond + (f' (> {xi} {xj})')
+            specCond = specCond + (f' (< {xi} {xj})')
 
         specXEqual = ' '.join(map((lambda v: f'(= {v}_new {v})'), self.X))
         
