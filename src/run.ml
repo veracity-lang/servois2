@@ -7,7 +7,6 @@ end
 
 module CommonOptions = struct
   let debug = ref false
-  let quiet = ref false
   let anons = ref []
   let output_file = ref ""
   let prover_name = ref ""
@@ -17,8 +16,8 @@ module CommonOptions = struct
     ; "-d",      Arg.Set debug, " Short for --debug"
     ; "-o",      Arg.Set_string output_file, "<file> File to output to. Default file is stdout"
     ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
-    ; "--quiet", Arg.Set quiet, " Print only the smt expression for the commutativity condition"
-    ; "-q", Arg.Set quiet, " Short for --quiet"
+    ; "--quiet", Arg.Set Util.quiet, " Print only the smt expression for the commutativity condition"
+    ; "-q", Arg.Set Util.quiet, " Short for --quiet"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
     ; "-v", Arg.Set Util.verbosity, " Short for --verbose"
     ; "--very-verbose", Arg.Set Util.very_verbose, " Very verbose output and print smt query files"
@@ -99,6 +98,7 @@ module RunSynth : Runner = struct
   let timeout = ref None
   let lattice = ref false
   let stronger_pred_first = ref false
+  let no_cache = ref true
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
@@ -106,8 +106,10 @@ module RunSynth : Runner = struct
     ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"    
     ; "--mcpeak-max", Arg.Unit (fun () -> Choose.choose := Choose.mc_max), " Use model counting based synthesis with strategy: maximum-coverage"
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
-    ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication."
+    ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
+    ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"
+    ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ] @ common_speclist |>
     Arg.align
 
@@ -127,6 +129,7 @@ module RunSynth : Runner = struct
         Synth.default_synth_options with prover = get_prover ();
                                          timeout = !timeout;
                                          lattice = !lattice;
+                                         no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
       } in
       Synth.synth ~options:synth_options spec method1 method2
@@ -226,23 +229,76 @@ module RunVerify : Runner = struct
       | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
 end
 
+module RunLattice : Runner = struct
+    let usage_msg = sp "Usage: %s lattice <yaml file> [flags]"
+    
+    open CommonOptions
+    
+    let speclist = 
+      [ "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"] @
+      common_speclist |> Arg.align
+    
+    let run_lattice yaml =
+        
+        let spec =
+          Yaml_util.yaml_of_file yaml |>
+          Spec.spec_of_yaml
+        in
+        
+        let prover = get_prover () in
+        
+        let start_time = Unix.gettimeofday () in
+        
+        let all_ms_mangled = List.concat_map (fun m -> [Spec.mangle_method_vars true m; Spec.mangle_method_vars false m]) spec.methods in
+        
+        let preds_unfiltered = Predicate.generate_predicates spec all_ms_mangled in
+        let preds = Solve.filter_predicates prover spec preds_unfiltered in
+        
+        let ps, pps, pequivc = Predicate_analyzer.observe_rels prover spec preds in
+        let l = Choose.L.construct ps in
+        
+        let lattice_construct_time = Unix.gettimeofday () -. start_time in
+        
+        let lattice_fname = sp "%s.lattice" @@ if !output_file = "" then spec.name else !output_file in
+        let equivc_fname = sp "%s.equivc_fname" @@ if !output_file = "" then spec.name else !output_file in
+        
+        let outc = open_out lattice_fname in
+        Choose.L.save l outc; close_out outc;
+        let outc = open_out equivc_fname in
+        Predicate_analyzer.save_equivc outc pequivc;
+        close_out outc;
+        
+        epf "time_lattice_construct, %.6f" (lattice_construct_time)
+    
+    let run () =
+      Arg.current := 1;
+      Arg.parse speclist anon_fun (usage_msg Sys.argv.(0));
+      let anons = List.rev (!anons) in
+      match anons with
+      | [prog] -> run_lattice prog
+      | _ -> Arg.usage speclist (usage_msg Sys.argv.(0))
+end
+
 type command =
   | CmdHelp (* Show help info *)
   | CmdSynth (* Synthesize phi *)
   | CmdVerify (* Verify validity of commutativity condition *)
   | CmdParse (* Parse YAML *)
+  | CmdLattice
 
 let command_map =
   [ "help",     CmdHelp
   ; "synth",    CmdSynth
   ; "verify",   CmdVerify
   ; "parse",    CmdParse
+  ; "lattice",  CmdLattice
   ]
 
 let runner_map : (command * (module Runner)) list =
   [ CmdSynth,    (module RunSynth)
   ; CmdVerify,   (module RunVerify)
-  ; CmdParse,  (module RunParse)
+  ; CmdParse,    (module RunParse)
+  ; CmdLattice,  (module RunLattice)
   ]
 
 let display_help_message exe_name = 

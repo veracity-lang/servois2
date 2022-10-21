@@ -237,6 +237,20 @@ let make_new : ty binding -> ty binding = function
 
 let make_new_bindings = List.map make_new
 
+let rec size = string_of_smt |> compose (String.split_on_char ' ') |> compose List.length
+(* function
+  | EVar _ -> 1
+  | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
+  | EConst _ -> 1
+  | EBop(_, e1, e2) -> 1 + size e1 + size e2
+  | EUop(_, e) -> 1 + size e
+  | ELop(_, es) -> List.length es + list_sum (List.map size es)
+  | ELet(_, e) -> 1 + size e
+  | EITE(e1, e2, e3) -> 1 + size e1 + size e2 + size e3
+  | EFunc(_, es) -> List.length es + list_sum (List.map size es)
+  | EExists(_, e) -> 1 + size e
+*)
+
 type pred = string * exp * exp
 type predP = P of pred | NotP of pred
 let negate: predP -> predP = function

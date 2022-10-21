@@ -18,6 +18,7 @@ type synth_options =
   ; lift : bool
   ; timeout : float option
   ; lattice : bool
+  ; no_cache : bool
   ; stronger_predicates_first: bool
   }
 
@@ -27,6 +28,7 @@ let default_synth_options =
   ; lift = true
   ; timeout = None
   ; lattice = false
+  ; no_cache = false
   ; stronger_predicates_first = false
   }
 
@@ -66,11 +68,51 @@ let string_of_benches benches = sp
 
 type counterex = exp bindlist
 
-let synth ?(options = default_synth_options) spec m n =
-  let init_time = Unix.gettimeofday () in  
+type synth_env = {answer_incomplete : bool ref; phi : disjunction ref; phi_tilde : disjunction ref; synth_start_time : float option ref; bench : benches ref}
+
+let rec synth ?(options = default_synth_options) spec m n =
+
+  let answer_incomplete = ref false in
   let init_smt_queries = !Provers.n_queries in
   let init_mc_queries = !Model_counter.n_queries in
-  let lattice_construct_time = ref 0.0 in
+  let phi = ref @@ Disj [] in
+  let phi_tilde = ref @@ Disj [] in
+  let bench = ref {predicates = 0; 
+                   predicates_filtered = 0;
+                   predicates_in_lattice = 0;
+                   smtqueries = 0;
+                   mcqueries = 0;
+                   time = 0.0; 
+                   synth_time = 0.0;
+                   mc_run_time = 0.0;
+                   lattice_construct_time = 0.0} in
+  let synth_start_time = ref None in
+  let init_time = Unix.gettimeofday () in
+
+  seq (last_benchmarks := { !bench with
+       smtqueries = !Provers.n_queries - init_smt_queries
+     ; mcqueries = !Model_counter.n_queries - init_mc_queries
+     ; time = Float.sub (Unix.gettimeofday ()) init_time
+     ; synth_time = begin match !synth_start_time with | Some f -> (Unix.gettimeofday ()) -. f | _ -> 0. end
+     ; mc_run_time = !Choose.mc_run_time }) @@
+  
+  begin try (
+    match options.timeout with 
+    | None -> run
+    | Some f -> run_with_time_limit f
+  ) (fun () ->
+      synth_inner {answer_incomplete; phi; phi_tilde; synth_start_time; bench}
+        options spec m n
+    ) 
+    with Timeout -> 
+      pfnq "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
+      answer_incomplete := true
+  end;
+
+  if !answer_incomplete then pfnq "Warning: Answer incomplete.\n";
+  !phi, !phi_tilde
+  
+and synth_inner env options spec m n =
 
   let unlifted_spec = spec in 
   let spec = if options.lift then lift spec else spec in
@@ -81,10 +123,13 @@ let synth ?(options = default_synth_options) spec m n =
     | None -> begin 
       let m_spec2 = get_method unlifted_spec m |> mangle_method_vars true in
       let n_spec2 = get_method unlifted_spec n |> mangle_method_vars false in
-      generate_predicates unlifted_spec m_spec2 n_spec2
+      generate_predicates unlifted_spec [m_spec2; n_spec2]
     end
     | Some x -> x in
-  let preds = filter_predicates options.prover spec m_spec n_spec preds_unfiltered in
+  env.bench := { !(env.bench) with predicates = List.length preds_unfiltered };
+  
+  let preds = filter_predicates options.prover spec preds_unfiltered in
+  env.bench := { !(env.bench) with predicates_filtered = List.length preds };
   
   let construct_lattice ps pps = 
     Choose.order_rels_set := pps;
@@ -93,16 +138,16 @@ let synth ?(options = default_synth_options) spec m n =
     l
   in
   
+  let lattice_start_time = Unix.gettimeofday () in
   let pequivc, l = if options.lattice then begin
       (* check for a previous lattice construction, and 
          - if found, load lattice from disk
          - if not found, construct it and save it to disk
       *)
-      let start = Unix.gettimeofday () in
       let lattice_fname = sp "%s.lattice" spec.name in
       let equivc_fname = sp "%s.equivc" spec.name in
-      match Sys.file_exists lattice_fname, Sys.file_exists equivc_fname with
-      | true, true -> 
+      if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
+      then begin
         let inc = open_in lattice_fname in
         let l_ = L.load inc in
         close_in inc;
@@ -112,29 +157,32 @@ let synth ?(options = default_synth_options) spec m n =
         Predicate_analyzer_logger.log_predicates_equiv_classes "Equiv classes loaded from disk"
           pequivc_;
         pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
-        lattice_construct_time := (Unix.gettimeofday ()) -. start;
         pequivc_, l_
-      | (false, _ | _, false) -> 
+      end else begin
         (* One-time analysis of predicates: 
            1.Get all predicates generated from specs. 
              Append their negated form to the set of candidates
            2.Find all pairs (p1, p2) s.t. p1 => p2
            3.Construct the lattice *)        
         let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
-            options.prover spec m_spec n_spec preds in
+            options.prover spec preds in
         let l_ = construct_lattice ps_ pps_ in
-        lattice_construct_time := (Unix.gettimeofday ()) -. start;
         Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
+        (if not options.no_cache then
         let outc = open_out lattice_fname in
         L.save l_ outc; close_out outc;
         let outc = open_out equivc_fname in
-        Predicate_analyzer.save_equivc outc pequivc_; close_out outc;
-        pequivc_, l_ end 
-    else
+        Predicate_analyzer.save_equivc outc pequivc_; close_out outc else ());
+        pequivc_, l_
+      end
+    end else
       (* make trivial lattice *)
       [], construct_lattice (List.map (fun p -> P p) preds) []
   in
-
+  let lattice_construct_time = (Unix.gettimeofday ()) -. lattice_start_time in
+  env.bench := { !(env.bench) with predicates_in_lattice = if options.lattice then L.length l else 0;
+                                 lattice_construct_time = lattice_construct_time};
+  
   let pfind p pequivc l =
       let ps' = List.find (fun ps -> List.mem p ps) pequivc in
       match List.fold_right (fun p res ->
@@ -146,26 +194,11 @@ let synth ?(options = default_synth_options) spec m n =
       | None -> raise @@ Failure (sp "Predicate %s not found" (string_of_predP p))
   in
 
-  let synth_start_time = Unix.gettimeofday () in
-
-  seq (last_benchmarks :=
-     { predicates = 2 * (List.length preds_unfiltered)
-     ; predicates_filtered = 2 * (List.length preds)
-     ; predicates_in_lattice = if options.lattice then L.length l else 0
-     ; smtqueries = !Provers.n_queries - init_smt_queries
-     ; mcqueries = !Model_counter.n_queries - init_mc_queries
-     ; time = Float.sub (Unix.gettimeofday ()) init_time 
-     ; synth_time = (Unix.gettimeofday ()) -. synth_start_time
-     ; mc_run_time = !Choose.mc_run_time
-     ; lattice_construct_time = !lattice_construct_time }) @@
-
-  let answer_incomplete = ref false in
-  let phi = ref @@ Disj [] in
-  let phi_tilde = ref @@ Disj [] in
+  env.synth_start_time := Some(Unix.gettimeofday ());
 
   let solve_inst = solve options.prover spec m_spec n_spec in
 
-  let env = {
+  let choose_env = {
     solver = solve_inst;
     spec = spec;
     m_spec = m_spec;
@@ -177,7 +210,7 @@ let synth ?(options = default_synth_options) spec m n =
   } in
 
   let rec refine_wrapped h l = 
-    try refine h l with Failure _ -> answer_incomplete := true
+    try refine h l with Failure _ -> env.answer_incomplete := true
   and refine (h : conjunction) (l : predP L.el L.t) : unit = 
     let p_set = L.list_of l in
     let pred_smt = List.map exp_of_predP p_set in
@@ -186,7 +219,7 @@ let synth ?(options = default_synth_options) spec m n =
       | Unsat ->         
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
-        phi := add_disjunct h !phi
+        env.phi := add_disjunct h !(env.phi)
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
@@ -194,11 +227,11 @@ let synth ?(options = default_synth_options) spec m n =
           | Unsat ->
             pfv "\nPred found for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
-            phi_tilde := add_disjunct h !phi_tilde
+            env.phi_tilde := add_disjunct h !(env.phi_tilde)
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
-            let p = !choose { env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } in
+            let p = !choose { choose_env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } in
             let neg_p = negate p in
             (* Find lattice keys *)
             let p_lattice = if options.lattice then pfind p pequivc l else p in
@@ -218,18 +251,4 @@ let synth ?(options = default_synth_options) spec m n =
         end 
     end
   in
-
-  begin try (
-    match options.timeout with 
-    | None -> run 
-    | Some f -> run_with_time_limit f
-  ) (fun () -> 
-      refine_wrapped (Conj []) l
-    ) 
-    with Timeout -> 
-      pfv "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
-      answer_incomplete := true
-  end;
-
-  if !answer_incomplete then pfv "Warning: Answer incomplete.\n";
-  !phi, !phi_tilde
+  refine_wrapped (Conj []) l

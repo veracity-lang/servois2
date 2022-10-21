@@ -19,7 +19,8 @@ TIMEOUT = 30
 
 N_TRIALS = 1
 
-# TODO: speedup of poke2-lattice over poke? poke2 over poke?
+speedup = ""
+cache = False
 
 class Heuristic(Enum):
     SIMPLE = 0
@@ -36,11 +37,11 @@ class Heuristic(Enum):
 
 string_of_heuristic = {
     Heuristic.SIMPLE: "simple",
-    Heuristic.POKE: "poke",
-    Heuristic.POKE2: "poke2",
-    Heuristic.POKE2_LATTICE: "poke2-lattice",
-    Heuristic.MC_MAX: "mc-max",
-    Heuristic.MC_MAX_LATTICE: "mc-max-lattice",
+    Heuristic.POKE: "\\poke{}",
+    Heuristic.POKE2: "\\poketwo{}",
+    Heuristic.POKE2_LATTICE: "\\poketwo{}-lattice",
+    Heuristic.MC_MAX: "\\mcmax{}",
+    Heuristic.MC_MAX_LATTICE: "\\mcmax{}-lattice",
     Heuristic.MC_BISECT: "mc-bisect",
     Heuristic.MC_BISECT_LATTICE: "mc-bisect-lattice"
 }
@@ -84,11 +85,12 @@ class TestCase():
         self.heuristic = heuristic
         self.opts = opts
         self.ran = False
-    def run(self, yml, m, n):
-        command_infer = [
+    def run(self, yml, m, n, additional_flags = []):
+        command_infer = ([
             servois2, 'synth', '-q',
             '--timeout', str(TIMEOUT), '--prover', 'cvc4'
-        ] + list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n]
+            ] + additional_flags + (['--cache'] if cache else []) +
+            list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n])
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
             benches = defaultdict(float) # Doesn't only contain floats, but only will blindly query for them.
@@ -161,7 +163,7 @@ testcases = {
         'lia.yml': [
             ('sum', 'posSum'),
             ('sum', 'multiVarSum'),
-            ('multiVarCondA', 'multiVarCondB')
+            ('multiVarA', 'multiVarB')
         ]
     }),
     # Second, the cases that are to be run on non-mc heuristics only.
@@ -283,15 +285,14 @@ def string_of_ms(ms):
     else:
         return ms[0] + ' $ \\bowtie $ ' + ms[1]
 
-mkheader = lambda cols : (
-    "\\begin{table} \\begin{center} \\begin{tabular}{|l|c|" + '|'.join(["r" for _ in cols]) + "|} \\hline\n" +
-    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join(f'\\bf{{{str(h)}}}' for h in cols) + "\\\\\n"
+table1_header = (
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table1_heuristics]) + "} \\toprule\n" +
+    " & & " + ' & '.join(f'\\multicolumn{{1}}{{c|}}{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\bf{Time (Speedup)}' for h in table1_heuristics) + "\\\\\n"
 )
 
-table1_header = mkheader(table1_heuristics)
-
 table1_footer = (
-    "\\hline\n"+
+    "\\bottomrule\n"+
     "\\end{tabular}\n" +
     "\\end{center}\n" +
     "\\caption{\\label{table:one}Total execution time comparison between \\poke{} and new heuristics. Speedup relative to \\poke{} is given in parentheses. All times are given in seconds.}\n" +
@@ -306,16 +307,24 @@ def find_result(yml, ms, reslist, heuristic):
     else:
         return None
 
+def find_testcase(yml, ms, reslist, heuristic):
+    for t in reslist:
+        if t.heuristic is heuristic:
+            return t
+    else:
+        return None
+
 prod = lambda l: reduce(lambda x, y: x * y, l, 1)
 geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 
 def make_table1(cases):
+    global speedup
     table = table1_header
     # Speedup relative to poke
     poke2_speedup = []
     mc_max_speedup = []
     for yml in cases:
-        section = "\\hline\n" + name_of_yml[yml]
+        section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             results = cases[yml][ms]
             row_heurs = defaultdict(lambda: None)
@@ -340,7 +349,7 @@ def make_table1(cases):
         table += section
     table += table1_footer
     # TODO: We're taking the geomean across potentially the arithmetic mean of individual trials. Invalid?
-    table += (
+    speedup += (
         "\\newcommand{{\\poketwospeedup}}{{{:.2f}}}\n".format(geomean(poke2_speedup)) + 
         "\\newcommand{{\\mcmaxspeedup}}{{{:.2f}}}\n".format(geomean(mc_max_speedup))
     )
@@ -353,9 +362,16 @@ is_lattice = defaultdict(lambda: False, {
     }
 )
 
-table2_header = mkheader(table2_heuristics)
+table2_ndatacols = reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1)
+table2_header = (
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in range(table2_ndatacols)]) + "} \\toprule\n" +
+    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\n".format(table2_ndatacols, table2_heuristics, 0)) +
+    "\\toprule\n" +
+    " & & " + ' & '.join('\\multicolumn{{{0}}}{{c|}}{{\\bf{{{1}}}}}'.format(2 if is_lattice[h] else 1, str(h)) for h in table2_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\multicolumn{1}{r}{Total}' if not is_lattice[h] else '\\multicolumn{1}{r|}{Synth} & Total' for h in table2_heuristics) + "\\\\\n"
+)
 table2_footer = (
-    "\\hline\n"+
+    "\\bottomrule\n"+
     "\\end{tabular}\n" +
     "\\end{center}\n" +
     "\\caption{\\label{table:two}Comparison of times taken with use of the predicate lattice. Time in parentheses is synth only time. All times are given in seconds.}\n" +
@@ -363,15 +379,16 @@ table2_footer = (
 )
 
 def make_table2(cases):
+    global speedup
     table = table2_header
     for yml in cases:
-        section = "\\hline\n" + name_of_yml[yml]
+        section = ("\\hline\n" if not table is table2_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             def time(h):
                 tmp = find_result(yml, ms, cases[yml][ms], h)
                 if tmp:
                     if is_lattice[h]:
-                        return "{:.2f}(\\textbf{{{:.2f}}})".format(tmp["time"], tmp["time_synth"])
+                        return "{:.2f} % \\textbf{{{:.2f}}}".format(tmp["time"], tmp["time_synth"])
                     else:
                         return "{:.2f}".format(tmp["time"])
                 else: return NA_STRING
@@ -392,7 +409,7 @@ def make_table2(cases):
     
     table += table2_footer
     
-    table += (
+    speedup += (
         "\\newcommand{{\\poketwolatticespeedup}}{{{:.2f}}}\n".format(geomean(poke2_lattice_speedup)) + 
         "\\newcommand{{\\mcmaxlatticespeedup}}{{{:.2f}}}\n".format(geomean(mc_max_lattice_speedup))
     )
@@ -409,13 +426,51 @@ def run_command(command : List[str]):
         raise Exception(err)
     return out, err
 
+def make_cache(testcases):
+    # Make clean?
+    for adt in testcases:
+        command_lattice = [
+            servois2, 'lattice', '-q', '--prover', 'cvc4',
+        ] + [yml_dir + yml, m, n]
+        sys.stdout.write(f'Running command: {str(command_lattice)}\n')
+        try:
+            stdout, stderr = run_command(command_infer)
+            result, benches_trial = process_output(stdout, stderr)
+            for bench in benches_trial:
+                benches = dict(line.split(', ') for line in stderr.strip().split('\n'))
+            if not "time_synth" in benches: raise Exception(stdout, stderr)
+            print('{} lattice construction time: {:.2f}\s'.format(adt, benches[time_synth]))
+        except Exception as err:
+            sys.stdout.write(f'\nFailure: {str(err.args)}\n')
+
+# Should only be run AFTER all other analyses -- overwrites benchmarking data.
+# Could write it more elegantly but probably not necc?
+def run_auto_terms(cases):
+    no_autogen_time = 0.0
+    autogen_time = 0.0
+    for yml in cases:
+        for ms in cases[yml]:
+            poke2case = find_testcase(yml, ms, cases[yml][ms], Heuristic.POKE2)
+            no_autogen_time += poke2case.benches["time"]
+            poke2case.run(yml, ms[0], ms[1], ['--auto-terms'])
+            autogen_time += poke2case.benches["time"]
+    return no_autogen_time, autogen_time
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        N_TRIALS = int(sys.argv[1])
+        try:
+            N_TRIALS = int(sys.argv[1])
+        except:
+            pass
+    if "--cache" in sys.argv: cache = True
     table1 = make_table1(testcases)
     with open("benchmarks_1.tex", 'w') as f:
         f.write(table1)
     table2 = make_table2(testcases)
     with open("benchmarks_2.tex", 'w') as f:
         f.write(table2)
+    with open("speedup.tex", 'w') as f:
+        f.write(speedup)
+
+    no_autogen_time, autogen_time = run_auto_terms(testcases)
+    print('No Autogen Time: {:.3f}\nAutogen Time: {:.3f}\n'.format(no_autogen_time, autogen_time))

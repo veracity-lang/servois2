@@ -2,11 +2,56 @@ open Spec
 open Smt
 open Util
 
+let replace input output =
+  Str.global_replace (Str.regexp_string input) output
 
+let rec last lst =
+  match lst with
+  | [] -> failwith "Empty list"
+  | [x] -> x
+  | hd::tl -> last tl
+
+let remove_index (mangled_id: string) : string =
+  let r = Str.regexp "_[0-9]+" in 
+  Str.replace_first r "" mangled_id
+  
+let rec remove_index_exp (e: exp) : exp = 
+  match e with 
+  | EVar (Var v) -> EVar (Var (remove_index v))
+  | EVar (VarPost v) -> EVar (VarPost (remove_index v))
+  | EVar (VarM (m, v)) -> EVar (VarM (m, (remove_index v)))
+  | EFunc (str, expl) -> 
+    let new_expl = List.map remove_index_exp expl in
+    EFunc (str, new_expl)
+  | EBop (bop, exp1, exp2) -> 
+    let new_exp1 = remove_index_exp exp1 in
+    let new_exp2 = remove_index_exp exp2 in
+    EBop (bop, new_exp1, new_exp2)
+  | EUop (uop, exp) -> 
+    let new_exp = remove_index_exp exp in
+    EUop (uop, new_exp)
+  | ELop (lop, expl) -> 
+    let new_expl = List.map remove_index_exp expl in
+    ELop (lop, new_expl)
+  | ELet (expBindlist, exp) -> 
+    let eb = List.map (fun (var, ex) -> let EVar v = remove_index_exp (EVar var) in (v , remove_index_exp ex)) expBindlist in
+    let new_exp = remove_index_exp exp in 
+    ELet (eb, new_exp)
+  | EITE (exp1, exp2, exp3) -> 
+    let new_exp1 = remove_index_exp exp1 in
+    let new_exp2 = remove_index_exp exp2 in
+    let new_exp3 = remove_index_exp exp3 in
+    EITE (new_exp1, new_exp2, new_exp3)
+  | _ -> e
+  
 let rec find_ty (e: exp) (spec: spec) : ty option =
   match e with 
   | EVar (Var v) | EVar (VarPost v) | EVar (VarM (_, v)) -> 
-      List.assoc_opt (Var v) spec.state
+      (* List.assoc_opt (Var v) spec.state *)
+      begin match List.assoc_opt (Var v) spec.state with
+      | None -> let str = remove_index v in List.assoc_opt (Var str) spec.state
+      | x -> x
+      end
   | EFunc (str, expl) -> 
     begin match str with
     | "member" -> Some TBool
@@ -25,17 +70,13 @@ let rec find_ty (e: exp) (spec: spec) : ty option =
   | _ -> Some TInt
 
 let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
-  (* let e = m.post in  *)
-  (* let all_terms = ref [] in  *)
   let rec get_terms (e: exp) = 
     match e with 
     | EVar v -> 
       begin match v with
-      | VarPost vp | VarM (_, vp) -> begin match find_ty (EVar (Var vp)) spec with | Some ety -> [(ety, EVar (Var vp))] | None -> [] end
-      | Var _ -> begin match find_ty e spec with | Some ety -> [(ety, e)] | None -> [] end
-      (* | VarM _ -> [] *)
+      | VarPost vp | VarM (_, vp) | Var vp -> let str = remove_index vp in begin match find_ty (EVar (Var str)) spec with | Some ety -> [(ety, EVar (Var str))] | None -> [] end
       end
-    | EArg _ -> [(TInt, e)] (* correct? *) 
+    | EArg _ -> [(TInt, remove_index_exp e)]
     | EConst c ->
       begin match c with 
       | CInt i -> if i > 0 then [(TInt, EConst (CInt 0)); (TInt, EConst (CInt 1)); (TInt, e)] else [(TInt, e)]
@@ -47,29 +88,29 @@ let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
       let t2 = get_terms exp2 in 
       begin match bop with 
       | Eq -> t1 @ t2
-      | Lt | Gt | Lte | Gte -> (TBool, e) :: t1 @ t2
-      | _ -> begin match find_ty exp1 spec with | Some ety -> (ety, e) :: t1 @ t2 | None -> t1 @ t2 end
+      | Lt | Gt | Lte | Gte -> (TBool, remove_index_exp e) :: t1 @ t2
+      | _ -> begin match find_ty exp1 spec with | Some ety -> (ety, remove_index_exp e) :: t1 @ t2 | None -> t1 @ t2 end
       end
     | EUop (uop, exp) -> 
       let t = get_terms exp in
-      begin match find_ty exp spec with | Some ety -> (ety, e) :: t | None -> t end
+      begin match find_ty exp spec with | Some ety -> (ety, remove_index_exp e) :: t | None -> t end
     | ELop (lop, expl) -> 
       let expl_terms = (List.concat_map get_terms expl) in
       begin match lop with 
-      | Add -> begin match find_ty (List.hd expl) spec with | Some ety -> (ety, e) :: expl_terms | None -> expl_terms end
+      | Add -> begin match find_ty (List.hd expl) spec with | Some ety -> (ety, remove_index_exp e) :: expl_terms | None -> expl_terms end
       | _ -> expl_terms
       end
       
     | ELet (expBindlist, exp) -> 
-      let eb = List.concat_map (fun (var, ex) -> let vexp = EVar var in begin match find_ty vexp spec with | Some ety -> (ety, vexp) :: (get_terms ex) | None -> get_terms ex end) expBindlist in
+      let eb = List.concat_map (fun (var, ex) -> let vexp = EVar var in begin match find_ty vexp spec with | Some ety -> (ety, remove_index_exp vexp) :: (get_terms ex) | None -> get_terms ex end) expBindlist in
       eb @ (get_terms exp)
     | EFunc (str, expl) -> 
       let expl_terms = (List.concat_map get_terms expl) in
-      begin match find_ty e spec with | Some ety -> (ety, e) :: expl_terms | None -> expl_terms end 
+      begin match find_ty e spec with | Some ety -> (ety, remove_index_exp e) :: expl_terms | None -> expl_terms end 
     | EITE (e1, e2, e3) -> (get_terms e1) @ (get_terms e2)@ (get_terms e3)
     | _ -> []
   in 
-  let method_terms = get_terms m.post @ get_terms m.pre @ (List.map (fun (var, ty) -> (ty, EVar var)) m.args) in 
+  let method_terms = get_terms m.post @ get_terms m.pre @ (List.map (fun (var, ty) -> (ty, remove_index_exp(EVar var) )) m.args) in 
   let unique_terms = Util.remove_duplicate method_terms in
   let terms = ref [] in
   List.iter (fun (ty, e) -> 
@@ -122,13 +163,14 @@ let add_terms (type_terms) (tl: term_list list) =
   ) tl;
   type_terms
 
-let generate_predicates (spec: spec) (method1: method_spec) (method2: method_spec) =
+let autogen_terms = ref false
+
+let generate_predicates (spec: spec) (methods : method_spec list) =
   let type_terms = Hashtbl.create 2000 in
 
-  let mterms1 = generate_method_terms spec method1 in
-  let mterms2 = generate_method_terms spec method2 in
+  let term_fn = if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
 
-  let all_terms = add_terms (add_terms type_terms mterms1) mterms2 in
+  let all_terms = List.fold_left (fun acc m -> add_terms acc (term_fn m)) type_terms methods in
 
   let pred_list = ref [] in
   List.iter (fun [@warning "-8"] (PredSig (name,[ty1;ty2])) ->
