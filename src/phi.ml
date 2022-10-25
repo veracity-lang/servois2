@@ -14,7 +14,7 @@ let add_conjunct c cs = match c with
     | _ -> Conj (c :: un_conj cs)
 
 type disjunction = Disj of conjunction list
-
+type t = disjunction
 
 let un_disj ds = match ds with Disj ds' -> ds'
 let add_disjunct d ds = match d with
