@@ -133,7 +133,7 @@ and synth_inner env options spec m n =
   
   let construct_lattice ps pps = 
     Choose.order_rels_set := pps;
-    let l = L.construct ps in
+    let l = L.construct (List.sort (fun x y -> complexity x - complexity y) ps) in
     pfv "\n\nLATTICE:\n%s" (L.string_of l);
     l
   in
