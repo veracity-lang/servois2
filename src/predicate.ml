@@ -137,7 +137,6 @@ let is_symm (op: string) (exp1: exp) (exp2: exp) =
   match op with
   | "=" -> 
     let s1, s2 = Smt_ToMLString.exp exp1, Smt_ToMLString.exp exp2 in
-    String.compare s1 s2 >= 0 &&
     List.exists (fun (o,e1,e2) -> 
         (String.equal o op) && (String.equal s1 (Smt_ToMLString.exp e2)) 
         && (String.equal s2 (Smt_ToMLString.exp e1))
