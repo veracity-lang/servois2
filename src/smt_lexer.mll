@@ -67,6 +67,8 @@ rule read = parse
   | "<="  { LTE }
   | ">="  { GTE }
   | "abs" { ABS }
+  | "forall" { FORALL }
+  | "exists" { EXISTS }
 
   (* Uop *)
   | "not" { NOT }
