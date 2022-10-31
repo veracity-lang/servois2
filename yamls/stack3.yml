@@ -1,0 +1,62 @@
+
+name: stack_test
+
+preamble: |
+    (declare-datatypes ((list 0))
+      (((cons (head Int) (tail list)) (nil))))
+    (define-fun-rec getNth ( (l list) (n Int) ) Int
+      (ite (<= n 0) (head l) (getNth (tail l) (- n 1))))
+    (define-fun-rec listSize ((l list)) Int (ite (= l nil) 0 (+ 1 (listSize (tail l)))))
+
+state:
+- name: 'x'
+  type: (Array Int Int)
+- name: 'size'
+  type: Int
+- name: 'list_memory'
+  type: list
+
+
+states_equal:
+  definition: |
+    (and (= size_1 (listSize list_memory_2)) (forall ((n Int)) (ite (and (>= n 0) (< n size_1)) (= (select x_1 n) (getNth list_memory_2 (- (- size_1 1) n))) true)))
+
+methods:
+- name: pop
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (> size 0)
+  ensures: |
+    (and (= size_new (- size 1))
+         (= list_memory_new list_memory)
+         (= x_new x)
+         (= val (select x size_new))
+         )
+  terms: 
+    Int: [0, 1]
+
+- name: pop_list_impl
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (not (= list_memory nil))
+  ensures: |
+    (and (= val (head list_memory))
+         (= list_memory_new (tail list_memory))
+         (= x_new x) (= size_new size))
+  terms: 
+    Int: [0, 1]
+
+# pre-condition: (and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))
+# ./servois2 verify ../yamls/stack3.yml pop:pop_list_impl "(and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))" -vv
+# ./servois2 verify ../yamls/stack3.yml pop:pop_list_impl "(and (= size_l0 3) (= (listSize list_memory_r0) 3) (= (select x_l0 0) (getNth list_memory_r0 0)) (= (select x_l0 1) (getNth list_memory_r0 1)) (= (select x_l0 0) (getNth list_memory_r0 2)))" -vv
+# ./servois2 verify ../yamls/stack3.yml pop:pop_list_impl "(and (= size_l0 (listSize list_memory_r0)) (forall ((n Int)) (ite (and (>= n 0) (< n size_l0)) (= (select x_l0 n) (getNth list_memory_r0 n)) true)))"
+predicates:
+  - name: "="
+    type: [Int, Int]
+

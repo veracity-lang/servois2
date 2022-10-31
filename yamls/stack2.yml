@@ -1,0 +1,64 @@
+
+name: stack_test
+
+preamble: |
+    (declare-datatypes ((list 0))
+      (((cons (head Int) (tail list)) (nil))))
+
+state:
+- name: 'x'
+  type: (Array Int Int)
+- name: 'size'
+  type: Int
+- name: 'list_memory'
+  type: list
+
+
+states_equal:
+  definition: |
+    (ite (= size_1 0) (= list_memory_2 nil)
+     (ite (= size_1 1) (and (= (select x_1 0) (head list_memory_2)) (= (tail list_memory_2) nil))
+      (ite (= size_1 2) (and (= (select x_1 1) (head list_memory_2)) (= (select x_1 0) (head (tail list_memory_2))) (= (tail (tail list_memory_2)) nil))
+       (and (= (select x_1 2) (head list_memory_2)) (= (select x_1 1) (head (tail list_memory_2))) (= (select x_1 0) (head (tail (tail list_memory_2)))) (= (tail (tail (tail list_memory_2))) nil))
+      )
+     )
+    )
+
+methods:
+- name: pop
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (> size 0)
+  ensures: |
+    (and (= size_new (- size 1))
+         (= val (select x size_new))
+         (= list_memory_new list_memory)
+         (ite (> size 3) true (= x_new x)
+         ))
+  terms: 
+    Int: [0, 1]
+
+- name: pop_list_impl
+  args: []
+  return:
+  - name: val
+    type: Int
+  requires: |
+    (not (= list_memory nil))
+  ensures: |
+    (and (= val (head list_memory))
+         (= list_memory_new (tail list_memory))
+         (= x_new x) (= size_new size))
+  terms: 
+    Int: [0, 1]
+
+# pre-condition: (and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))
+# ./servois2 verify ../yamls/stack.yml pop:pop_list_impl "(and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= x2_l0 (head list_memory_r0)) (= x1_l0 (head (tail list_memory_r0))) (= x0_l0 (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))" -vv
+# ./servois2 verify ../yamls/stack2.yml pop:pop_list_impl "(and (= size_l0 3) (not (= nil list_memory_r0)) (not (= nil (tail list_memory_r0))) (not (= nil (tail (tail list_memory_r0)))) (= (select x_l0 0) (head list_memory_r0)) (= (select x_l0 1) (head (tail list_memory_r0))) (= (select x_l0 0) (head (tail (tail list_memory_r0)))) (= (tail (tail (tail list_memory_r0))) nil))" -vv
+predicates:
+  - name: "="
+    type: [Int, Int]
+
