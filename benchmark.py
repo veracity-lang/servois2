@@ -287,8 +287,8 @@ def string_of_ms(ms):
 
 table1_header = (
     "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in table1_heuristics]) + "} \\toprule\n" +
-    " & & " + ' & '.join(f'\\multicolumn{{1}}{{c|}}{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
-    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\bf{Time (Speedup)}' for h in table1_heuristics) + "\\\\\n"
+    " & & " + ' & '.join(('\\multicolumn{1}{c|}' if h is not table1_heuristics[-1] else '\\multicolumn{1}{c}') + f'{{\\bf{{{str(h)} }}}}' for h in table1_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\bf{Time (Speedup)}' if h is not Heuristic.POKE else '\\bf{Time}' for h in table1_heuristics) + "\\\\\n"
 )
 
 table1_footer = (
@@ -362,13 +362,13 @@ is_lattice = defaultdict(lambda: False, {
     }
 )
 
-table2_ndatacols = reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1)
+table2_ndatacols = reduce(lambda acc, e: acc + (2 if is_lattice[e] else 1), table2_heuristics, 0)
 table2_header = (
     "\\begin{table} \\begin{center} \\begin{tabular}{l|c|" + '|'.join(["r" for _ in range(table2_ndatacols)]) + "} \\toprule\n" +
-    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\n".format(table2_ndatacols, table2_heuristics, 0)) +
+    "\multicolumn{{2}}{{c}}{{}} & \multicolumn{{{0}}}{{c}}{{ {{\\bf Wallclock Times}} (seconds)}}\\\\\n".format(table2_ndatacols, table2_heuristics, 0) +
     "\\toprule\n" +
     " & & " + ' & '.join('\\multicolumn{{{0}}}{{c|}}{{\\bf{{{1}}}}}'.format(2 if is_lattice[h] else 1, str(h)) for h in table2_heuristics) + "\\\\\n"
-    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\multicolumn{1}{r}{Total}' if not is_lattice[h] else '\\multicolumn{1}{r|}{Synth} & Total' for h in table2_heuristics) + "\\\\\n"
+    "\\bf{ADT} & \\bf{Methods} & " + ' & '.join('\\multicolumn{1}{r|}{Total}' if not is_lattice[h] else '\\multicolumn{1}{r}{Total} & Synth' for h in table2_heuristics) + "\\\\\n"
 )
 table2_footer = (
     "\\bottomrule\n"+
@@ -388,7 +388,7 @@ def make_table2(cases):
                 tmp = find_result(yml, ms, cases[yml][ms], h)
                 if tmp:
                     if is_lattice[h]:
-                        return "{:.2f} % \\textbf{{{:.2f}}}".format(tmp["time"], tmp["time_synth"])
+                        return "{:.2f} & \\textbf{{{:.2f}}}".format(tmp["time"], tmp["time_synth"])
                     else:
                         return "{:.2f}".format(tmp["time"])
                 else: return NA_STRING
