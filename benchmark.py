@@ -317,6 +317,18 @@ def find_testcase(yml, ms, reslist, heuristic):
 prod = lambda l: reduce(lambda x, y: x * y, l, 1)
 geomean = lambda l: prod(l) ** (1 / len(l)) if l else 1
 
+def div_str(dividend, divisor, e_str):
+    try:
+        return '{:.1f}'.format(dividend/divisor)
+    except:
+        return e_str
+        
+def graceful_failure(op):
+    try:
+        op()
+    except:
+        pass
+
 def make_table1(cases):
     global speedup
     table = table1_header
@@ -333,17 +345,17 @@ def make_table1(cases):
                     row_heurs[heur] = find_result(yml, ms, results, heur)["time"]
                 except:
                     pass
-            poke2_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.POKE2])
+            graceful_failure(lambda: poke2_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.POKE2]))
             if Heuristic.MC_MAX in row_heurs:
-                mc_max_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.MC_MAX])
+                graceful_failure(lambda: mc_max_speedup.append(row_heurs[Heuristic.POKE] / row_heurs[Heuristic.MC_MAX]))
             def str_of_heur(h):
                 try:
                     if h is min(row_heurs, key=row_heurs.get):
                         if h is Heuristic.POKE: return "\\bf{{{:.2f}}}".format(row_heurs[h])
-                        else: return "\\bf{{{:.2f}}}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                        else: return "\\bf{{{:.2f}}}({s}$\\times$)".format(row_heurs[h], div_str(row_heurs[Heuristic.POKE], row_heurs[h]), 'N/A')
                     else:
                         if h is Heuristic.POKE: return "{:.2f}".format(row_heurs[h])
-                        else: return "{:.2f}({:.1f}$\\times$)".format(row_heurs[h], row_heurs[Heuristic.POKE] / row_heurs[h])
+                        else: return "{:.2f}({s}$\\times$)".format(row_heurs[h], div_str(row_heurs[Heuristic.POKE], row_heurs[h], 'N/A'))
                 except: return NA_STRING
             section += f' & {string_of_ms(ms)} & ' + ' & '.join([str_of_heur(h) for h in table1_heuristics]) + "\\\\\n"
         table += section
@@ -404,8 +416,8 @@ def make_table2(cases):
             poke2res = find_result(yml, ms, cases[yml][ms], Heuristic.POKE2_LATTICE)
             mcmaxres = find_result(yml, ms, cases[yml][ms], Heuristic.MC_MAX_LATTICE)
             if not pokeres: continue
-            if poke2res: poke2_lattice_speedup.append(pokeres["time"] / poke2res["time_synth"])
-            if mcmaxres: mc_max_lattice_speedup.append(pokeres["time"] / mcmaxres["time_synth"])
+            if poke2res: graceful_failure(poke2_lattice_speedup.append(pokeres["time"] / poke2res["time_synth"]))
+            if mcmaxres: graceful_failure(mc_max_lattice_speedup.append(pokeres["time"] / mcmaxres["time_synth"]))
     
     table += table2_footer
     

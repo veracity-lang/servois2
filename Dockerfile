@@ -12,7 +12,7 @@ RUN apt-get -y install build-essential \
 RUN apt-get -y install flex bison
 RUN apt-get -y install python3
 RUN apt-get -y install pip
-RUN pip install -Iv Jinja2==2.10.1
+RUN pip install -Iv Jinja2==3.1.2
 
 # Install z3, cvc4, cvc5
 RUN apt-get install -y z3
