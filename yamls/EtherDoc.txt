@@ -1,0 +1,8 @@
+https://github.com/maran/notareth
+
+NoterEth, pronounced "Notaryth", is a prototype notary and "Proof of
+Existence" DAPP. By submitting hashes of documents you can proof on a
+later date that you were privileged to certain information at a point
+in history. The transfer of documents can enable other contracts to
+allow certain access based on who owns a hash.
+
