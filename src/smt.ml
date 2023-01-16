@@ -78,7 +78,7 @@ let rec make_recursive (f : exp -> exp) (* f only needs to work on EVar, EArg, E
   | EBop(b, el, er) -> EBop(b, make_recursive f el, make_recursive f er)
   | EUop(u, e) -> EUop(u, make_recursive f e)
   | ELop(lop, es) -> ELop(lop, List.map (make_recursive f) es)
-  | ELet(binds, e) -> ELet(binds, make_recursive f e)
+  | ELet(binds, e) -> ELet(List.map (second (make_recursive f)) binds, make_recursive f e)
   | EExists(binds, e) -> EExists(binds, make_recursive f e)
   | EITE(i, t, e) -> EITE(make_recursive f i, make_recursive f t, make_recursive f e)
   | EFunc(s, es) -> EFunc(s, List.map (make_recursive f) es)
