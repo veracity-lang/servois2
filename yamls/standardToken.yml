@@ -1,0 +1,146 @@
+name: standardToken
+
+state:
+  - name: address
+    type: (Array Int Int)
+  - name: balances
+    type: (Array Int Int)
+  - name: allowed
+    type: (Array Int Int)
+  - name: msg_sender
+    type: Int
+  - name: allowed_size
+    type: Int
+
+states_equal:
+  definition:  |
+    (and (= address_1 address_2)
+         (= balances_1 balances_2)
+         (= allowed_1 allowed_2)
+         (= msg_sender_1 msg_sender_2))
+
+methods:
+  - name: transferFrom
+    args:
+      - name: from
+        type: Int
+      - name: to
+        type: Int
+      - name: value
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires:  |
+      (and (not (= to (select address 0))) (<= value (select balances from)) (<= value (select allowed (+ (* allowed_size from) msg_sender))))
+    
+    ensures:  |
+      (and (let ((balances_1 (store balances from (- (select balances from) value))))
+           (let ((balances_3 (store balances_1 to (+ (select balances_1 to) value)))) 
+              (let ((allowed_1 (store allowed (+ (* allowed_size from) msg_sender) (- (select allowed (+ (* allowed_size from) msg_sender)) value))))
+                  (Transfer from to value))))
+           (and (= balances_new balances_3) (= allowed_new allowed_1) (= result true))
+      )
+    terms:  
+      Int: [from, to, value, (select balances from), (select balances to), (- (select balances from) value), (- (select balances to) value)]
+      (Array Int Int): [allowed, balances, (store balances from (- (select balances from) value)), (store balances to (- (select balances to) value))]
+
+  - name: approve
+    args:
+      - name: spender
+        type: Int
+      - name: value
+        type: Int
+    return:
+      - name: result
+        type: bool
+
+    requires: |
+      true
+
+    ensures: |
+      (and (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) value))) 
+          (Approval msg_sender spender value))
+          (and (= allowed_new allowed_1)(= result true))   
+      )
+
+    terms:
+      Int: []
+      (Array Int Int): [allowed]
+
+
+  - name: allowance
+    args:
+      - name: owner
+        type: Int
+      - name: spender
+        type: Int
+    return:
+      - name: remaining
+        type: Int
+
+    requires: |
+      true
+
+    ensures: |
+      (= result (select allowed (+ (* allowed_size owner) spender)))
+
+    terms:
+      Int: [spender, owner]
+      (Array Int Int): [allowed]
+
+  - name: increaseApproval
+    args:
+      - name: spender
+        type: Int
+      - name: addedValue
+        type: Int
+    return:
+      - name: success
+        type: bool
+
+    requires: |
+      true
+
+    ensures: |
+      (and (let ((allowed_1 (store allowed msg_sender spender (+ (select allowed msg_sender spender) addedValue)))) 
+          (Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))))
+          (and (= allowed_new allowed_1)(= result true))   
+      )
+    
+    terms:
+      Int: [spender, addedValue]
+      (Array Int Int): [allowed]
+
+  - name: decreaseApproval
+    args:
+      - name: spender
+        type: Int
+      - name: subtractedValue
+        type: Int
+    return:
+      - name: success
+        type: bool
+
+    requires: |
+      true
+
+    ensures: |
+      (and (let ((oldValue (select allowed (+ (* allowed_size msg_sender) spender)))) 
+          (ite (> subtractedValue oldValue)
+              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) 0)))(Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))))
+              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) (- oldValue subtractedValue))))(Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))) )))
+          (and (= allowed_new allowed_1)(= result true))
+      )
+
+    terms:
+      Int: [spender, subtractedValue]
+      (Array Int Int): [allowed]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
+  - name: "="
+    type: [(Array Int Int), (Array Int Int)]
