@@ -30,6 +30,10 @@ type const =
   | CInt of int
   | CBool of bool
   | CString of string
+  | CBitVector of bool list
+
+let bv_of_string s = let acc = ref [] in String.iter (fun c -> acc := (c != '0') :: !acc) s; List.rev !acc
+let string_of_bv = compose (String.concat "") @@ compose List.rev @@ List.map (fun b -> if b then "1" else "0")
 
 type bop =
   | Sub | Mul | Mod | Div
@@ -108,6 +112,7 @@ module To_String = struct
     | CInt i  -> string_of_int i
     | CBool b -> if b then "true" else "false"
     | CString s -> sp "\"%s\"" s
+    | CBitVector v -> sp "#b%s" (string_of_bv v)
 
   let bop : bop -> string = function
     | Sub -> "-"
@@ -185,6 +190,7 @@ module Smt_ToMLString = struct
     | CInt i  -> "CInt " ^ string_of_int i
     | CBool b -> if b then "CBool true" else "CBool false"
     | CString s -> "CString " ^ ToMLString.str s
+    | CBitVector v -> "CBitVector " ^ ToMLString.list string_of_bool v
 
   let bop = function
     | Sub -> "Sub"

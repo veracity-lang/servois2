@@ -9,6 +9,7 @@
 %token <string> SYMBOL_M2
 %token <int> ARG
 %token <int> LITERAL
+%token <string> BV_LITERAL
 
 %token EOF
 %token LP RP UNDERSCORE
@@ -64,6 +65,7 @@ exp:
   | TRUE  { EConst (CBool true) }
   | FALSE { EConst (CBool false) }
   | s=STR { EConst (CString s) }
+  | v=BV_LITERAL { EConst (CBitVector (bv_of_string v)) }
   | LP LET LP bl=nonempty_list(binding) RP e=exp RP { ELet (bl, e) }
   | LP ITE e1=exp e2=exp e3=exp RP { EITE (e1, e2, e3) }
   | LP EXISTS LP bl=nonempty_list(ty_binding) RP e=exp RP {EExists (bl, e)}

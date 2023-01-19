@@ -9,7 +9,7 @@ state:
     type: (_ BitVec 4)
 
 states_equal:
-  definition: (bvcomp x_1 x_2)
+  definition: (bvequal x_1 x_2)
 
 precondition: "true"
 
@@ -25,6 +25,7 @@ preamble: |
            bvadd b3 (bvadd b2 (bvadd b1 b0)))
           )
   )
+  (define-fun bvequal ((a (_ BitVec 4)) (b (_ BitVec 4))) Bool (and (bvule a b) (bvuge a b)))
   
 # permutation defined by binary matrix multiplication over GF(2)
 # A = (a1, a2, a3, a4), where a1, a2, a3, a4 are fixed 4-bit vectors
@@ -38,16 +39,16 @@ methods:
     requires: |
       true
     ensures: |
-      (and (= x_new (let ( (x_post_3 (bitsum (bvand '#b1000' x)))
-                           (x_post_2 (bitsum (bvand '#b1000' x)))
-                           (x_post_1 (bitsum (bvand '#b0010' x)))
-                           (x_post_0 (bitsum (bvand '#b0001' x))) )
+      (and (= x_new (let ( (x_post_three (bitsum (bvand #b1000 x)))
+                           (x_post_two (bitsum (bvand #b1000 x)))
+                           (x_post_one (bitsum (bvand #b0010 x)))
+                           (x_post_zero (bitsum (bvand #b0001 x))) )
                          (
-                          concat x_post_3 (concat x_post_2 (concat x_post_1 x_post_0))
-                         ))
+                          concat x_post_three (concat x_post_two (concat x_post_one x_post_zero))
+                         )))
            (= result true))
     terms:
-      (_ BitVec 4): [x, '#b1000', '#b1000', '#b0010', '#b0001']
+      (_ BitVec 4): [x, "#b1000", "#b1000", "#b0010", "#b0001"]
 
   # x_new = x >> 3
   - name: divide
@@ -58,10 +59,10 @@ methods:
     requires: |
       true
     ensures: |
-      (and (= x_new (bvlshr x '#b0011'))
+      (and (= x_new (bvlshr x #b0011))
            (= result true))
     terms:
-      (_ BitVec 4): [x, '#b0011']
+      (_ BitVec 4): [x, "#b0011"]
 
   # x_new = Ax + c
   - name: permute-linear-param
@@ -81,19 +82,19 @@ methods:
         type: Bool
     requires: "true"
     ensures: |
-      (and (= x_new (bvadd (let ( (x_post_3 (bitsum (bvand a1 x)))
-                                  (x_post_2 (bitsum (bvand a2 x)))
-                                  (x_post_1 (bitsum (bvand a3 x)))
-                                  (x_post_0 (bitsum (bvand a4 x))) )
+      (and (= x_new (bvadd (let ( (x_post_three (bitsum (bvand a1 x)))
+                                  (x_post_two (bitsum (bvand a2 x)))
+                                  (x_post_one (bitsum (bvand a3 x)))
+                                  (x_post_zero (bitsum (bvand a4 x))) )
                                 (
-                                 concat x_post_3 (concat x_post_2 (concat x_post_1 x_post_0))
+                                 concat x_post_three (concat x_post_two (concat x_post_one x_post_zero))
                                 ))
                             c))
            (= result true))
     terms:
       (_ BitVec 4): [x, $1, $2, $3, $4]
 predicates:
-  - name: "bvcomp"
+  - name: "bvequal"
     type: [(_ BitVec 4), (_ BitVec 4)]
   - name: "bvule"
     type: [(_ BitVec 4), (_ BitVec 4)]

@@ -14,6 +14,7 @@
 
 let wsp = [' ' '\t' '\n']+
 let digit = ['0'-'9']
+let bit = ['0'-'1']
 let literalint = digit+
 
 (* TODO: technically a subset of valid SMT symbols *)
@@ -85,6 +86,12 @@ rule read = parse
     let s = lexeme lexbuf in
     let s' = String.sub s 1 (String.length s - 2)
     in STR s'
+  }
+  
+  | "#b" bit+ {
+    let s = lexeme lexbuf in
+    let s' = String.sub s 2 (String.length s - 2) in
+    BV_LITERAL s'
   }
 
   | "m1_" symbol {

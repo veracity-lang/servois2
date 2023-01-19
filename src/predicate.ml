@@ -34,7 +34,7 @@ let rec remove_index_exp (e: exp) : exp =
     let new_expl = List.map remove_index_exp expl in
     ELop (lop, new_expl)
   | ELet (expBindlist, exp) -> 
-    let eb = List.map (fun (var, ex) -> let EVar v = remove_index_exp (EVar var) in (v , remove_index_exp ex)) expBindlist in
+    let eb = List.map (fun (var, ex) -> let [@warning "-8"] EVar v = remove_index_exp (EVar var) in (v , remove_index_exp ex)) expBindlist in
     let new_exp = remove_index_exp exp in 
     ELet (eb, new_exp)
   | EITE (exp1, exp2, exp3) -> 
@@ -82,6 +82,7 @@ let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
       | CInt i -> if i > 0 then [(TInt, EConst (CInt 0)); (TInt, EConst (CInt 1)); (TInt, e)] else [(TInt, e)]
       | CBool _ -> [(TBool, e)]
       | CString _ -> [(TString, e)]
+      | CBitVector v -> [(TBitVector (List.length v), e)]
       end
     | EBop (bop, exp1, exp2) -> 
       let t1 = get_terms exp1 in
