@@ -33,7 +33,7 @@ type const =
   | CBitVector of bool list
 
 let bv_of_string s = let acc = ref [] in String.iter (fun c -> acc := (c != '0') :: !acc) s; List.rev !acc
-let string_of_bv = compose (String.concat "") @@ compose List.rev @@ List.map (fun b -> if b then "1" else "0")
+let string_of_bv = compose (String.concat "") @@ List.map (fun b -> if b then "1" else "0")
 
 type bop =
   | Sub | Mul | Mod | Div

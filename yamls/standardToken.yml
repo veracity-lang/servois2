@@ -42,8 +42,8 @@ methods:
            (and (= balances_new balances_3) (= allowed_new allowed_1) (= result true))
       )
     terms:  
-      Int: [from, to, value, (select balances from), (select balances to), (- (select balances from) value), (- (select balances to) value)]
-      (Array Int Int): [allowed, balances, (store balances from (- (select balances from) value)), (store balances to (- (select balances to) value))]
+      Int: [$1, $2, $3, (select balances $1), (select balances $2), (- (select balances $1) $3), (- (select balances $2) $3)]
+      (Array Int Int): [allowed, balances, (store balances $1 (- (select balances $1) $3)), (store balances $2 (- (select balances $2) $3))]
 
   - name: approve
     args:
