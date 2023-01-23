@@ -36,10 +36,10 @@ methods:
     
     ensures:  |
       (and (let ((balances_1 (store balances from (- (select balances from) value))))
-           (let ((balances_3 (store balances_1 to (+ (select balances_1 to) value)))) 
+            (let ((balances_3 (store balances_1 to (+ (select balances_1 to) value)))) 
               (let ((allowed_1 (store allowed (+ (* allowed_size from) msg_sender) (- (select allowed (+ (* allowed_size from) msg_sender)) value))))
-                  (Transfer from to value))))
-           (and (= balances_new balances_3) (= allowed_new allowed_1) (= result true))
+                (and (= balances_new balances_3)(= allowed_new allowed_1)))))
+           (= result true)
       )
     terms:  
       Int: [$1, $2, $3, (select balances $1), (select balances $2), (- (select balances $1) $3), (- (select balances $2) $3)]
@@ -53,21 +53,20 @@ methods:
         type: Int
     return:
       - name: result
-        type: bool
+        type: Bool
 
     requires: |
       true
 
     ensures: |
       (and (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) value))) 
-          (Approval msg_sender spender value))
-          (and (= allowed_new allowed_1)(= result true))   
+          (= allowed_new allowed_1))
+          (= result true)   
       )
 
     terms:
-      Int: []
-      (Array Int Int): [allowed]
-
+      Int: [$1, $2, (* allowed_size msg_sender), (+ (* allowed_size msg_sender) $1)]
+      (Array Int Int): [allowed, (store allowed (+ (* allowed_size msg_sender) $1) $2)]
 
   - name: allowance
     args:
@@ -83,10 +82,10 @@ methods:
       true
 
     ensures: |
-      (= result (select allowed (+ (* allowed_size owner) spender)))
+      (= remaining (select allowed (+ (* allowed_size owner) spender)))
 
     terms:
-      Int: [spender, owner]
+      Int: [$1, $2, (* allowed_size owner), (+ (* allowed_size $1) $2), (select allowed (+ (* allowed_size $1) $2))]
       (Array Int Int): [allowed]
 
   - name: increaseApproval
@@ -97,20 +96,20 @@ methods:
         type: Int
     return:
       - name: success
-        type: bool
+        type: Bool
 
     requires: |
       true
 
     ensures: |
-      (and (let ((allowed_1 (store allowed msg_sender spender (+ (select allowed msg_sender spender) addedValue)))) 
-          (Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))))
-          (and (= allowed_new allowed_1)(= result true))   
+      (and (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) (+ (select allowed (+ (* allowed_size msg_sender) spender)) addedValue)))) 
+          (= allowed_new allowed_1))
+          (= success true)   
       )
     
     terms:
-      Int: [spender, addedValue]
-      (Array Int Int): [allowed]
+      Int: [$1, $2, (* allowed_size msg_sender), (+ (* allowed_size msg_sender) $1), (select allowed (+ (* allowed_size msg_sender) $1)), (+ (select allowed (+ (* allowed_size msg_sender) $1)) $2)]
+      (Array Int Int): [allowed, (store allowed (+ (* allowed_size msg_sender) $1) (+ (select allowed (+ (* allowed_size msg_sender) $1)) $2))]
 
   - name: decreaseApproval
     args:
@@ -120,7 +119,7 @@ methods:
         type: Int
     return:
       - name: success
-        type: bool
+        type: Bool
 
     requires: |
       true
@@ -128,14 +127,14 @@ methods:
     ensures: |
       (and (let ((oldValue (select allowed (+ (* allowed_size msg_sender) spender)))) 
           (ite (> subtractedValue oldValue)
-              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) 0)))(Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))))
-              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) (- oldValue subtractedValue))))(Approval msg_sender spender (select allowed_1 (+ (* allowed_size msg_sender) spender))) )))
-          (and (= allowed_new allowed_1)(= result true))
+              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) 0)))(= allowed_new allowed_1))
+              (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) (- oldValue subtractedValue))))(= allowed_new allowed_1))))
+          (= success true)
       )
 
     terms:
-      Int: [spender, subtractedValue]
-      (Array Int Int): [allowed]
+      Int: [$1, $2, (* allowed_size msg_sender), (+ (* allowed_size msg_sender) $1), (select allowed (+ (* allowed_size msg_sender) $1)), 0]
+      (Array Int Int): [allowed, (store allowed (+ (* allowed_size msg_sender) $1) 0)]
 
 predicates:
   - name: "="
