@@ -124,7 +124,7 @@ methods:
 predicates:
   - name: "bvequal"
     type: [(_ BitVec 4), (_ BitVec 4)]
-  - name: "bvult"
-    type: [(_ BitVec 4), (_ BitVec 4)]
-  - name: "bvugt"
-    type: [(_ BitVec 4), (_ BitVec 4)]
+  #- name: "bvult"
+  #  type: [(_ BitVec 4), (_ BitVec 4)]
+  #- name: "bvugt"
+  #  type: [(_ BitVec 4), (_ BitVec 4)]

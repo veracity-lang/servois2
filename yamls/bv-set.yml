@@ -31,7 +31,7 @@ methods:
             (let ( (i (bvshl #b0000000000000001 x)) )
                  (bvequal (bvand a i) i))))
     terms:
-      (_ BitVec 16): [a, $1, "#b0000000000000001"]
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvand a (bvshl #b0000000000000001 $1))"]
       
   - name: insert
     args:
@@ -46,7 +46,7 @@ methods:
       (and (= a_new (bvor a (bvshl #b0000000000000001 x)))
            (= result true))
     terms:
-      (_ BitVec 16): [a, $1, "#b0000000000000001"]
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvor a (bvshl #b0000000000000001 $1))"]
 
   - name: delete
     args:
@@ -61,12 +61,8 @@ methods:
       (and (= a_new (bvand a (bvnot (bvshl #b0000000000000001 x))))
            (= result true))
     terms:
-      (_ BitVec 16): [a, $1, "#b0000000000000001"]
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvadd a (bvnot (bvshl #b0000000000000001 $1)))"]
             
 predicates:
   - name: "bvequal"
-    type: [(_ BitVec 16), (_ BitVec 16)]
-  - name: "bvult"
-    type: [(_ BitVec 16), (_ BitVec 16)]
-  - name: "bvugt"
     type: [(_ BitVec 16), (_ BitVec 16)]
