@@ -89,7 +89,7 @@ methods:
                                 )))
            (= result true))
     terms:
-      (_ BitVec 4): [x, $1, $2, $3, $4]
+      (_ BitVec 4): [x, $1, $2, $3, $4, "#b1000", "#b1000", "#b0010", "#b0001"]
       
   # x_new = Ax + c
   - name: linearPermuteParam
