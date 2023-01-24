@@ -9,6 +9,7 @@ import re
 from enum import Enum
 from collections import defaultdict
 from functools import reduce
+import csv
 
 servois2_dir = './'
 yml_dir = './yamls/'
@@ -484,7 +485,7 @@ quality_table_footer = (
 )
 
 def goodness(case):
-    cmplx = int(case.benches["n_atoms"]) > 20
+    cmplx = int(case.benches["n_atoms"]) >= 10
     if(case.benches["answer_incomplete"] == "false"):
         if cmplx: return "complex complete"
         else: return "simple complete"
@@ -498,20 +499,20 @@ def make_quality_table(cases):
     # Speedup relative to poke
     poke2_speedup = []
     mc_max_speedup = []
+    csv_data = [['adt and test case', 'time', 'natoms', 'quality']]
     for yml in cases:
         section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             results = cases[yml][ms]
             case = find_result(yml, ms, results, Heuristic.POKE, False)
-            def str_of_row(case):
-                res = case.res
-                bench = case.benches
-                good = goodness(case)
-                return "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}'
-            section += f' & {string_of_ms(ms)} & ' + ' & ' + str_of_row(case) + "\\\\\n"
+            res = case.res
+            bench = case.benches
+            good = goodness(case)
+            section += f' & {string_of_ms(ms)} & ' + ' & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
+            csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
         table += section
     table += quality_table_footer
-    return table
+    return table, csv_data
 
 
 if __name__ == '__main__':
@@ -524,9 +525,13 @@ if __name__ == '__main__':
     if "--timeout" in sys.argv:
         TIMEOUT = sys.argv[sys.argv.index("--timeout") + 1]
     if "--pokequality" in sys.argv:
-        table = make_quality_table(testcases)
+        table, csv_data = make_quality_table(testcases)
         with open("benchmarks_quality.tex", 'w') as f:
             f.write(table)
+        with open("benchmarks_quality.csv", 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            for row in csv_data:
+                csvwriter.writerow(row)
         exit(1)
     table1 = make_table1(testcases)
     with open("benchmarks_1.tex", 'w') as f:
