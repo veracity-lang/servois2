@@ -42,20 +42,26 @@ type benches =
   ; synth_time : float
   ; mc_run_time: float
   ; lattice_construct_time: float
+  ; answer_incomplete : bool
+  ; n_atoms : int
   }
 
-let last_benchmarks = ref {predicates = 0; 
-                           predicates_filtered = 0;
-                           predicates_in_lattice = 0;
-                           smtqueries = 0;
-                           mcqueries = 0;
-                           time = 0.0; 
-                           synth_time = 0.0;
-                           mc_run_time = 0.0;
-                           lattice_construct_time = 0.0}
+let default_bench = {predicates = 0; 
+                   predicates_filtered = 0;
+                   predicates_in_lattice = 0;
+                   smtqueries = 0;
+                   mcqueries = 0;
+                   time = 0.0; 
+                   synth_time = 0.0;
+                   mc_run_time = 0.0;
+                   lattice_construct_time = 0.0;
+                   answer_incomplete = false;
+                   n_atoms = 0}
+  
+let last_benchmarks = ref default_bench
 
 let string_of_benches benches = sp 
-    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f" 
+    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f\nanswer_incomplete, %b\nn_atoms, %d" 
     benches.predicates 
     benches.predicates_filtered 
     benches.predicates_in_lattice
@@ -64,28 +70,21 @@ let string_of_benches benches = sp
     benches.lattice_construct_time
     benches.mc_run_time
     benches.synth_time
-    benches.time        
+    benches.time
+    benches.answer_incomplete
+    benches.n_atoms
 
 type counterex = exp bindlist
 
-type synth_env = {answer_incomplete : bool ref; phi : disjunction ref; phi_tilde : disjunction ref; synth_start_time : float option ref; bench : benches ref}
+type synth_env = {phi : disjunction ref; phi_tilde : disjunction ref; synth_start_time : float option ref; bench : benches ref}
 
 let rec synth ?(options = default_synth_options) spec m n =
 
-  let answer_incomplete = ref false in
   let init_smt_queries = !Provers.n_queries in
   let init_mc_queries = !Model_counter.n_queries in
   let phi = ref @@ Disj [] in
   let phi_tilde = ref @@ Disj [] in
-  let bench = ref {predicates = 0; 
-                   predicates_filtered = 0;
-                   predicates_in_lattice = 0;
-                   smtqueries = 0;
-                   mcqueries = 0;
-                   time = 0.0; 
-                   synth_time = 0.0;
-                   mc_run_time = 0.0;
-                   lattice_construct_time = 0.0} in
+  let bench = ref default_bench in
   let synth_start_time = ref None in
   let init_time = Unix.gettimeofday () in
 
@@ -94,22 +93,23 @@ let rec synth ?(options = default_synth_options) spec m n =
      ; mcqueries = !Model_counter.n_queries - init_mc_queries
      ; time = Float.sub (Unix.gettimeofday ()) init_time
      ; synth_time = begin match !synth_start_time with | Some f -> (Unix.gettimeofday ()) -. f | _ -> 0. end
-     ; mc_run_time = !Choose.mc_run_time }) @@
+     ; mc_run_time = !Choose.mc_run_time 
+     ; n_atoms = n_atoms_of !phi}) @@
   
   begin try (
     match options.timeout with 
     | None -> run
     | Some f -> run_with_time_limit f
   ) (fun () ->
-      synth_inner {answer_incomplete; phi; phi_tilde; synth_start_time; bench}
+      synth_inner {phi; phi_tilde; synth_start_time; bench}
         options spec m n
     ) 
     with Timeout -> 
       pfnq "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
-      answer_incomplete := true
+      bench := {!bench with answer_incomplete = true}
   end;
 
-  if !answer_incomplete then pfnq "Warning: Answer incomplete.\n";
+  if !bench.answer_incomplete then pfnq "Warning: Answer incomplete.\n";
   !phi, !phi_tilde
   
 and synth_inner env options spec m n =
@@ -210,7 +210,7 @@ and synth_inner env options spec m n =
   } in
 
   let rec refine_wrapped h l = 
-    try refine h l with Failure _ -> env.answer_incomplete := true
+    try refine h l with Failure _ -> env.bench := {!(env.bench) with answer_incomplete = true}
   and refine (h : conjunction) (l : predP L.el L.t) : unit = 
     let p_set = L.list_of l in
     let pred_smt = List.map exp_of_predP p_set in

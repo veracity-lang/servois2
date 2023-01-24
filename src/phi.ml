@@ -59,3 +59,5 @@ let atom_of_predP = function
 module ToString = struct
   let t = string_of_disj
 end
+
+let n_atoms_of : t -> int = Util.compose (List.fold_left (fun acc conj -> acc + List.length (un_conj conj)) 0) un_disj

@@ -303,7 +303,7 @@ def find_result(yml, ms, reslist, heuristic, benches_only = True):
     for t in reslist:
         if t.heuristic is heuristic:
             if not t.ran: t.run(yml, ms[0], ms[1]) # Run test cases lazily
-            if benchs_only: return t.benches
+            if benches_only: return t.benches
             else: return t
     else:
         return None
@@ -474,15 +474,25 @@ quality_table_header = (
     "\\bf{ADT} & \\bf{Methods} & Wallclock Time (seconds) & Condition & Goodness\\\\\n" +
     "\\toprule\n"
 )
+quality_table_footer = (
+    "\\bottomrule\n"+
+    "\\end{tabular}\n" +
+    "\\end{center}\n" +
+    "\\end{table}\n"
+)
 
-def goodness(s):
-    # TODO: read output from servois2 when that is added
-    # TODO: Need servois output if incomplete
-    if
+def goodness(case):
+    cmplx = int(case.benches["n_atoms"]) > 20
+    if(case.benches["answer_incomplete"] == "false"):
+        if cmplx: return "complex complete"
+        else: return "simple complete"
+    else:
+        if cmplx: return "complex incomplete"
+        else: return "simple incomplete"
 
 def make_quality_table(cases):
     global speedup
-    table = table1_header
+    table = quality_table_header
     # Speedup relative to poke
     poke2_speedup = []
     mc_max_speedup = []
@@ -492,11 +502,11 @@ def make_quality_table(cases):
             results = cases[yml][ms]
             case = find_result(yml, ms, results, Heuristic.POKE, False)
             def str_of_row(case):
-                res = case.result
+                res = case.res
                 bench = case.benches
-                good = goodness(res)
-                return "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {} & {}'
-            section += f' & {string_of_ms(ms)} & ' + ' & '.join([str_of_heur(h) for h in table1_heuristics]) + "\\\\\n"
+                good = goodness(case)
+                return "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}'
+            section += f' & {string_of_ms(ms)} & ' + ' & ' + str_of_row(case) + "\\\\\n"
         table += section
     table += quality_table_footer
     return table
