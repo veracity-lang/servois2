@@ -151,7 +151,9 @@ module RunSynth : Runner = struct
       output_string out_chan out;
       close_out out_chan
     end;
-    epf "%s\n" (Synth.string_of_benches !Synth.last_benchmarks)
+    epf "%s\n" (Synth.string_of_benches !Synth.last_benchmarks);
+    epf "answer_complete, %b\n" ANS COMPLETE (* Print additional benches *);
+    epf "n_atoms, %i" N ATOMS
 
       
   (* Assumes argc > 2 and argv[1] = "synth" *)

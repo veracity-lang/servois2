@@ -299,11 +299,12 @@ table1_footer = (
     "\\end{table}\n"
 )
 
-def find_result(yml, ms, reslist, heuristic):
+def find_result(yml, ms, reslist, heuristic, benches_only = True):
     for t in reslist:
         if t.heuristic is heuristic:
             if not t.ran: t.run(yml, ms[0], ms[1]) # Run test cases lazily
-            return t.benches
+            if benchs_only: return t.benches
+            else: return t
     else:
         return None
 
@@ -468,6 +469,39 @@ def run_auto_terms(cases):
             autogen_time += poke2case.benches["time"]
     return no_autogen_time, autogen_time
 
+quality_table_header = (
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|c|c|c} \\toprule\n" +
+    "\\bf{ADT} & \\bf{Methods} & Wallclock Time (seconds) & Condition & Goodness\\\\\n" +
+    "\\toprule\n"
+)
+
+def goodness(s):
+    # TODO: read output from servois2 when that is added
+    # TODO: Need servois output if incomplete
+    if
+
+def make_quality_table(cases):
+    global speedup
+    table = table1_header
+    # Speedup relative to poke
+    poke2_speedup = []
+    mc_max_speedup = []
+    for yml in cases:
+        section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
+        for ms in cases[yml]:
+            results = cases[yml][ms]
+            case = find_result(yml, ms, results, Heuristic.POKE, False)
+            def str_of_row(case):
+                res = case.result
+                bench = case.benches
+                good = goodness(res)
+                return "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {} & {}'
+            section += f' & {string_of_ms(ms)} & ' + ' & '.join([str_of_heur(h) for h in table1_heuristics]) + "\\\\\n"
+        table += section
+    table += quality_table_footer
+    return table
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         try:
@@ -475,6 +509,13 @@ if __name__ == '__main__':
         except:
             pass
     if "--cache" in sys.argv: cache = True
+    if "--timeout" in sys.argv:
+        TIMEOUT = sys.argv[sys.argv.index("--timeout") + 1]
+    if "--pokequality" in sys.argv:
+        table = make_quality_table(testcases)
+        with open("benchmarks_quality.tex", 'w') as f:
+            f.write(table)
+        exit(1)
     table1 = make_table1(testcases)
     with open("benchmarks_1.tex", 'w') as f:
         f.write(table1)
