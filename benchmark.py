@@ -145,7 +145,8 @@ name_of_yml = {
     'lia.yml': 'LIA',
     'set.yml': 'Set',
     'hashtable.yml': 'HT',
-    'stack.yml': 'Sta'
+    'stack.yml': 'Sta',
+    'dihedral3.yml' : 'DiH'
 }
 
 table1_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.MC_MAX]
@@ -194,7 +195,8 @@ testcases = {
             ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
             ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
             ('push', 'push')
-            ]
+            ],
+        'dihedral3.yml' : [ ('motion', 'motion') ]
     })
 }
 
