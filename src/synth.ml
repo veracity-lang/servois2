@@ -11,6 +11,11 @@ open Provers
 open Choose
 open Smt_parsing
 open Predicate
+open Model_counter
+
+let threshold_coverage = 0.95
+
+let coverage spec m1 m2 disj = let module PMC = PredicateModelCount in List.fold_left (fun acc conj -> acc +. PMC.count_conj spec m1 m2 conj) 0.0 (un_disj disj)
 
 type synth_options =
   { preds : pred list option
@@ -219,7 +224,8 @@ and synth_inner env options spec m n =
       | Unsat ->         
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
-        env.phi := add_disjunct h !(env.phi)
+        env.phi := add_disjunct h !(env.phi);
+        if coverage spec m_spec n_spec !(env.phi) > threshold_coverage then raise (Failure "Coverage achieved.") else ()
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in

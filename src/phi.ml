@@ -61,3 +61,4 @@ module ToString = struct
 end
 
 let n_atoms_of : t -> int = Util.compose (List.fold_left (fun acc conj -> acc + List.length (un_conj conj)) 0) un_disj
+

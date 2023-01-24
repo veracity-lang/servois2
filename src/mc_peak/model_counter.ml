@@ -30,6 +30,7 @@ module type PredicateModelCountSig =
 sig
   val count_state: spec -> method_spec -> method_spec -> mc_result
   val count_pred: spec -> method_spec -> method_spec -> predP -> mc_result
+  val count_conj: spec -> method_spec -> method_spec -> Phi.conjunction -> float (* TODO: Fix *)
 end
 
 module ABCModelCounter : ModelCounterSig = 
@@ -145,6 +146,8 @@ struct
       ) 
     in 
     run_mc string_of_mc_query
+  
+  let count_conj = failwith "Not implemented"
 end
 
 let count_state = PredicateModelCount.count_state 
