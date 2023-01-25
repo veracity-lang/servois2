@@ -15,7 +15,8 @@ open Model_counter
 
 let threshold_coverage = 0.95
 
-let coverage spec m1 m2 disj = let module PMC = PredicateModelCount in List.fold_left (fun acc conj -> acc +. PMC.count_conj spec m1 m2 conj) 0.0 (un_disj disj)
+let coverage spec m1 m2 disj = 
+  List.fold_left (fun acc conj -> acc +. coverage_conj spec m1 m2 conj) 0.0 (un_disj disj)
 
 type synth_options =
   { preds : pred list option
