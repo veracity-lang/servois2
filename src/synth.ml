@@ -13,9 +13,18 @@ open Smt_parsing
 open Predicate
 open Model_counter
 
-let threshold_coverage = 0.95
-
-let coverage spec m1 m2 disj = let module PMC = PredicateModelCount in List.fold_left (fun acc conj -> acc +. PMC.count_conj spec m1 m2 conj) 0.0 (un_disj disj)
+let should_term spec m1 m2 phi phi_tilde threshold_coverage = 
+  match threshold_coverage with 
+    | Some(threshold) -> begin
+      let module PMC = PredicateModelCount in
+      match PMC.count_state spec m1 m2 with
+      | Sat(n) -> begin 
+        let cover = List.fold_left (fun acc conj -> match PMC.count_conj spec m1 m2 conj with | Sat(m) -> acc + m | _ -> acc) 0 (un_disj phi @ un_disj phi_tilde) in
+        float_of_int cover /. float_of_int n > threshold_coverage
+      end
+      | _ -> false
+      end
+    | None -> false
 
 type synth_options =
   { preds : pred list option
@@ -25,6 +34,7 @@ type synth_options =
   ; lattice : bool
   ; no_cache : bool
   ; stronger_predicates_first: bool
+  ; coverage_termination : float option
   }
 
 let default_synth_options =
@@ -35,6 +45,7 @@ let default_synth_options =
   ; lattice = false
   ; no_cache = false
   ; stronger_predicates_first = false
+  ; coverage_termination = None
   }
 
 type benches =
@@ -225,7 +236,7 @@ and synth_inner env options spec m n =
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
         env.phi := add_disjunct h !(env.phi);
-        if coverage spec m_spec n_spec !(env.phi) > threshold_coverage then raise (Failure "Coverage achieved.") else ()
+        if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) env.coverage_termination then raise (Failure "Coverage achieved.") else ()
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
@@ -233,7 +244,8 @@ and synth_inner env options spec m n =
           | Unsat ->
             pfv "\nPred found for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
-            env.phi_tilde := add_disjunct h !(env.phi_tilde)
+            env.phi_tilde := add_disjunct h !(env.phi_tilde);
+            if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) env.coverage_termination then raise (Failure "Coverage achieved.") else ()
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
