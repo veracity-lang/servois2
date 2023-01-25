@@ -473,7 +473,7 @@ def run_auto_terms(cases):
     return no_autogen_time, autogen_time
 
 quality_table_header = (
-    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|c|c|c} \\toprule\n" +
+    "\\begin{table} \\begin{center} \\begin{tabular}{l|c|c|p{3in}|c} \\toprule\n" +
     "\\bf{ADT} & \\bf{Methods} & Wallclock Time (seconds) & Condition & Goodness\\\\\n" +
     "\\toprule\n"
 )
@@ -508,7 +508,7 @@ def make_quality_table(cases):
             res = case.res
             bench = case.benches
             good = goodness(case)
-            section += f' & {string_of_ms(ms)} & ' + ' & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
+            section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
             csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
         table += section
     table += quality_table_footer
