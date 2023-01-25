@@ -26,6 +26,7 @@ let smt_of_conj = function
   | Conj [] -> EConst (CBool true)
   | Conj (x :: []) -> x
   | Conj al -> ELop (And, al)
+let string_of_conj c = smt_of_conj c |> string_of_smt
 
 let smt_of_disj = function
   | Disj [] -> EConst(CBool false)

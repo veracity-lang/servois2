@@ -30,7 +30,7 @@ module type PredicateModelCountSig =
 sig
   val count_state: spec -> method_spec -> method_spec -> mc_result
   val count_pred: spec -> method_spec -> method_spec -> predP -> mc_result
-  val count_conj: spec -> method_spec -> method_spec -> Phi.conjunction -> float (* TODO: Fix *)
+  val count_conj: spec -> method_spec -> method_spec -> Phi.conjunction -> mc_result 
 end
 
 module ABCModelCounter : ModelCounterSig = 
@@ -147,9 +147,27 @@ struct
     in 
     run_mc string_of_mc_query
   
-  let count_conj = failwith "Not implemented"
+  let count_conj spec m1 m2 c = 
+    let string_of_mc_query = unlines ~trailing_newline: true (
+        ["(set-logic ALL)"
+        ; smt_of_spec spec
+        ; sp "(assert %s)" (string_of_conj c)
+        ; "(check-sat)"]
+      ) 
+    in 
+    run_mc string_of_mc_query
 end
 
-let count_state = PredicateModelCount.count_state 
+let count_state = 
+  curry3 @@ memoize @@ fun (spec, m1, m2) ->
+  PredicateModelCount.count_state spec m1 m2 
+
 let count_pred = PredicateModelCount.count_pred
- 
+
+let coverage_conj : spec -> method_spec -> method_spec -> Phi.conjunction -> float  = 
+ curry4 @@ memoize @@ fun (spec, m1, m2, c) ->
+ let c_mcs = PredicateModelCount.count_conj spec m1 m2 c in
+ let state_mcs = count_state spec m1 m2 in
+ match c_mcs, state_mcs with
+ | Sat cs, Sat state -> (float_of_int cs) /. (float_of_int state)
+ | _, _ -> 0.
