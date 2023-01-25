@@ -16,10 +16,13 @@ open Model_counter
 let should_term spec m1 m2 phi phi_tilde threshold_coverage = 
   match threshold_coverage with 
     | Some(threshold) -> begin
-      let module PMC = PredicateModelCount in
-      match PMC.count_state spec m1 m2 with
+      match count_state spec m1 m2 with
       | Sat(n) -> begin 
-        let cover = List.fold_left (fun acc conj -> match PMC.count_conj spec m1 m2 conj with | Sat(m) -> acc + m | _ -> acc) 0 (un_disj phi @ un_disj phi_tilde) in
+        let cover = List.fold_left (fun acc conj -> 
+              match count_conj spec m1 m2 conj with 
+              | Sat(m) -> acc + m 
+              | _ -> acc
+            ) 0 (un_disj phi @ un_disj phi_tilde) in
         float_of_int cover /. float_of_int n > threshold
       end
       | _ -> false

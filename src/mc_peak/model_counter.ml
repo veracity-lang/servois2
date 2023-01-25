@@ -164,10 +164,6 @@ let count_state =
 
 let count_pred = PredicateModelCount.count_pred
 
-let coverage_conj : spec -> method_spec -> method_spec -> Phi.conjunction -> float  = 
+let count_conj : spec -> method_spec -> method_spec -> Phi.conjunction -> mc_result = 
  curry4 @@ memoize @@ fun (spec, m1, m2, c) ->
- let c_mcs = PredicateModelCount.count_conj spec m1 m2 c in
- let state_mcs = count_state spec m1 m2 in
- match c_mcs, state_mcs with
- | Sat cs, Sat state -> (float_of_int cs) /. (float_of_int state)
- | _, _ -> 0.
+ PredicateModelCount.count_conj spec m1 m2 c
