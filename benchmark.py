@@ -493,7 +493,7 @@ def goodness(case):
         if cmplx: return "complex incomplete"
         else: return "simple incomplete"
 
-def make_quality_table(cases):
+def make_quality_table(cases, heur = Heuristic.POKE):
     global speedup
     table = quality_table_header
     # Speedup relative to poke
@@ -504,12 +504,13 @@ def make_quality_table(cases):
         section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
             results = cases[yml][ms]
-            case = find_result(yml, ms, results, Heuristic.POKE, False)
-            res = case.res
-            bench = case.benches
-            good = goodness(case)
-            section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
-            csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
+            case = find_result(yml, ms, results, heur, False)
+            if case:
+                res = case.res
+                bench = case.benches
+                good = goodness(case)
+                section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
+                csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
         table += section
     table += quality_table_footer
     return table, csv_data
@@ -528,10 +529,31 @@ if __name__ == '__main__':
         table, csv_data = make_quality_table(testcases)
         with open("benchmarks_quality.tex", 'w') as f:
             f.write(table)
-        with open("benchmarks_quality.csv", 'w') as csvfile:
+        with open("benchmarks_quality_poke.csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
+        _, csv_data = make_quality_table(testcases,Heuristic.POKE2)
+        with open("benchmarks_quality_poke2.csv", 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            for row in csv_data:
+                csvwriter.writerow(row)
+        _, csv_data = make_quality_table(testcases,Heuristic.POKE2_LATTICE)
+        with open("benchmarks_quality_poke2_lattice.csv", 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            for row in csv_data:
+                csvwriter.writerow(row)
+        _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX)
+        with open("benchmarks_quality_mc_max.csv", 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            for row in csv_data:
+                csvwriter.writerow(row)
+        _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)
+        with open("benchmarks_quality_mc_max_lattice.csv", 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            for row in csv_data:
+                csvwriter.writerow(row)
+        
         exit(1)
     table1 = make_table1(testcases)
     with open("benchmarks_1.tex", 'w') as f:
