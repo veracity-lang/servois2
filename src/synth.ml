@@ -13,6 +13,8 @@ open Smt_parsing
 open Predicate
 open Model_counter
 
+exception Covered
+
 let should_term spec m1 m2 phi phi_tilde threshold_coverage = 
   match threshold_coverage with 
     | Some(threshold) -> begin
@@ -123,9 +125,13 @@ let rec synth ?(options = default_synth_options) spec m n =
       synth_inner {phi; phi_tilde; synth_start_time; bench}
         options spec m n
     ) 
-    with Timeout -> 
-      pfnq "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
-      bench := {!bench with answer_incomplete = true}
+    with 
+      | Timeout -> 
+          pfnq "Time limit of %.6fs exceeded.\n" (Option.get options.timeout); 
+          bench := {!bench with answer_incomplete = true}
+      | Covered ->
+          pfnq "Coverage achieved.\n";
+          bench := {!bench with answer_incomplete = true}
   end;
 
   if !bench.answer_incomplete then pfnq "Warning: Answer incomplete.\n";
@@ -239,7 +245,7 @@ and synth_inner env options spec m n =
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
         env.phi := add_disjunct h !(env.phi);
-        if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise (Failure "Coverage achieved.") else ()
+        if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise Covered else ()
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
@@ -248,7 +254,7 @@ and synth_inner env options spec m n =
             pfv "\nPred found for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
             env.phi_tilde := add_disjunct h !(env.phi_tilde);
-            if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise (Failure "Coverage achieved.") else ()
+            if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise Covered else ()
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
             let non_com_cex = pred_data_of_values vs in
