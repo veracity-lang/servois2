@@ -29,6 +29,7 @@ class Heuristic(Enum):
     POKE2 = 21
     POKE2_LATTICE = 22
     MC_MAX = 31
+    MC_MAX_EARLY_TERM = 33
     MC_MAX_LATTICE = 32
     MC_BISECT = 41
     MC_BISECT_LATTICE = 42
