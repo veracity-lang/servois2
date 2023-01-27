@@ -7,8 +7,6 @@ state:
     type: (Array Int Int)
   - name: allowed
     type: (Array Int Int)
-  - name: msg_sender
-    type: Int
   - name: allowed_size
     type: Int
 
@@ -17,11 +15,13 @@ states_equal:
     (and (= address_1 address_2)
          (= balances_1 balances_2)
          (= allowed_1 allowed_2)
-         (= msg_sender_1 msg_sender_2))
+         (= allowed_size_1 allowed_size_2))
 
 methods:
   - name: transferFrom
     args:
+      - name: msg_sender
+        type: Int
       - name: from
         type: Int
       - name: to
@@ -47,6 +47,8 @@ methods:
 
   - name: approve
     args:
+      - name: msg_sender
+        type: Int
       - name: spender
         type: Int
       - name: value
@@ -56,12 +58,15 @@ methods:
         type: Bool
 
     requires: |
-      true
+       true
 
     ensures: |
       (and (let ((allowed_1 (store allowed (+ (* allowed_size msg_sender) spender) value))) 
           (= allowed_new allowed_1))
+          (= allowed_size_new allowed_size)
           (= result true)   
+          (= address_new address)
+          (= balances_new balances)
       )
 
     terms:
@@ -70,6 +75,8 @@ methods:
 
   - name: allowance
     args:
+      - name: msg_sender
+        type: Int
       - name: owner
         type: Int
       - name: spender
@@ -90,6 +97,8 @@ methods:
 
   - name: increaseApproval
     args:
+      - name: msg_sender
+        type: Int
       - name: spender
         type: Int
       - name: addedValue
@@ -113,6 +122,8 @@ methods:
 
   - name: decreaseApproval
     args:
+      - name: msg_sender
+        type: Int
       - name: spender
         type: Int
       - name: subtractedValue
