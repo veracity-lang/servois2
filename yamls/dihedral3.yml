@@ -163,6 +163,16 @@ predicates:
   - name: "="
     type: [Bool, Bool]
 
+functions:
+  - name: "-"
+    args: [Int, Int]
+    ret: Int
+  - name: "mod"
+    args: [Int, Int]
+    ret: Int
+  - name: "+"
+    args: [Int, Int]
+    ret: Int
 
 
 # (or (and (not m1_motion_s) (not m2_motion_s)) (and m1_motion_s (not m2_motion_s) (or (= m2_motion_rn 0) (= m2_motion_rn 3))) (and (not m1_motion_s) m2_motion_s (or (= m1_motion_rn 0) (= m1_motion_rn 3))) (and m1_motion_s m2_motion_s (= (mod (- m1_motion_rn m2_motion_rn) 3) 0)))

@@ -136,8 +136,8 @@ let rec sygus_terms (terms : term_list list) (fns : smt_fn list) (depth : int) :
            ))
          ) smt_fn.args [[]] in
          (* From each construct a new expression and add it as a term *)
-         flip (assoc_update smt_fn.ret) terms_acc @@ List.map (fun args_list ->
-           EFunc(smt_fn.name, args_list)) args_lists @ res_list
+         flip (assoc_update smt_fn.ret) terms_acc @@ concat_unique (List.map (fun args_list ->
+           EFunc(smt_fn.name, args_list)) args_lists) res_list
        ) terms fns in
        sygus_terms terms' fns (depth - 1)
 
@@ -183,11 +183,12 @@ let add_terms (type_terms) (tl: term_list list) =
   type_terms
 
 let autogen_terms = ref false
+let terms_depth = ref 0
 
 let generate_predicates (spec: spec) (methods : method_spec list) =
   let type_terms = Hashtbl.create 2000 in
 
-  let term_fn = if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
+  let term_fn = compose (fun t -> sygus_terms t spec.smt_fns !terms_depth) @@ if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
 
   let all_terms = List.fold_left (fun acc m -> add_terms acc (term_fn m)) type_terms methods in
 

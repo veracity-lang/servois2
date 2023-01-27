@@ -109,7 +109,8 @@ module RunSynth : Runner = struct
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
-    ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically generate terms from method specifications"
+    ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically extract terms from method specifications"
+    ; "--terms-depth", Arg.Int (fun i -> Predicate.terms_depth := i), " Generate terms from given base terms and smt functions to a given depth"
     ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ; "--mc-term", Arg.Float (fun f -> coverage_term := Some f), " Set coverage ratio for termination"
     ] @ common_speclist |>

@@ -18,6 +18,10 @@ let assoc_default (k : 'a) (l : ('a * 'b) list) (v : 'b) =
   | Some res -> res
   | _ -> v
 
+let rec concat_unique r s = match r with
+  | [] -> s
+  | h :: t -> if List.mem h s then concat_unique t s else h :: concat_unique t s
+
 let flip f x y = f y x
 
 let swap (a,b) = b,a

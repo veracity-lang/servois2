@@ -151,3 +151,6 @@ functions:
   - name: select
     args: [(Array E F), E]
     ret: F
+  - name: store
+    args: [(Array E F), E, F]
+    ret: (Array E F)
