@@ -13,6 +13,13 @@ let set_timeout_handler () = Sys.set_signal Sys.sigalrm @@
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
+let assoc_default (k : 'a) (l : ('a * 'b) list) (v : 'b) =
+  match List.assoc_opt k l with
+  | Some res -> res
+  | _ -> v
+
+let flip f x y = f y x
+
 let swap (a,b) = b,a
 
 let compose f g x = f (g x)

@@ -147,3 +147,7 @@ predicates:
   - name: "member"
     type: [E, (Set E)]
 
+functions:
+  - name: select
+    args: [(Array E F), E]
+    ret: F

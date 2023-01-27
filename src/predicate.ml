@@ -123,6 +123,25 @@ let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
   ) unique_terms;
   List.map (fun (t, mlist) -> (t, !mlist)) !terms
 
+let rec sygus_terms (terms : term_list list) (fns : smt_fn list) (depth : int) : term_list list =
+  if depth = 0
+  then terms
+  else let lookup  = fun k -> assoc_default k terms [] in 
+       let terms' = List.fold_left (fun terms_acc (smt_fn : smt_fn) ->
+         let res_list = lookup smt_fn.ret in
+         let args_lists = List.fold_right (fun arg_ty args_lists -> (* Create all possible args lists *)
+           (* do term <- lookup arg_ty; args_list <- args_lists; return (term : args_list) *)
+           flip List.concat_map (lookup arg_ty) (fun term ->
+           flip List.map args_lists (fun args_list -> term :: args_list
+           ))
+         ) smt_fn.args [[]] in
+         (* From each construct a new expression and add it as a term *)
+         flip (assoc_update smt_fn.ret) terms_acc @@ List.map (fun args_list ->
+           EFunc(smt_fn.name, args_list)) args_lists @ res_list
+       ) terms fns in
+       sygus_terms terms' fns (depth - 1)
+
+
 let is_reflx (op: string) (exp1: exp) (exp2: exp) : bool =
   match op with
   | "=" -> 

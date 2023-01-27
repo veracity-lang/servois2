@@ -116,5 +116,7 @@ let spec : spec =
        EBop (Eq, EVar (Var "result"),
         EBop (Eq, EVar (Var "contents"), EConst (CInt 0)))]);
     terms = [(TInt, [EVar (Var "contents"); EConst (CInt 0)])]}
-  ]}
+  ];
+  smt_fns = []
+  }
 
