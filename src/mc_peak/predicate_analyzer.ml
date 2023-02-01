@@ -45,7 +45,7 @@ struct
         let string_of_smt_query = unlines ~trailing_newline: true (
            [ "(set-logic ALL);"
            ; smt_of_spec spec] @
-            (List.map (fun (p1, p2) -> 
+            (map_tr (fun (p1, p2) -> 
                  let e = pred_rel p1 p2 
                  in query_rel e
                ) pps))

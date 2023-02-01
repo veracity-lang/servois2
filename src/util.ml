@@ -62,6 +62,14 @@ let memoize f =
         | None -> let res = f x in memo := (x, res) :: !memo; res
     end
 
+(* tail-recursive map: https://stackoverflow.com/a/27389842 *)
+let map_tr f l =
+  let rec map_aux acc = function
+    | [] -> List.rev acc
+    | x :: xs -> map_aux (f x :: acc) xs
+  in
+  map_aux [] l
+
 (* Global options *)
 let quiet = ref false
 let verbosity = ref false
