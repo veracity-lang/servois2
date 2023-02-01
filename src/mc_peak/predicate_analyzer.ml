@@ -168,6 +168,7 @@ let observe_rels (prover: (module Prover)) spec ps =
     "Predicates IMPLICATION REL Summary (after filtering). Valid Implications" pred_rels_impl';
   (pred_all', pred_rels_impl', pred_partition)
                           
+let unknown_value = 0.0
 let run_mc = fun spec m1 m2 ps ->
   let module PA = PredicateAnalyzer in
   let pred_mcs = PA.run_mc spec m1 m2 ps in
@@ -181,8 +182,8 @@ let run_mc = fun spec m1 m2 ps ->
           let delta_p = 0.5 *. (r -. 1.) /. (r +. 1.) in     (* delta_p    = 0.5*(v-v')/(v+v') *)
           let delta_notp = 0.5 *. (1. -. r) /. (r +. 1.) in  (* delta_notp = 0.5*(v'-v)/(v+v') *)
           [(p, delta_p); (negate p, delta_notp)]
-        | ( Sat v, Unsat | Sat v, Unknown )  -> []
-        | ( Unsat, _ | Unknown, _ ) -> []) pred_mcs ) 
+        | ( Sat v, Unsat | Sat v, Unknown )  -> [(p, unknown_value); (negate p, unknown_value)]
+        | ( Unsat, _ | Unknown, _ ) -> [(p, unknown_value); (negate p, unknown_value)]) pred_mcs ) 
   in
   pred_mcs_simplified
     

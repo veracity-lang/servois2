@@ -137,7 +137,7 @@ let pmcs_memo: (predP * float) list ref = ref []
 let mc_run_time = ref 0.0
 (* choose the minimal object with the highest rank *)
 let mcpred env ps = 
-  let pmcs_miss = List.filter (fun p -> not (List.exists (compose ((=) p) fst) !pmcs_memo)) ps in
+  let pmcs_miss = List.filter (fun p -> not (List.mem_assoc p !pmcs_memo)) ps in
   let pmcs = match pmcs_miss with
     | [] -> !pmcs_memo
     | pmcs_miss -> 
