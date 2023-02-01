@@ -1,0 +1,7 @@
+adt and test case,time,natoms,quality
+Str: substr $ \bowtie $ hasChar,18.802762,2,simple incomplete
+Str: substr $ \bowtie $ isEmpty,18.03727,1,simple incomplete
+Str: hasChar $ \bowtie $ concat,12.193455,2,simple incomplete
+LIA: sum $ \bowtie $ posSum,30.002727,0,simple incomplete
+LIA: sum $ \bowtie $ multiVarSum,30.00087,0,simple incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,30.000539,0,simple incomplete
