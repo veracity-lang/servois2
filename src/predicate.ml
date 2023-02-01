@@ -123,6 +123,22 @@ let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
   ) unique_terms;
   List.map (fun (t, mlist) -> (t, !mlist)) !terms
 
+let default_fns =
+  [ {name = "+" ; args = [TInt; TInt] ; ret = TInt}
+  ; {name = "*" ; args = [TInt; TInt] ; ret = TInt}
+  (* ; {name = "mod" ; args = [TInt; TInt] ; ret = TInt} -- mod omitted for issues with cvc4. *)
+  
+  ; {name = "member" ; args = [TSet (TGeneric "E"); TGeneric "E"] ; ret = TBool}
+  ; {name = "union" ; args = [TSet (TGeneric "E"); TSet (TGeneric "E")] ; ret = TSet (TGeneric "E")}
+  ; {name = "setminus" ; args = [TSet (TGeneric "E"); TSet (TGeneric "E")] ; ret = TSet (TGeneric "E")}
+  ; {name = "singleton" ; args = [TGeneric "E"] ; ret = TSet (TGeneric "E")}
+  
+  ; {name = "select" ; args = [TArray (TGeneric "E", TGeneric "F"); TGeneric "E"] ; ret = TGeneric "F"}
+  ; {name = "store" ; args = [TArray (TGeneric "E", TGeneric "F"); TGeneric "E"; TGeneric "F"] ; ret = TArray (TGeneric "E", TGeneric "F")}
+  
+  ]
+
+
 let rec sygus_terms (terms : term_list list) (fns : smt_fn list) (depth : int) : term_list list =
   if depth = 0
   then terms
@@ -188,7 +204,7 @@ let terms_depth = ref 0
 let generate_predicates (spec: spec) (methods : method_spec list) =
   let type_terms = Hashtbl.create 2000 in
 
-  let term_fn = compose (fun t -> sygus_terms t spec.smt_fns !terms_depth) @@ if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
+  let term_fn = compose (fun t -> sygus_terms t (* TODO: This is here for debug. *) (default_fns @ spec.smt_fns) !terms_depth) @@ if !autogen_terms then generate_method_terms spec else (fun x -> x.terms) in
 
   let all_terms = List.fold_left (fun acc m -> add_terms acc (term_fn m)) type_terms methods in
 
