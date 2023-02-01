@@ -13,6 +13,7 @@ import csv
 
 servois2_dir = './'
 yml_dir = './yamls/'
+file_postfix = ''
 
 servois2 = servois2_dir + 'src/servois2'
 
@@ -21,7 +22,6 @@ TIMEOUT = 30
 N_TRIALS = 1
 
 speedup = ""
-cache = False
 
 class Heuristic(Enum):
     SIMPLE = 0
@@ -55,7 +55,7 @@ command_of_heuristic = {
     Heuristic.POKE2: ["--poke2"],
     Heuristic.POKE2_LATTICE: ["--poke2", "--lattice"],
     Heuristic.MC_MAX: ["--mcpeak-max"],
-    Heuristic.MC_MAX_EARLY_TERM: ["--mcpeak-max", "--mc-term", "0.9"],
+    Heuristic.MC_MAX_EARLY_TERM: ["--mcpeak-max", "--mc-term", "0.75"],
     Heuristic.MC_MAX_LATTICE: ["--mcpeak-max", "--lattice"],
     Heuristic.MC_BISECT: ["--mcpeak-bisect"],
     Heuristic.MC_BISECT_LATTICE: ["--mcpeak-bisect", "--lattice"]
@@ -84,6 +84,8 @@ benches_type = defaultdict(lambda: str, {
     'time': float
 })
 
+global_flags = ['-q', '--prover', 'cvc4']
+
 class TestCase():
     def __init__(self, heuristic, opts = ()):
         self.heuristic = heuristic
@@ -91,9 +93,9 @@ class TestCase():
         self.ran = False
     def run(self, yml, m, n, additional_flags = []):
         command_infer = ([
-            servois2, 'synth', '-q',
-            '--timeout', str(TIMEOUT), '--prover', 'cvc4'
-            ] + additional_flags + (['--cache'] if cache else []) +
+            servois2, 'synth', 
+            '--timeout', str(TIMEOUT)] + global_flags +
+            additional_flags +
             list(map(str, self.opts)) + command_of_heuristic[self.heuristic] + [yml_dir + yml, m, n])
         sys.stdout.write(f'Running command: {str(command_infer)}\n')
         try:
@@ -525,34 +527,39 @@ if __name__ == '__main__':
             N_TRIALS = int(sys.argv[1])
         except:
             pass
-    if "--cache" in sys.argv: cache = True
+    if "--cache" in sys.argv:
+        global_flags.append('--cache')
+        file_postfix += '_cache'
+    if "--sygus" in sys.argv:
+        global_flags += ['--terms-depth', '1']
+        file_postfix += '_sygus'
     if "--timeout" in sys.argv:
         TIMEOUT = sys.argv[sys.argv.index("--timeout") + 1]
     if "--pokequality" in sys.argv:
         table, csv_data = make_quality_table(testcases)
-        with open("benchmarks_quality.tex", 'w') as f:
+        with open("benchmarks_quality" + file_postfix + ".tex", 'w') as f:
             f.write(table)
-        with open("benchmarks_quality_poke.csv", 'w') as csvfile:
+        with open("benchmarks_quality_poke" + file_postfix + ".csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
         _, csv_data = make_quality_table(testcases,Heuristic.POKE2)
-        with open("benchmarks_quality_poke2.csv", 'w') as csvfile:
+        with open("benchmarks_quality_poke2" + file_postfix + ".csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
         _, csv_data = make_quality_table(testcases,Heuristic.POKE2_LATTICE)
-        with open("benchmarks_quality_poke2_lattice.csv", 'w') as csvfile:
+        with open("benchmarks_quality_poke2_lattice" + file_postfix + ".csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
         _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX)
-        with open("benchmarks_quality_mc_max.csv", 'w') as csvfile:
+        with open("benchmarks_quality_mc_max" + file_postfix + ".csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
         _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)
-        with open("benchmarks_quality_mc_max_lattice.csv", 'w') as csvfile:
+        with open("benchmarks_quality_mc_max_lattice" + file_postfix + ".csv", 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             for row in csv_data:
                 csvwriter.writerow(row)
