@@ -148,11 +148,14 @@ let mcpred env ps =
           end
         ) [] pmcs_miss in
       let start = Unix.gettimeofday () in
+      pfv "Run MC for predicates: [%s]\n" (String.concat ";" (List.map string_of_pred pmcs_miss'));
       let pmcs_ = Predicate_analyzer.run_mc env.spec env.m_spec env.n_spec pmcs_miss' in
       pmcs_memo := pmcs_ @ !pmcs_memo;
       mc_run_time := !mc_run_time +. ((Unix.gettimeofday ()) -. start);
       !pmcs_memo
   in
+  pfv "\nPredicates: [%s]" (String.concat ";" (List.map string_of_predP ps));
+  pfv "\nPredicates with MCs: [%s]" (String.concat ";" (List.map (compose string_of_predP fst) pmcs));
   List.map (fun p -> (p, List.assoc p pmcs)) ps 
         
 let mcpeak cmp env =
