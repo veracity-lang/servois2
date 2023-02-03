@@ -1,0 +1,50 @@
+name: array1
+
+state:
+  - name: a
+    type: (Array Int Int)
+ 
+states_equal:
+  definition: |
+    (and (= a_1 a_2))
+    
+methods:
+  - name: write1
+    args:
+      - name: i
+        type: Int
+      - name: x
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (= a_new (store a i x))
+        (= result true))
+    terms:
+      Int: [(select a $1), $1, $2]
+
+  - name: write2
+    args:
+      - name: j
+        type: Int
+      - name: 'y'
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: | 
+      (and
+        (= a_new (store a j y))
+        (= result true))
+    terms:
+      Int: [(select a $1), $1, $2]
+      
+predicates:
+  - name: "="
+    type: [Int, Int]
