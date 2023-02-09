@@ -527,7 +527,7 @@ def make_quality_table(cases, heur = Heuristic.POKE):
 def write_csv(csvname, data):
     with open(csvname, 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
-        for row in csv_data:
+        for row in data:
             csvwriter.writerow(row)
 
 if __name__ == '__main__':
