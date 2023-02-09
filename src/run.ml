@@ -106,6 +106,7 @@ module RunSynth : Runner = struct
     ; "--poke2", Arg.Unit (fun () -> Choose.choose := Choose.poke2), " Use improved poke heuristic (default: simple)"
     ; "--mcpeak-bisect", Arg.Unit (fun () -> Choose.choose := Choose.mc_bisect), " Use model counting based synthesis with strategy: bisection"    
     ; "--mcpeak-max", Arg.Unit (fun () -> Choose.choose := Choose.mc_max), " Use model counting based synthesis with strategy: maximum-coverage"
+    ; "--mcpeak-max-poke2", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_poke), " Use model counting based synthesis with strategy: maximum-coverage, then poke2"
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"

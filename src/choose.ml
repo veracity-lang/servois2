@@ -84,12 +84,8 @@ let poke env : predP =
         if e_weight < weight then (e, e_weight, false) else
         (p, weight, false)) (let weight = weight_fn p in (p, weight, weight = -1)) next'
 
-let poke2 env : predP =
-    let com, n_com = env.cex_ncex in
-    let next = differentiating_predicates_sym (preds_of_lattice env.choose_from) com n_com in
-    let diff_preds = List.map fst next in
-    let smt_diff_preds = List.map exp_of_predP diff_preds in
-    let weight_fn p cov =
+let poke2_weight_fn env diff_preds =
+  let smt_diff_preds = List.map exp_of_predP diff_preds in fun p cov ->
         let h'  = add_conjunct (exp_of_predP @@ (if cov then Fun.id else negate) p) env.h in
         let h'' = add_conjunct (exp_of_predP @@ (if cov then negate else Fun.id) p) env.h in
         match env.solver smt_diff_preds @@ commute env.spec h' with
@@ -106,7 +102,13 @@ let poke2 env : predP =
             | Sat vs -> begin let non_com_cex = pred_data_of_values vs in
                 differentiating_predicates_sym diff_preds com_cex non_com_cex |> List.length
                 end
-            end in
+            end
+
+let poke2 env : predP =
+    let com, n_com = env.cex_ncex in
+    let next = differentiating_predicates_sym (preds_of_lattice env.choose_from) com n_com in
+    let diff_preds = List.map fst next in
+    let weight_fn = poke2_weight_fn env diff_preds in
     fst4 @@ match next with 
         | [] -> failwith "poke2"
         | (p, b) :: next' -> List.fold_left (fun (p, cov, weight, shortcircuit) (e, e_cov) ->
@@ -181,5 +183,38 @@ let mcpeak cmp env =
 
 let mc_max : choose_env -> predP = mcpeak compare_pred_maximum_cover
 let mc_bisect : choose_env -> predP = mcpeak compare_pred_bisect
+
+let mc_max_poke env : predP = 
+  (* begin same as mcpeak *)
+  let l = env.choose_from in
+  let cex_ncex = env.cex_ncex in 
+  let com, n_com = cex_ncex in
+  let next = differentiating_predicates (preds_of_lattice l) com n_com in
+  let filtered_preds = List.map fst @@ next
+                       |> mcpred env in
+  pfv "\n[mcpeak] Filtered predicates after differentiating (before sorting): { %s }"
+    (String.concat " ; " 
+       (List.map (fun (p, r) -> sp "(%s, %.3f)" (predP_pretty_print p) r) filtered_preds));
+  let filtered_preds = if env.choose_stronger_predicates then begin
+      fst @@  List.fold_right (fun (p, r) (sps, ps) ->
+          if List.exists (fun (p', r') -> p' != p && PO.lte p' p) ps then (sps, ps)
+          else ((p, r)::sps, ps)) filtered_preds ([], filtered_preds) end 
+    else
+      filtered_preds
+  in
+  (* but now find all maximizing preds *)
+  let preds = snd @@ List.fold_left (fun (weight, preds) (p, r) -> if r > weight then (r, [p]) else if r = weight then (weight, p :: preds) else (weight, preds)) (let (p, r) = List.hd filtered_preds in (r, [p])) (List.tl filtered_preds) in
+  let next' = List.filter (fun (p, b) -> List.mem p preds) next in
+  (* and now call poke2 on this reduced set of predicates. *)
+  let weight_fn = poke2_weight_fn env preds in
+  (* This is copy pasted from poke2, it can probs be encapsulated better? TODO *)
+    fst4 @@ match next' with 
+        | [] -> failwith "poke2"
+        | (p, b) :: next'' -> List.fold_left (fun (p, cov, weight, shortcircuit) (e, e_cov) ->
+        if shortcircuit then (p, cov, weight, shortcircuit) else
+        let e_weight = weight_fn e e_cov  in 
+        if e_weight = -1 then (e, e_cov, e_weight, true) else
+        if e_weight < weight then (e, e_cov, e_weight, false) else
+        (p, cov, weight, false)) (let weight = weight_fn p b in (p, b, weight, weight = -1)) next''
 
 let choose : (choose_env -> predP) ref = ref simple

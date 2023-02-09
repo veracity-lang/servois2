@@ -171,7 +171,8 @@ testcases = {
             ('sum', 'posSum'),
             ('sum', 'multiVarSum'),
             ('multiVarA', 'multiVarB')
-        ]
+        ],
+        'dihedral3.yml' : [ ('motion', 'motion') ]
     }),
     # Second, the cases that are to be run on non-mc heuristics only.
     ** make_gen_heuristics({
@@ -201,8 +202,7 @@ testcases = {
             ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
             ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
             ('push', 'push')
-            ],
-        'dihedral3.yml' : [ ('motion', 'motion') ]
+            ]
     })
 }
 
