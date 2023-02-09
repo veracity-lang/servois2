@@ -31,6 +31,7 @@ class Heuristic(Enum):
     MC_MAX = 31
     MC_MAX_EARLY_TERM = 33
     MC_MAX_LATTICE = 32
+    MC_MAX_POKE2 = 34
     MC_BISECT = 41
     MC_BISECT_LATTICE = 42
     
@@ -45,6 +46,7 @@ string_of_heuristic = {
     Heuristic.MC_MAX: "\\mcmax{}",
     Heuristic.MC_MAX_EARLY_TERM: "\\mcmax-earlyterm{}",
     Heuristic.MC_MAX_LATTICE: "\\mcmax{}-lattice",
+    Heuristic.MC_MAX_LATTICE: "\\mcmax{}-\\poke2{}",
     Heuristic.MC_BISECT: "mc-bisect",
     Heuristic.MC_BISECT_LATTICE: "mc-bisect-lattice"
 }
@@ -57,6 +59,7 @@ command_of_heuristic = {
     Heuristic.MC_MAX: ["--mcpeak-max"],
     Heuristic.MC_MAX_EARLY_TERM: ["--mcpeak-max", "--mc-term", "0.75"],
     Heuristic.MC_MAX_LATTICE: ["--mcpeak-max", "--lattice"],
+    Heuristic.MC_MAX_POKE2: ["--mcpeak-max-poke2"],
     Heuristic.MC_BISECT: ["--mcpeak-bisect"],
     Heuristic.MC_BISECT_LATTICE: ["--mcpeak-bisect", "--lattice"]
 }
@@ -521,6 +524,12 @@ def make_quality_table(cases, heur = Heuristic.POKE):
     return table, csv_data
 
 
+def write_csv(csvname, data):
+    with open(csvname, 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        for row in csv_data:
+            csvwriter.writerow(row)
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         try:
@@ -539,30 +548,12 @@ if __name__ == '__main__':
         table, csv_data = make_quality_table(testcases)
         with open("benchmarks_quality" + file_postfix + ".tex", 'w') as f:
             f.write(table)
-        with open("benchmarks_quality_poke" + file_postfix + ".csv", 'w') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            for row in csv_data:
-                csvwriter.writerow(row)
-        _, csv_data = make_quality_table(testcases,Heuristic.POKE2)
-        with open("benchmarks_quality_poke2" + file_postfix + ".csv", 'w') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            for row in csv_data:
-                csvwriter.writerow(row)
-        _, csv_data = make_quality_table(testcases,Heuristic.POKE2_LATTICE)
-        with open("benchmarks_quality_poke2_lattice" + file_postfix + ".csv", 'w') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            for row in csv_data:
-                csvwriter.writerow(row)
-        _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX)
-        with open("benchmarks_quality_mc_max" + file_postfix + ".csv", 'w') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            for row in csv_data:
-                csvwriter.writerow(row)
-        _, csv_data = make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)
-        with open("benchmarks_quality_mc_max_lattice" + file_postfix + ".csv", 'w') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            for row in csv_data:
-                csvwriter.writerow(row)
+        write_csv("benchmarks_quality_poke" + file_postfix + ".csv", csv_data)
+        write_csv("benchmarks_quality_poke2" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2)[1])
+        write_csv("benchmarks_quality_poke2_lattice" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2_LATTICE)[1])
+        write_csv("benchmarks_quality_mc_max" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX)[1])
+        write_csv("benchmarks_quality_mc_max_lattice" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)[1])
+        write_csv("benchmarks_quality_mc_max_poke2" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_POKE2)[1])
         exit(1)
     elif "--quality-earlyterm" in sys.argv:
         table, csv_data = make_quality_table(testcases, Heuristic.MC_MAX_EARLY_TERM)
