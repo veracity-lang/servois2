@@ -46,7 +46,7 @@ string_of_heuristic = {
     Heuristic.MC_MAX: "\\mcmax{}",
     Heuristic.MC_MAX_EARLY_TERM: "\\mcmax-earlyterm{}",
     Heuristic.MC_MAX_LATTICE: "\\mcmax{}-lattice",
-    Heuristic.MC_MAX_LATTICE: "\\mcmax{}-\\poke2{}",
+    Heuristic.MC_MAX_POKE2: "\\mcmax{}-\\poke2{}",
     Heuristic.MC_BISECT: "mc-bisect",
     Heuristic.MC_BISECT_LATTICE: "mc-bisect-lattice"
 }
