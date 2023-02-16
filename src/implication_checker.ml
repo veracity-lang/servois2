@@ -25,7 +25,7 @@ let string_of_substitution: substitution -> string =
 (* x > y *)
 let rp1: rpred = (1, Gt, ["x"; "y"], []) 
 (* x + z > y + z *)
-let rp2: rpred = (2, Gt, ["x"; "y"], ["z"])
+let rp2: rpred = (2, Gt, ["x"; "y"], [])
 (* x + m > y + n*)
 let rp3: rpred = (3, Gt, ["x"; "y"], ["m"; "n"])        
 (* x = y *)
@@ -165,7 +165,7 @@ let _check_implication: rpred list -> rules -> Smt.predP * Smt.predP -> bool =
     match q, rp with 
     | P (">", e1, e2), (1, Gt, [x;y], []) -> [(x, e1); (y, e2)]
     | P (">", ELop(Add, [e1; e2]), ELop(Add, [e3; e4])), 
-      (2, Gt, [x;y;z], _) -> if e2 = e4 then [(x, e1); (y, e3); (z, e2)] else []
+      (2, Gt, [x;y], _) -> if e2 = e4 then [(x, e1); (y, e3)] else []
     | P (">", ELop(Add, [e1; (EConst(CInt e2_v)) as e2]), 
          ELop(Add, [e3; (EConst(CInt e4_v)) as e4])), 
       (3, Gt, [x;y], [m;n]) ->
