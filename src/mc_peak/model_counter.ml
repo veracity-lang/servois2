@@ -61,13 +61,25 @@ struct
     | [] -> Unknown
     | l::ls' ->
        if Str.string_match line_count_regex l 0 then begin
-         Sat (int_of_string @@ Str.matched_group 1 l) end
+         try Sat (int_of_string @@ Str.matched_group 1 l) with e -> 
+           let msg = Printexc.to_string e
+           and stack = Printexc.get_backtrace () in
+           pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
+           Unknown
+       end
        else parse_mc_report ls'
+
+  
     
   let parse_sat (sout, serr) = 
     match sout, serr with
     | [], [] -> Unknown
-    | l::ls, _ -> Sat (int_of_string l)
+    | l::ls, _ -> begin try Sat (int_of_string l) with e ->
+      let msg = Printexc.to_string e
+      and stack = Printexc.get_backtrace () in
+      pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
+      Unknown
+      end
     | [], rls -> parse_mc_report rls 
 
   let rec parse_output = function (sout, serr) ->  
@@ -77,6 +89,21 @@ struct
       if (String.equal l "sat") then parse_sat (ls, serr)  
       else if (String.equal l "unsat") then Unsat else parse_output (ls, serr) 
    
+  (* 
+    if Str.string_match line_count_regex l 0 then begin
+         let matched_val = Str.matched_group 1 l in
+         pfvv "\nMatched value: %s" matched_val;
+         let mc = try int_of_string matched_val with e ->
+            let msg = Printexc.to_string e
+            and stack = Printexc.get_backtrace () in
+            pfvv "\nError when converting result: \nmsg:%s\nstack:%s\n" msg stack; raise e
+         in
+         (* Sat (int_of_string @@ Str.matched_group 1 l) *)
+         Sat mc
+         end
+       else parse_mc_report ls'
+  *)
+
 end  
 
 let run_mc_exec (prog : string) (args : string array) (smt_fname : string) =
