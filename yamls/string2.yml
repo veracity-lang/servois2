@@ -1,0 +1,64 @@
+name: string2
+
+state:
+  - name: data
+    type: (Array Int String)
+
+states_equal:
+  definition: (= data_1 data_2)
+
+methods:
+  - name: set
+    args:
+      - name : x
+        type: String
+      - name: i
+        type: Int
+    return:
+      - name: result
+        type: (Array Int String)
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite 
+          (> (str.len x) 0)(let ((data_1 (store data i x)))(= data_new data_1))(= data_new data))
+        (= result data)
+      ) 
+    terms:
+      Int: [0, 1, (str.len $1), $2]
+      String: [$1]
+      (Array Int String): [date, (store data $2 $1)]
+  - name: concat
+    args:
+      - name : z
+        type: String
+      - name: j
+        type: Int
+    return:
+      - name: result
+        type: (Array Int String)
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite 
+          (> (str.len z) 0)
+          (ite (= (str.len (select data j)) 0)(let ((temp (str.++ (select data j) z)))(let ((data_1 (store data j temp)))(= data_new data_1)))(= data_new data))
+          (= data_new data))
+        (= result data)
+      ) 
+    terms:
+      Int: [0, 1, (str.len $1), $2, (str.len (select data $2))]
+      String: [$1, (select data $2)]
+      (Array Int String): [date]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
+  - name: "="
+    type: [String, String]
+  - name: "str.contains"
+    type: [String, String]

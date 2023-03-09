@@ -1,0 +1,61 @@
+name: string3
+
+state:
+  - name: data
+    type: (Array Int String)
+
+states_equal:
+  definition: (= data_1 data_2)
+
+methods:
+  - name: read
+    args:
+      - name : x
+        type: String
+      - name: i
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and 
+        (= result (str.contains (select data i) x))
+        (= data_new data)
+      )
+    terms:
+      Int: [0, 1, (str.len $1)]
+      String: [$1]
+      (Array Int String): [date]
+  - name: write
+    args:
+      - name : z
+        type: String
+      - name: j
+        type: Int
+    return:
+      - name: result
+        type: (Array Int String)
+    requires: |
+      true
+    ensures: |
+      (and
+        (ite 
+          (> (str.len z) 0)(let ((data_1 (store data j z)))(= data_new data_1))(= data_new data))
+        (= result data)
+      ) 
+    terms:
+      Int: [0, 1, (str.len $1)]
+      String: [$1]
+      (Array Int String): [date]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+  - name: ">"
+    type: [Int, Int]
+  - name: "="
+    type: [String, String]
+  - name: "str.contains"
+    type: [String, String]
