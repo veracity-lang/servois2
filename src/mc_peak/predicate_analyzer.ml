@@ -90,7 +90,7 @@ struct
         let p = P p' in
         let p_mc = Model_counter.count_pred spec m1 m2 p in
         let not_p_mc = match p_mc, state_mc spec m1 m2 with
-          | Sat x, Sat s -> Sat (Z.min s x)
+          | Sat x, Sat s -> Sat (Z.sub s x)
           | Sat _, stmc -> stmc
           | Unsat, stmc -> stmc
           | Unknown, stmc -> Unknown

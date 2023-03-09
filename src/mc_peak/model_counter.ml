@@ -18,7 +18,7 @@ type region_predicate = HPredConj of conjunction | HPredDisj of disjunction
 module type ModelCounterSig = sig
   val name : string
   val exec_paths : string list
-  val bound_int : int
+  val bound_v : int
   val smt_fname : string
   val args : string array
   val parse_output : string list * string list -> mc_result
@@ -44,12 +44,12 @@ struct
   
   let smt_fname = "tmp.smt2"
 
-  let bound_int = 4
-  let bound_str = 4
-
+  let bound_v = 4
+ 
   let args = [| ""; "-v"; "0"; 
-                "-bi"; string_of_int bound_int; 
-                "-bs"; string_of_int bound_str; 
+                (* "-bi"; string_of_int bound_int; 
+                 * "-bs"; string_of_int bound_str; *)
+                "-bv"; string_of_int bound_v; 
                 "-i"; smt_fname |]
 
   let line_count_regex = Str.regexp {|.*report bound: [0-9]+ count: \([0-9]+\) time:.*.*|}
@@ -70,15 +70,7 @@ struct
   
     
   let parse_sat (sout, serr) = 
-    match sout, serr with
-    | [], [] -> Unknown
-    | l::ls, _ -> begin try Sat (Z.of_string l) with e ->
-        let msg = Printexc.to_string e
-        and stack = Printexc.get_backtrace () in
-        pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
-        Unknown
-      end
-    | [], rls -> parse_mc_report rls 
+    parse_mc_report serr
 
   let rec parse_output = function (sout, serr) ->  
     match sout with
@@ -86,22 +78,6 @@ struct
     | l::ls ->
       if (String.equal l "sat") then parse_sat (ls, serr)  
       else if (String.equal l "unsat") then Unsat else parse_output (ls, serr) 
-   
-  (* 
-    if Str.string_match line_count_regex l 0 then begin
-         let matched_val = Str.matched_group 1 l in
-         pfvv "\nMatched value: %s" matched_val;
-         let mc = try int_of_string matched_val with e ->
-            let msg = Printexc.to_string e
-            and stack = Printexc.get_backtrace () in
-            pfvv "\nError when converting result: \nmsg:%s\nstack:%s\n" msg stack; raise e
-         in
-         (* Sat (int_of_string @@ Str.matched_group 1 l) *)
-         Sat mc
-         end
-       else parse_mc_report ls'
-  *)
-
 end  
 
 let run_mc_exec (prog : string) (args : string array) (smt_fname : string) =
@@ -150,7 +126,7 @@ struct
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfvv "\nModel counter result: \n%s\n--------------------------\n" 
       (begin match result with
-         | Sat c -> sp "Sat; bound %d; count: %s" MC.bound_int (Z.to_string c)
+         | Sat c -> sp "Sat; bound %d; count: %s" MC.bound_v (Z.to_string c)
          | Unsat -> "Unsat"
          | Unknown -> "Unknown"
        end);
