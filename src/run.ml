@@ -100,6 +100,7 @@ module RunSynth : Runner = struct
   let stronger_pred_first = ref false
   let no_cache = ref true
   let coverage_term = ref None
+  let track_coverage_progress = ref false
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
@@ -114,6 +115,7 @@ module RunSynth : Runner = struct
     ; "--terms-depth", Arg.Int (fun i -> Predicate.terms_depth := i), " Generate terms from given base terms and smt functions to a given depth"
     ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ; "--mc-term", Arg.Float (fun f -> coverage_term := Some f), " Set coverage ratio for termination"
+    ; "--track-coverage-progress", Arg.Unit (fun () -> track_coverage_progress := true), "Track and report the coverage of mapped regions"
     ] @ common_speclist |>
     Arg.align
 
@@ -136,6 +138,7 @@ module RunSynth : Runner = struct
                                          no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
                                          coverage_termination = !coverage_term;
+                                         track_coverage_progress = !track_coverage_progress
       } in
       Synth.synth ~options:synth_options spec method1 method2
     in

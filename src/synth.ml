@@ -31,6 +31,19 @@ let should_term spec m1 m2 phi phi_tilde threshold_coverage =
       end
     | None -> false
 
+let coverage_tracker spec m1 m2 = 
+  let step_counter = ref 0 in
+  let step_coverage conj = 
+    match count_state spec m1 m2 with
+    | Sat n -> begin match count_conj spec m1 m2 conj with
+        | Sat m -> Q.to_float (Q.make m n)
+        | _ -> 0.
+      end
+    | _ -> -1.
+  in
+  (fun () -> step_counter := !step_counter + 1),
+  (fun conj -> step_counter := !step_counter + 1; (!step_counter, step_coverage conj))
+
 type synth_options =
   { preds : pred list option
   ; prover : (module Prover)
@@ -40,6 +53,7 @@ type synth_options =
   ; no_cache : bool
   ; stronger_predicates_first: bool
   ; coverage_termination : float option
+  ; track_coverage_progress : bool
   }
 
 let default_synth_options =
@@ -51,6 +65,7 @@ let default_synth_options =
   ; no_cache = false
   ; stronger_predicates_first = false
   ; coverage_termination = None
+  ; track_coverage_progress = false
   }
 
 type benches =
@@ -65,24 +80,26 @@ type benches =
   ; lattice_construct_time: float
   ; answer_incomplete : bool
   ; n_atoms : int
+  ; coverage_progress: (int * float) list
   }
 
 let default_bench = {predicates = 0; 
-                   predicates_filtered = 0;
-                   predicates_in_lattice = 0;
-                   smtqueries = 0;
-                   mcqueries = 0;
-                   time = 0.0; 
-                   synth_time = 0.0;
-                   mc_run_time = 0.0;
-                   lattice_construct_time = 0.0;
-                   answer_incomplete = false;
-                   n_atoms = 0}
+                     predicates_filtered = 0;
+                     predicates_in_lattice = 0;
+                     smtqueries = 0;
+                     mcqueries = 0;
+                     time = 0.0; 
+                     synth_time = 0.0;
+                     mc_run_time = 0.0;
+                     lattice_construct_time = 0.0;
+                     answer_incomplete = false;
+                     n_atoms = 0;
+                     coverage_progress = []}
   
 let last_benchmarks = ref default_bench
 
 let string_of_benches benches = sp 
-    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f\nanswer_incomplete, %b\nn_atoms, %d" 
+    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f\nanswer_incomplete, %b\nn_atoms, %d,\ncoverage_progress, [%s]" 
     benches.predicates 
     benches.predicates_filtered 
     benches.predicates_in_lattice
@@ -94,10 +111,13 @@ let string_of_benches benches = sp
     benches.time
     benches.answer_incomplete
     benches.n_atoms
+    (String.concat "; " (List.map (fun (i, cov) -> sp "(%d, %.3f)" i cov) benches.coverage_progress))
 
 type counterex = exp bindlist
 
-type synth_env = {phi : disjunction ref; phi_tilde : disjunction ref; synth_start_time : float option ref; bench : benches ref}
+type synth_env = {phi : disjunction ref; phi_tilde : disjunction ref; 
+                  synth_start_time : float option ref; bench : benches ref;
+                  coverage_progress: (int * float) list ref}
 
 let rec synth ?(options = default_synth_options) spec m n =
 
@@ -107,6 +127,7 @@ let rec synth ?(options = default_synth_options) spec m n =
   let phi_tilde = ref @@ Disj [] in
   let bench = ref default_bench in
   let synth_start_time = ref None in
+  let coverage_progress = ref [] in
   let init_time = Unix.gettimeofday () in
 
   seq (last_benchmarks := { !bench with
@@ -115,14 +136,15 @@ let rec synth ?(options = default_synth_options) spec m n =
      ; time = Float.sub (Unix.gettimeofday ()) init_time
      ; synth_time = begin match !synth_start_time with | Some f -> (Unix.gettimeofday ()) -. f | _ -> 0. end
      ; mc_run_time = !Choose.mc_run_time 
-     ; n_atoms = n_atoms_of !phi}) @@
+     ; n_atoms = n_atoms_of !phi
+     ; coverage_progress = List.rev !coverage_progress }) @@
   
   begin try (
     match options.timeout with 
     | None -> run
     | Some f -> run_with_time_limit f
   ) (fun () ->
-      synth_inner {phi; phi_tilde; synth_start_time; bench}
+      synth_inner {phi; phi_tilde; synth_start_time; bench; coverage_progress}
         options spec m n
     ) 
     with 
@@ -143,6 +165,7 @@ and synth_inner env options spec m n =
   let spec = if options.lift then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
   let n_spec = get_method spec n |> mangle_method_vars false in
+  let track_step, track_comm_region = coverage_tracker spec m_spec n_spec in
 
   let preds_unfiltered = match options.preds with
     | None -> begin 
@@ -245,6 +268,9 @@ and synth_inner env options spec m n =
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
         env.phi := add_disjunct h !(env.phi);
+        if options.track_coverage_progress then 
+          env.coverage_progress :=  (track_comm_region h)::(!(env.coverage_progress)) 
+        else ();
         if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise Covered else ()
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
@@ -254,9 +280,13 @@ and synth_inner env options spec m n =
             pfv "\nPred found for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
             env.phi_tilde := add_disjunct h !(env.phi_tilde);
+            if options.track_coverage_progress then
+              env.coverage_progress :=  (track_comm_region h)::(!(env.coverage_progress))
+            else ();
             if should_term spec m_spec n_spec !(env.phi) !(env.phi_tilde) options.coverage_termination then raise Covered else ()
           | Unknown -> raise @@ Failure "non_commute failure"
           | Sat vs -> 
+            if options.track_coverage_progress then track_step ();
             let non_com_cex = pred_data_of_values vs in
             let p = !choose { choose_env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } in
             let neg_p = negate p in
