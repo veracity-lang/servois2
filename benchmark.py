@@ -530,12 +530,34 @@ def write_csv(csvname, data):
         for row in data:
             csvwriter.writerow(row)
 
+def make_quality_table(file_postfix):
+    table, csv_data = make_quality_table(testcases)
+#    with open("results/out-yamls-" + file_postfix + ".tex", 'w') as f:
+#        f.write(table)
+    write_csv("results/out-yamls-poke-NoLatt" + file_postfix + ".csv", csv_data)
+    write_csv("results/out-yamls-poke2-NoLatt" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2)[1])
+    write_csv("results/out-yamls-poke2-Latt" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2_LATTICE)[1])
+    write_csv("results/out-yamls-mcmax-NoLatt" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX)[1])
+    write_csv("results/out-yamls-mcmax-Latt" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)[1])
+    write_csv("results/out-yamls-mcmaxpoke2-NoLatt" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_POKE2)[1])
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         try:
             N_TRIALS = int(sys.argv[1])
         except:
             pass
+    if "--all" in sys.argv:
+        for solver in ["z3", "cvc4", "cvc5"]:
+            solver_arg = ['--prover', solver]
+#            for sygus in [True, False]:
+#                sygus_arg = ['--terms-depth', '1'] if sygus else []
+            for autoterms in [True, False]:
+                autoterms_arg = ['--auto-terms'] if autoterms else []
+                global_flags = ['q'] + solver_arg + autoterms_arg
+                file_postfix = '-' + solver + '-TermGen' if autoterms else '-NoTermGen'
+                make_quality_table(file_postfix)
+        exit(1)
     if "--cache" in sys.argv:
         global_flags.append('--cache')
         file_postfix += '_cache'
@@ -545,15 +567,7 @@ if __name__ == '__main__':
     if "--timeout" in sys.argv:
         TIMEOUT = sys.argv[sys.argv.index("--timeout") + 1]
     if "--pokequality" in sys.argv:
-        table, csv_data = make_quality_table(testcases)
-        with open("benchmarks_quality" + file_postfix + ".tex", 'w') as f:
-            f.write(table)
-        write_csv("benchmarks_quality_poke" + file_postfix + ".csv", csv_data)
-        write_csv("benchmarks_quality_poke2" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2)[1])
-        write_csv("benchmarks_quality_poke2_lattice" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.POKE2_LATTICE)[1])
-        write_csv("benchmarks_quality_mc_max" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX)[1])
-        write_csv("benchmarks_quality_mc_max_lattice" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_LATTICE)[1])
-        write_csv("benchmarks_quality_mc_max_poke2" + file_postfix + ".csv", make_quality_table(testcases,Heuristic.MC_MAX_POKE2)[1])
+        make_quality_table(file_postfix)
         exit(1)
     elif "--quality-earlyterm" in sys.argv:
         table, csv_data = make_quality_table(testcases, Heuristic.MC_MAX_EARLY_TERM)
