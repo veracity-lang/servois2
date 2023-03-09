@@ -21,7 +21,7 @@ struct
   let pred_rel_set: pred list -> (pred -> predP) * (pred -> predP) -> (predP * predP) list = 
     fun ps (liftp1, liftp2)->
     (* let ps = List.filteri (fun i p -> i < 30) ps in *)
-    let aps = List.mapi (fun i p -> (i, p)) ps 
+    let aps = List.mapi (fun i p -> (i, p)) ps
     in aps 
        |> List.fold_left (
          fun acc (i, p) -> 
@@ -36,36 +36,44 @@ struct
   let observe_rels = 
     fun (prover: (module Prover)) spec ps  -> 
     let module P = (val prover) in
-    let impl_rels ps (liftp1, liftp2) = 
+    let impl_rels: pred list -> ((pred -> predP) * (pred -> predP)) -> (predP * predP * int) list = 
+      fun ps (liftp1, liftp2) -> 
+        pfv "\nLogical Implication Check\n";
         pred_rel_set ps (liftp1, liftp2) 
         |> fun pps ->
-        (* let pps = List.filteri (fun i _ -> i < 100) pps in *)
-        let pps', pps = List.partition (fun (p1, p2) ->
-            Implication_checker.check_implication (p1, p2)) pps
-        in 
-        pfv "\nLogical Implication: \n***\n=> solved: %d \n=> unsolved %d\n***" 
-          (List.length pps') (List.length pps);
+                
+        (* I  => uncomment this to revert to the Logical Implication Checker *)
+        (* let res = List.map (fun (p1, p2) -> 
+         *     let conseq = Implication_checker.check_implication (p1, p2) in
+         *     (p1, p2, if conseq then 0 else 1)
+         *   ) pps 
+         * in
+         * let solv = List.length (List.filter (fun (_, _, flag_impl) -> flag_impl = 0) res) in   
+         * pfv "\nLogical Implication: (=>) solved: %d/%d\n"
+         *   (solv) (List.length pps);
+         * res *)
+  
+        (* II. Run SMT Queries to discover all logical implications *)
         let pred_rel p1 p2 = ELop (Smt.Or, [exp_of_predP (negate p1); exp_of_predP p2]) in
         let query_rel e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
         
         let string_of_smt_query = unlines ~trailing_newline: true (
            [ "(set-logic ALL);"
            ; smt_of_spec spec] @
-            (map_tr (fun (p1, p2) -> 
-                 let e = pred_rel p1 p2 
+            (map_tr (fun (p1, p2) ->
+                 let e = pred_rel p1 p2
                  in query_rel e
                ) pps))
         in
         pfvv "\nPRED RELS >>> \n%s\n" string_of_smt_query;
         flush stdout;
         let out = Provers.run_prover (module P) string_of_smt_query in
-        if List.length out != (List.length pps) 
+        if List.length out != (List.length pps)
         then failwith "eval_predicates_rels";
-        (List.map (fun (p1, p2) -> (p1, p2, 0)) pps') @
-        (List.mapi(fun i (p1, p2) -> 
+        (List.mapi(fun i (p1, p2) ->
             let pp_sat_res = List.nth out i in
             if (pp_sat_res = "unsat") then (p1, p2, 0)
-            else if (pp_sat_res = "sat") then (p1, p2, 1) 
+            else if (pp_sat_res = "sat") then (p1, p2, 1)
             else (p1, p2, -1)) pps)
     in
     (impl_rels ps ((fun p -> P p), (fun p -> P p))) @ 
@@ -82,7 +90,7 @@ struct
         let p = P p' in
         let p_mc = Model_counter.count_pred spec m1 m2 p in
         let not_p_mc = match p_mc, state_mc spec m1 m2 with
-          | Sat x, Sat s -> Sat (s-x)
+          | Sat x, Sat s -> Sat (Z.min s x)
           | Sat _, stmc -> stmc
           | Unsat, stmc -> stmc
           | Unknown, stmc -> Unknown
@@ -97,10 +105,13 @@ let observe_rels (prover: (module Prover)) spec ps =
   let module PA = PredicateAnalyzer in
   let pred_all = List.fold_right (fun p acc -> (P p)::(NotP p)::acc) ps [] in
   let pred_rels = PA.observe_rels prover spec ps in
-  let pred_rels_impl = List.fold_right (fun (p1, p2, res) acc -> 
-      if (res = 0) then ((p1, p2)::acc)
-      else acc) pred_rels []
+  pfv "\n RELS solved\n";
+  let rec pred_rels_impl_loop acc = function 
+    | [] -> acc 
+    | (p1, p2, 0)::tl -> pred_rels_impl_loop ((p1, p2)::acc) tl
+    | hd::tl -> pred_rels_impl_loop acc tl
   in
+  let pred_rels_impl = pred_rels_impl_loop [] pred_rels in
   let pred_rels_impl = 
     List.flatten @@ 
     (List.map (fun (p1, p2) -> [(p1, p2); (negate p2, negate p1)]) pred_rels_impl) 
@@ -185,7 +196,7 @@ let run_mc = fun spec m1 m2 ps ->
     List.flatten @@ (List.map (fun (p, p_mc, notp_mc) -> 
         match p_mc, notp_mc with
         | Sat v, Sat v' -> 
-          let r = (float_of_int v) /. (float_of_int v') in 
+          let r = Q.to_float (Q.make v v') in 
           let delta_p = 0.5 *. (r -. 1.) /. (r +. 1.) in     (* delta_p    = 0.5*(v-v')/(v+v') *)
           let delta_notp = 0.5 *. (1. -. r) /. (r +. 1.) in  (* delta_notp = 0.5*(v'-v)/(v+v') *)
           [(p, delta_p); (negate p, delta_notp)]

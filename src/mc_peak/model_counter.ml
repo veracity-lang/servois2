@@ -5,7 +5,7 @@ open Util
 open Solve
 
 type mc_result = 
-  | Sat of int
+  | Sat of Z.t
   | Unsat
   | Unknown
 
@@ -29,10 +29,8 @@ end
 module type PredicateModelCountSig = 
 sig
   val count_state: spec -> method_spec -> method_spec -> mc_result
-  val count_state_case_arrays: spec -> method_spec -> method_spec -> mc_result
   val count_pred: spec -> method_spec -> method_spec -> predP -> mc_result
   val count_conj: spec -> method_spec -> method_spec -> conjunction -> mc_result
-  val count_conj_case_arrays: spec -> method_spec -> method_spec -> conjunction -> mc_result
 end
 
 module ABCModelCounter : ModelCounterSig = 
@@ -61,7 +59,7 @@ struct
     | [] -> Unknown
     | l::ls' ->
        if Str.string_match line_count_regex l 0 then begin
-         try Sat (int_of_string @@ Str.matched_group 1 l) with e -> 
+         try Sat (Z.of_string @@ Str.matched_group 1 l) with e -> 
            let msg = Printexc.to_string e
            and stack = Printexc.get_backtrace () in
            pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
@@ -74,11 +72,11 @@ struct
   let parse_sat (sout, serr) = 
     match sout, serr with
     | [], [] -> Unknown
-    | l::ls, _ -> begin try Sat (int_of_string l) with e ->
-      let msg = Printexc.to_string e
-      and stack = Printexc.get_backtrace () in
-      pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
-      Unknown
+    | l::ls, _ -> begin try Sat (Z.of_string l) with e ->
+        let msg = Printexc.to_string e
+        and stack = Printexc.get_backtrace () in
+        pfvv "\nError when converting MC result: \nmsg:%s\nstack:%s\n" msg stack;
+        Unknown
       end
     | [], rls -> parse_mc_report rls 
 
@@ -152,7 +150,7 @@ struct
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfvv "\nModel counter result: \n%s\n--------------------------\n" 
       (begin match result with
-         | Sat c -> sp "Sat; bound %d; count: %d" MC.bound_int  c
+         | Sat c -> sp "Sat; bound %d; count: %s" MC.bound_int (Z.to_string c)
          | Unsat -> "Unsat"
          | Unknown -> "Unknown"
        end);
@@ -291,220 +289,215 @@ struct
     in
     (rho, arr_accms)
   
-  (* Procedure for translating the array formulas into LIA formulas
-   * 1. Partition the set of free variables in the formula into two subsets: 
-   *     - arrays and 
-   *     - non-arrays
-   * 2. Replace all complex (compund) array index terms 
-   *    by "top" universally quantified fresh variables + corresponding constraints.
-   *    Perform the replacement from the outermost expresion inwardly
-   * 3. Add array bounds constraints for each array index variable  
-   * 4. Perform Ackerman Reduction: 
-   *    i) Repeat for each occurance of an array-select term (i.e. a[i]) in the formula 
-   *    where the index is a "top" universally quantified integer variable, by
-   *       - replace a[i] with a fresh variable a_i, keeping track of the association (a, i, a_i)
-   *    ii) For each array free variable, and for each pair ((a, i, a_i), (a, j, a_j))
-   *    add a constraint corresponding to the functional consistency axiom 
-   *       - (i = j ) => (a_i = a_j) or, it's equivalent form 
-   *       = not(i = j) \/ (a_i = a_j) 
-   * 5. run MC on the output formula and obtain the result #rho
-   * 6. For each array free variable, 
-   *    calculate the number of unaccounted mappings by 
-   *    substracting the number of considered associaition, i.e. (a, i, a_i)s,  
-   *    from the length of array: e.g. a_unacc
-   * 7. Obtain the final MC by multiplying #rho with PRODUCT (for all a's) |Z|^(a_unacc)  
-  *)
-  let count_conj_case_arrays spec m1 m2 (Conj ces) =
-    (* Array bounds *)
-    let array_length = 4 in
-    (* Step 1. Partition of free variables set *)
-    let fva, fvna =  List.partition (fun (_, t) ->
-        match t with TArray (TInt, TInt) -> true | _ -> false)
-        (spec.state @ m1.args @ m2.args)
-    in
-    let seq = ref 0 in
-    let fresh_ivars: ty bindlist ref = ref [] in
-    let fresh_ivar_gen = fun () ->   
-      seq := !seq + 1;
-      let fv = Var ("var_" ^ (string_of_int !seq)) in
-      fresh_ivars := (fv, TInt)::(!fresh_ivars);
-      EVar fv
-    in
-    let rho = ELop(And, ces) in
-    (* Step 2. Replacement of compound array index terms *)
-    let rho = repl_compound_index_terms_full fva fresh_ivar_gen rho true in
-    (* Step 3. Add array bounds constraints for index variables*)
-    let arr_bv_bc = array_bounds_constraints fva array_length rho in
-    let rho = match rho with ELop(And, ces) -> ELop(And, arr_bv_bc @ ces) 
-                           | _ -> raise (UnreachableFailure "Root expression must be conjunction")
-    in
-    (* Step 4. Perform Ackerman Reduction *)
-    let rho, acc_arr_mappings = run_ackerman_reduction_on_array fva fresh_ivar_gen rho in  
-    
-    (* Step 5. Run MC *)
-    let count_models fvs e = 
+  let count_conj spec m1 m2 (Conj ces) = 
+    let has_array = List.exists 
+        (fun (_, t) -> match t with (TArray (TInt, TInt)) -> true | _ -> false)
+        (spec.state @ m1.args @ m2.args) in  
+    let query_default () = 
+      let fvs = spec.state @ m1.args @ m2.args in
       let fvs_decls = String.concat "\n" @@ List.map (
           fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) fvs
-      in 
-      let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"
-        ; fvs_decls 
-        ; sp "(assert %s)" (string_of_smt e)
-        ; "(check-sat)"]
-      ) 
-      in 
-      run_mc string_of_mc_query
-    in match count_models (fvna @ !fresh_ivars) rho with
-    | Sat n ->  
-      (* Step 6, 7. *)
-      let z_size = Int.shift_left 1 (array_length + 1) in
-      pfvv "\n>>>Size of Z: %d" z_size;
-      pfvv "\n>>>Unaccounted Mappings:";
-      let unacc_mappings = List.map (fun (a, _) -> 
-        match Hashtbl.find_opt acc_arr_mappings a with
-        | Some n -> (a, array_length - n)
-        | None -> (a, array_length)) fva 
       in
-      List.iter (fun (a, n) -> pfvv "\n>>>%s: %d" (string_of_var a) n) unacc_mappings; 
-      let unacc_total = List.fold_right (+) (List.map snd unacc_mappings) 0 in
-      let rec pow x k acc = if k = 0 then acc else pow x (k-1) (acc * x) in
-      let mc_unacc_total = pow z_size unacc_total 1 in
-      pfvv "\n>>>MC for Total Unacccounted Mappings[%d]: %d" unacc_total mc_unacc_total;
-      Sat (n * (pow z_size unacc_total 1))
-    | Unsat -> Unsat
-    | Unknown -> Unknown
-
-  let count_conj spec m1 m2 c = 
-    let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"
-        ; smt_of_spec spec
-        ; sp "(assert %s)" (string_of_conj c)
-        ; "(check-sat)"]
-      ) 
-    in 
-    run_mc string_of_mc_query
-    
-  let count_state spec m1 m2 =     
-    let string_of_mc_query = unlines ~trailing_newline: true (
-        [ "(set-logic ALL)"
-        ; smt_of_spec spec
-        ; "(assert true)"
-        ; "(check-sat)" ]
-      ) 
-    in 
-    run_mc string_of_mc_query
-
-  let count_state_case_arrays spec m1 m2 =     
-    (* Array bounds *)
-    let array_length = 4 in
-    (* Step 1. Partition of free variables set *)
-    let fva, fvna =  List.partition (fun (_, t) ->
-        match t with TArray (TInt, TInt) -> true | _ -> false)
-        (spec.state @ m1.args @ m2.args)
-    in
-    let count_models fvs = 
-      let fvs_decls = String.concat "\n" @@ List.map (
-          fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) fvs
-      in 
       let string_of_mc_query = unlines ~trailing_newline: true (
           ["(set-logic ALL)"
-          ; fvs_decls 
-          ; "(assert true)"
+          (* ; smt_of_spec spec *)
+          ; fvs_decls
+          ; sp "(assert %s)" (string_of_conj (Conj ces))
           ; "(check-sat)"]
-      ) 
+        ) 
       in 
       run_mc string_of_mc_query
-    in match count_models fvna with
-    | Sat n ->  
-      (* multiply by the number of all mappings for all arrays *)
-      let z_size = Int.shift_left 1 (array_length + 1) in
-      pfvv "\n>>>Size of Z: %d" z_size;
-      let rec pow x k acc = if k = 0 then acc else pow x (k-1) (acc * x) in
-      let total_mappings = (List.length fva) * array_length in
-      let mc_total_mappings = pow z_size (total_mappings) 1 in
-      pfvv "\n>>>MC for Total Mappings[%d]: %d" total_mappings mc_total_mappings;
-      Sat (n * mc_total_mappings)
-    | Unsat -> Unsat
-    | Unknown -> Unknown
-
-  let count_pred spec m1 m2 p = 
-    let string_of_mc_query = unlines ~trailing_newline: true (
-        ["(set-logic ALL)"
-        ; smt_of_spec spec
-        ; sp "(assert %s)" (string_of_predP p)
-        ; "(check-sat)"]
-      ) 
     in 
-    run_mc string_of_mc_query
- 
+    let query_with_array () = 
+      (* Procedure for translating the array formulas into LIA formulas
+       * 1. Partition the set of free variables in the formula into two subsets: 
+       *     - arrays and 
+       *     - non-arrays
+       * 2. Replace all complex (compund) array index terms 
+       *    by "top" universally quantified fresh variables + corresponding constraints.
+       *    Perform the replacement from the outermost expresion inwardly
+       * 3. Add array bounds constraints for each array index variable  
+       * 4. Perform Ackerman Reduction: 
+       *    i) Repeat for each occurance of an array-select term (i.e. a[i]) in the formula 
+       *    where the index is a "top" universally quantified integer variable, by
+       *       - replace a[i] with a fresh variable a_i, keeping track of the association (a, i, a_i)
+       *    ii) For each array free variable, and for each pair ((a, i, a_i), (a, j, a_j))
+       *    add a constraint corresponding to the functional consistency axiom 
+       *       - (i = j ) => (a_i = a_j) or, it's equivalent form 
+       *       = not(i = j) \/ (a_i = a_j) 
+       * 5. run MC on the output formula and obtain the result #rho
+       * 6. For each array free variable, 
+       *    calculate the number of unaccounted mappings by 
+       *    substracting the number of considered associaition, i.e. (a, i, a_i)s,  
+       *    from the length of array: e.g. a_unacc
+       * 7. Obtain the final MC by multiplying #rho with PRODUCT (for all a's) |Z|^(a_unacc)  
+      *)
+      (* Array bounds *)
+      let array_length = 4 in
+      (* Step 1. Partition of free variables set *)
+      let fva, fvna =  List.partition (fun (_, t) ->
+          match t with TArray (TInt, TInt) -> true | _ -> false)
+          (spec.state @ m1.args @ m2.args)
+      in
+      let seq = ref 0 in
+      let fresh_ivars: ty bindlist ref = ref [] in
+      let fresh_ivar_gen = fun () ->   
+        seq := !seq + 1;
+        let fv = Var ("var_" ^ (string_of_int !seq)) in
+        fresh_ivars := (fv, TInt)::(!fresh_ivars);
+        EVar fv
+      in
+      let rho = ELop(And, ces) in
+      (* Step 2. Replacement of compound array index terms *)
+      let rho = repl_compound_index_terms_full fva fresh_ivar_gen rho true in
+      (* Step 3. Add array bounds constraints for index variables*)
+      let arr_bv_bc = array_bounds_constraints fva array_length rho in
+      let rho = match rho with ELop(And, ces) -> ELop(And, arr_bv_bc @ ces) 
+                             | _ -> raise (UnreachableFailure "Root expression must be conjunction")
+      in
+      (* Step 4. Perform Ackerman Reduction *)
+      let rho, acc_arr_mappings = run_ackerman_reduction_on_array fva fresh_ivar_gen rho in  
+      
+      (* Step 5. Run MC *)
+      let count_models fvs e = 
+        let fvs_decls = String.concat "\n" @@ List.map (
+            fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) fvs
+        in 
+        let string_of_mc_query = unlines ~trailing_newline: true (
+            ["(set-logic ALL)"
+            ; fvs_decls 
+            ; sp "(assert %s)" (string_of_smt e)
+            ; "(check-sat)"]
+          ) 
+        in 
+        run_mc string_of_mc_query
+      in match count_models (fvna @ !fresh_ivars) rho with
+      | Sat n ->  
+        (* Step 6, 7. *)
+        let z_size = Int.shift_left 1 (array_length + 1) in
+        pfvv "\n>>>Size of Z: %d" z_size;
+        pfvv "\n>>>Unaccounted Mappings:";
+        let unacc_mappings = List.map (fun (a, _) -> 
+            match Hashtbl.find_opt acc_arr_mappings a with
+            | Some n -> (a, array_length - n)
+            | None -> (a, array_length)) fva 
+        in
+        List.iter (fun (a, n) -> pfvv "\n>>>%s: %d" (string_of_var a) n) unacc_mappings; 
+        let unacc_total = List.fold_right (+) (List.map snd unacc_mappings) 0 in
+        (* let rec pow x k acc = if k = 0 then acc else pow x (k-1) (acc * x) in *)
+        let mc_unacc_total = Z.pow (Z.of_int z_size) unacc_total in
+        pfvv "\n>>>MC for Total Unacccounted Mappings[%d]: %s" unacc_total (Z.to_string mc_unacc_total);
+        Sat (Z.mul n mc_unacc_total)  (* (pow z_size unacc_total 1) *)
+      | Unsat -> Unsat
+      | Unknown -> Unknown
+    in
+    if has_array then begin
+      pfvv "\n MC Conjunction. Case of formula containing arrays";
+      query_with_array ()
+    end
+    else begin
+      pfvv "\n MC Conjunction. Case default";
+      query_default ()
+    end
+    
+  let count_state spec m1 m2 =     
+    let has_array = List.exists 
+        (fun (_, t) -> match t with (TArray (TInt, TInt)) -> true | _ -> false)
+        (spec.state @ m1.args @ m2.args) in
+    (* MC for LIA & String constraints *)
+    let query_default () =
+      let fvs = spec.state @ m1.args @ m2.args in
+      let fvs_decls = String.concat "\n" @@ List.map (
+          fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) fvs
+      in
+      let string_of_mc_query = unlines ~trailing_newline: true (
+          [ "(set-logic ALL)"
+          (* ; smt_of_spec spec *)
+          ; fvs_decls
+          ; "(assert true)"
+          ; "(check-sat)" ]
+        ) 
+      in 
+      run_mc string_of_mc_query
+    in
+    (* MC for Constraints with Int Array*)
+    let query_with_array () = 
+      (* Array bounds *)
+      let array_length = 4 in
+      (* Step 1. Partition of free variables set *)
+      let fva, fvna =  List.partition (fun (_, t) ->
+          match t with TArray (TInt, TInt) -> true | _ -> false)
+          (spec.state @ m1.args @ m2.args)
+      in
+      let count_models fvs = 
+        let fvs_decls = String.concat "\n" @@ List.map (
+            fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) fvs
+        in 
+        let string_of_mc_query = unlines ~trailing_newline: true (
+            ["(set-logic ALL)"
+            ; fvs_decls 
+            ; "(assert true)"
+            ; "(check-sat)"]
+          ) 
+        in 
+        run_mc string_of_mc_query
+      in match count_models fvna with
+      | Sat n ->  
+        (* multiply by the number of all mappings for all arrays *)
+        let z_size = Int.shift_left 1 (array_length + 1) in
+        pfvv "\n>>>Size of Z: %d" z_size;
+        (* let rec pow x k acc = if k = 0 then acc else pow x (k-1) (acc * x) in *)
+        let total_mappings = (List.length fva) * array_length in
+        (* let mc_total_mappings = pow z_size (total_mappings) 1 in *)
+        let mc_total_mappings = Z.pow (Z.of_int z_size) total_mappings in
+        pfvv "\n>>>MC for Total Mappings[%d]: %s" total_mappings (Z.to_string mc_total_mappings);
+        Sat (Z.mul n  mc_total_mappings)
+      | Unsat -> Unsat
+      | Unknown -> Unknown
+    in
+    if has_array then begin 
+      pfvv "\n MC State. Case of formula containing arrays";
+      query_with_array () end
+    else begin
+      pfvv "\n MC State. Case default";
+      query_default () end
+  
+  let count_pred spec m1 m2 p = 
+    count_conj spec m1 m2 (Conj [exp_of_predP p])
 end 
   
 let count_state = 
   curry3 @@ memoize @@ fun (spec, m1, m2) ->
   pfvv "\n=== MC State ===\n";
-  let result = if (List.exists 
-                     (fun (_, t) -> match t with (TArray (TInt, TInt)) -> true | _ -> false)
-                     (spec.state @ m1.args @ m2.args)) 
-    then begin
-      pfvv "\n MC State. Case of formula containing arrays";
-      PredicateModelCount.count_state_case_arrays spec m1 m2
-    end
-    else begin
-      pfvv "\n MC State. Case default";
-      PredicateModelCount.count_state spec m1 m2 
-    end
-  in
+  let result =  PredicateModelCount.count_state spec m1 m2 in
   pfvv "\n=== MC State Result: ===\n%s\n--------------------------\n" 
     (begin match result with
-       | Sat c -> sp "Sat; count: %d" c
+       | Sat c -> sp "Sat; count: %s" (Z.to_string c)
        | Unsat -> "Unsat"
        | Unknown -> "Unknown"
      end);
   result
 
-(* let count_pred = PredicateModelCount.count_pred *)
 let count_pred spec m1 m2 pP =
   pfvv "\n=== MC Pred ===";
-  let result = if (List.exists 
-                     (fun (_, t) -> match t with (TArray (TInt, TInt)) -> true | _ -> false)
-                     (spec.state @ m1.args @ m2.args)) 
-    then begin
-      pfvv "\n MC Pred. Case of formula containing arrays";
-      PredicateModelCount.count_conj_case_arrays spec m1 m2 (Conj [exp_of_predP pP])
-    end
-    else begin
-      pfvv "\n MC Pred. Case default";
-      PredicateModelCount.count_pred spec m1 m2 pP 
-    end
-  in
+  let result = PredicateModelCount.count_pred spec m1 m2 pP in
   pfvv "\n=== MC Pred Result: %s ===\n%s\n--------------------------\n"
     (string_of_predP pP)
     (begin match result with
-       | Sat c -> sp "Sat; count: %d" c
+       | Sat c -> sp "Sat; count: %s" (Z.to_string c)
        | Unsat -> "Unsat"
        | Unknown -> "Unknown"
      end);
   result
 
 let count_conj : spec -> method_spec -> method_spec -> Phi.conjunction -> mc_result = 
- curry4 @@ memoize @@ fun (spec, m1, m2, c) ->
- pfvv "\n=== MC Conjunction ===\n";
- let result = if (List.exists 
-                    (fun (_, t) -> match t with (TArray (TInt, TInt)) -> true | _ -> false)
-                    (spec.state @ m1.args @ m2.args)) 
-   then begin
-     pfvv "\n MC Conjunction. Case of formula containing arrays";
-     PredicateModelCount.count_conj_case_arrays spec m1 m2 c
-   end
-   else begin
-     pfvv "\n MC Conjunction. Case default";
-     PredicateModelCount.count_conj spec m1 m2 c
-   end
- in
+  curry4 @@ memoize @@ fun (spec, m1, m2, c) ->
+  pfvv "\n=== MC Conjunction ===\n";
+  let result = PredicateModelCount.count_conj spec m1 m2 c in
   pfvv "\n=== MC State Conjunction: %s ===\n%s\n--------------------------\n"
     (string_of_conj c)
     (begin match result with
-       | Sat c -> sp "Sat; count: %d" c
+       | Sat c -> sp "Sat; count: %s" (Z.to_string c)
        | Unsat -> "Unsat"
        | Unknown -> "Unknown"
      end);

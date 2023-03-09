@@ -53,7 +53,7 @@ let log_predicates_mc =
     List.map (fun (p, p_mc, notp_mc) -> 
         match p_mc, notp_mc with
         | Sat v, Sat v' -> 
-           (p, p_mc, notp_mc, (float_of_int v) /. (float_of_int v'))
+           (p, p_mc, notp_mc, Q.to_float (Q.make v v'))
         | _, _ -> (p, p_mc, notp_mc, -1.)
       ) ps_mc 
     |> List.stable_sort (fun (_, _, _, v1) (_, _, _, v2) -> 
@@ -70,12 +70,12 @@ let log_predicates_mc =
            let a, b = r /. (r +. 1.), 1. /. (r +. 1.) in 
            sp "%.2f%% : %.2f%%" (a *. 100.) (b *. 100.)
          in
-         sp "%-30s %-17i    | %-30s %-17i | split ratio [%s]" 
-                            (predP_pretty_print p) v
-                            (predP_pretty_print (negate p)) v'
+         sp "%-30s %-17s    | %-30s %-17s | split ratio [%s]" 
+                            (predP_pretty_print p) (Z.to_string v)
+                            (predP_pretty_print (negate p)) (Z.to_string v')
                             (str_of_split_ratio split_ratio)
-       | Sat v, Unsat -> sp "BUG: %-30s %-17i | not ~ [unsat]" (predP_pretty_print p) v
-       | Sat v, Unknown -> sp "BUG: %-30s %-17i | not ~ [__unknown]" (predP_pretty_print p) v
+       | Sat v, Unsat -> sp "BUG: %-30s %-17s | not ~ [unsat]" (predP_pretty_print p) (Z.to_string v)
+       | Sat v, Unknown -> sp "BUG: %-30s %-17s | not ~ [__unknown]" (predP_pretty_print p) (Z.to_string v)
        | Unsat, _ -> sp "%-30s [unsat]" (predP_pretty_print p)
        | Unknown, _ -> sp "%-30s [__unknown__]" (predP_pretty_print p)) ps_mc_sorted))
 

@@ -22,10 +22,10 @@ let should_term spec m1 m2 phi phi_tilde threshold_coverage =
       | Sat(n) -> begin 
         let cover = List.fold_left (fun acc conj -> 
               match count_conj spec m1 m2 conj with 
-              | Sat(m) -> acc + m 
+              | Sat(m) -> Z.add acc m 
               | _ -> acc
-            ) 0 (un_disj phi @ un_disj phi_tilde) in
-        float_of_int cover /. float_of_int n > threshold
+            ) Z.zero (un_disj phi @ un_disj phi_tilde) in
+        Q.to_float (Q.make cover n) > threshold
       end
       | _ -> false
       end
