@@ -55,12 +55,14 @@ let rec find_ty (e: exp) (spec: spec) : ty option =
   | EFunc (str, expl) -> 
     begin match str with
     | "member" -> Some TBool
+    | "set.member" -> Some TBool
     | "union" -> begin match find_ty (List.hd expl) spec with Some ety -> Some (TSet ety) | None -> failwith "no type found" end
     | "str.len" -> Some TInt
     | "str.substr" -> Some TString
     | "str.++" -> Some TString
     | "str.contains" -> Some TBool
     | "insert" -> find_ty (List.hd @@ List.tl expl) spec
+    | "set.insert" -> find_ty (List.hd @@ List.tl expl) spec
     | "select" -> begin match find_ty (List.hd expl) spec with Some (TArray (ty1,ty2)) -> Some ty2 | _ -> failwith "no type found" end
     | "store" -> find_ty (List.hd expl) spec
     | "singleton" -> find_ty (List.hd expl) spec
