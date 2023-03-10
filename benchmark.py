@@ -538,7 +538,7 @@ def write_csv(csvname, data):
         for row in data:
             csvwriter.writerow(row)
 
-def make_quality_table(file_postfix):
+def make_all_quality_tables(file_postfix):
     table, csv_data = make_quality_table(testcases)
 #    with open("results/out-yamls-" + file_postfix + ".tex", 'w') as f:
 #        f.write(table)
@@ -564,7 +564,7 @@ if __name__ == '__main__':
                 autoterms_arg = ['--auto-terms'] if autoterms else []
                 global_flags = ['q'] + solver_arg + autoterms_arg
                 file_postfix = '-' + solver + '-TermGen' if autoterms else '-NoTermGen'
-                make_quality_table(file_postfix)
+                make_all_quality_tables(file_postfix)
         exit(1)
     if "--cache" in sys.argv:
         global_flags.append('--cache')
@@ -575,7 +575,7 @@ if __name__ == '__main__':
     if "--timeout" in sys.argv:
         TIMEOUT = sys.argv[sys.argv.index("--timeout") + 1]
     if "--pokequality" in sys.argv:
-        make_quality_table(file_postfix)
+        make_all_quality_tables(file_postfix)
         exit(1)
     elif "--quality-earlyterm" in sys.argv:
         table, csv_data = make_quality_table(testcases, Heuristic.MC_MAX_EARLY_TERM)
