@@ -99,7 +99,7 @@ let default_bench = {predicates = 0;
 let last_benchmarks = ref default_bench
 
 let string_of_benches benches = sp 
-    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f\nanswer_incomplete, %b\nn_atoms, %d,\ncoverage_progress, [%s]" 
+    "predicates, %d\npredicates_filtered, %d\npredicates_in_lattice, %d\nsmtqueries, %d\nmcqueries, %d\ntime_lattice_construct, %.6f\ntime_mc_run (part of time_synth), %.6f\ntime_synth, %.6f\ntime, %.6f\nanswer_incomplete, %b\nn_atoms, %d\ncoverage_progress, [%s]" 
     benches.predicates 
     benches.predicates_filtered 
     benches.predicates_in_lattice
