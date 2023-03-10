@@ -220,7 +220,7 @@ testcases = {
 def process_output(stdout, stderr):
     try:
         res = latex_of_phi(stdout)
-        benches = dict(line.split(', ') for line in stderr.strip().split('\n'))
+        benches = dict(line.split(',').strip() for line in stderr.strip().split('\n'))
     except:
         raise Exception(stdout, stderr)
     return res, benches
