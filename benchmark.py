@@ -519,14 +519,18 @@ def make_quality_table(cases, heur = Heuristic.POKE):
     for yml in cases:
         section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
-            results = cases[yml][ms]
-            case = find_result(yml, ms, results, heur, False)
-            if case:
-                res = case.res
-                bench = case.benches
-                good = goodness(case)
-                section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
-                csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
+            try:
+                results = cases[yml][ms]
+                case = find_result(yml, ms, results, heur, False)
+                if case:
+                    res = case.res
+                    bench = case.benches
+                    good = goodness(case)
+                    section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
+                    csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
+            except Exception as err:
+                sys.stdout.write(f'\nFailure: {str(err.args)}\n')
+                continue
         table += section
     table += quality_table_footer
     return table, csv_data
