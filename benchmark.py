@@ -151,6 +151,8 @@ def make_gen_heuristics(test_dict):
 
 name_of_yml = {
     'string.yml': 'Str',
+    'string2.yml': 'Str2',
+    'string3.yml': 'Str3',
     'lia.yml': 'LIA',
     'set.yml': 'Set',
     'hashtable.yml': 'HT',
@@ -169,6 +171,12 @@ testcases = {
             ('substr', 'hasChar'),
             ('substr', 'isEmpty'),
             ('hasChar', 'concat')
+        ],
+        'string2.yml': [
+            ('set', 'concat')
+        ],
+        'string3.yml': [
+            ('read', 'write')
         ],
         'lia.yml': [
             ('sum', 'posSum'),
