@@ -97,6 +97,7 @@ module RunSynth : Runner = struct
   
   let timeout = ref None
   let lattice = ref false
+  let lattice_timeout = ref (Some 30.)
   let stronger_pred_first = ref false
   let no_cache = ref true
   let coverage_term = ref None
@@ -110,12 +111,13 @@ module RunSynth : Runner = struct
     ; "--mcpeak-max-poke2", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_poke), " Use model counting based synthesis with strategy: maximum-coverage, then poke2"
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
+    ; "--lattice-timeout", Arg.Float (fun f -> lattice_timeout := Some f), " Set the time limit for lattice construction"
     ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
     ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically extract terms from method specifications"
     ; "--terms-depth", Arg.Int (fun i -> Predicate.terms_depth := i), " Generate terms from given base terms and smt functions to a given depth"
     ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ; "--mc-term", Arg.Float (fun f -> coverage_term := Some f), " Set coverage ratio for termination"
-    ; "--track-coverage-progress", Arg.Unit (fun () -> track_coverage_progress := true), "Track and report the coverage of mapped regions"
+    ; "--track-coverage-progress", Arg.Unit (fun () -> track_coverage_progress := true), " Track and report the coverage of mapped regions"
     ] @ common_speclist |>
     Arg.align
 
@@ -135,6 +137,7 @@ module RunSynth : Runner = struct
         Synth.default_synth_options with prover = get_prover ();
                                          timeout = !timeout;
                                          lattice = !lattice;
+                                         lattice_timeout = !lattice_timeout;
                                          no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
                                          coverage_termination = !coverage_term;

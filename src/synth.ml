@@ -37,7 +37,7 @@ let coverage_tracker spec m1 m2 =
     match count_state spec m1 m2 with
     | Sat n -> begin match count_conj spec m1 m2 conj with
         | Sat m -> Q.to_float (Q.make m n)
-        | _ -> 0.
+        | _ -> -1.
       end
     | _ -> -1.
   in
@@ -50,6 +50,7 @@ type synth_options =
   ; lift : bool
   ; timeout : float option
   ; lattice : bool
+  ; lattice_timeout : float option
   ; no_cache : bool
   ; stronger_predicates_first: bool
   ; coverage_termination : float option
@@ -62,6 +63,7 @@ let default_synth_options =
   ; lift = true
   ; timeout = None
   ; lattice = false
+  ; lattice_timeout = None
   ; no_cache = false
   ; stronger_predicates_first = false
   ; coverage_termination = None
@@ -115,9 +117,95 @@ let string_of_benches benches = sp
 
 type counterex = exp bindlist
 
-type synth_env = {phi : disjunction ref; phi_tilde : disjunction ref; 
-                  synth_start_time : float option ref; bench : benches ref;
-                  coverage_progress: (int * float) list ref}
+type synth_env = {
+  phi : disjunction ref; 
+  phi_tilde : disjunction ref;
+  synth_start_time : float option ref; 
+  bench : benches ref;
+  lattice_err : bool ref;
+  coverage_progress: (int * float) list ref}
+
+let generate_preds env options spec m n = 
+  let unlifted_spec = spec in 
+  let spec = if options.lift then lift spec else spec in
+  let preds_unfiltered = match options.preds with
+    | None -> begin 
+      let m_spec2 = get_method unlifted_spec m |> mangle_method_vars true in
+      let n_spec2 = get_method unlifted_spec n |> mangle_method_vars false in
+      generate_predicates unlifted_spec [m_spec2; n_spec2]
+    end
+    | Some x -> x in
+  env.bench := { !(env.bench) with predicates = List.length preds_unfiltered };
+  let preds = filter_predicates options.prover spec preds_unfiltered in
+  env.bench := { !(env.bench) with predicates_filtered = List.length preds };
+  preds
+
+let make_lattice env options spec m n preds = 
+  let construct_lattice ps pps = 
+    Choose.order_rels_set := pps;
+    let l = L.construct (List.sort (fun x y -> complexity x - complexity y) ps) in
+    pfv "\n\nLATTICE:\n%s" (L.string_of l);
+    l
+  in
+ 
+  let pequivc, l = if options.lattice then begin
+      let lattice_start_time = Unix.gettimeofday () in
+      (* check for a previous lattice construction, and 
+         - if found, load lattice from disk
+         - if not found, construct it and save it to disk
+      *)
+      seq (env.bench := { !(env.bench) with 
+                         lattice_construct_time =
+                           Float.sub (Unix.gettimeofday ()) lattice_start_time }) @@
+      try run_with_time_limit (Option.get options.lattice_timeout) (fun () ->
+          let lattice_fname = sp "%s.lattice" spec.name in
+          let equivc_fname = sp "%s.equivc" spec.name in
+          if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
+          then begin
+            let inc = open_in lattice_fname in
+            let l_ = L.load inc in
+            close_in inc;
+            let inc = open_in equivc_fname in
+            let pequivc_ = Predicate_analyzer.load_equivc inc in
+            close_in inc;
+            Predicate_analyzer_logger.log_predicates_equiv_classes "Equiv classes loaded from disk"
+              pequivc_;
+            pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
+            pequivc_, l_
+          end else begin
+            (* One-time analysis of predicates: 
+               1.Get all predicates generated from specs. 
+                 Append their negated form to the set of candidates
+               2.Find all pairs (p1, p2) s.t. p1 => p2
+               3.Construct the lattice *)        
+            let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
+                options.prover spec preds in
+            let l_ = construct_lattice ps_ pps_ in
+            Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
+            (if not options.no_cache then
+               let outc = open_out lattice_fname in
+               L.save l_ outc; close_out outc;
+               let outc = open_out equivc_fname in
+               Predicate_analyzer.save_equivc outc pequivc_; close_out outc else ());
+            pequivc_, l_
+          end
+        ) 
+      with
+      | Timeout -> 
+        pfnq "Time limit of %.2fs for lattice construction exceeded.\n" 
+          (Option.get options.lattice_timeout);
+        env.lattice_err := true;
+        (* make trivial lattice *)
+        [], construct_lattice (List.map (fun p -> P p) preds) []
+        
+    end else
+      (* make trivial lattice *)
+      [], construct_lattice (List.map (fun p -> P p) preds) []
+  in
+  env.bench := { !(env.bench) with 
+                 predicates_in_lattice = 
+                   if options.lattice && not (!(env.lattice_err)) then L.length l else 0; };
+  pequivc, l
 
 let rec synth ?(options = default_synth_options) spec m n =
 
@@ -128,8 +216,14 @@ let rec synth ?(options = default_synth_options) spec m n =
   let bench = ref default_bench in
   let synth_start_time = ref None in
   let coverage_progress = ref [] in
+  let lattice_err = ref false in
   let init_time = Unix.gettimeofday () in
 
+  let env = {phi; phi_tilde; synth_start_time; bench; lattice_err; coverage_progress} in
+
+  let preds = generate_preds env options spec m n in 
+  let pequivc, l = make_lattice env options spec m n preds in 
+     
   seq (last_benchmarks := { !bench with
        smtqueries = !Provers.n_queries - init_smt_queries
      ; mcqueries = !Model_counter.n_queries - init_mc_queries
@@ -144,8 +238,7 @@ let rec synth ?(options = default_synth_options) spec m n =
     | None -> run
     | Some f -> run_with_time_limit f
   ) (fun () ->
-      synth_inner {phi; phi_tilde; synth_start_time; bench; coverage_progress}
-        options spec m n
+      synth_inner env options spec m n (pequivc, l)
     ) 
     with 
       | Timeout -> 
@@ -159,78 +252,14 @@ let rec synth ?(options = default_synth_options) spec m n =
   if !bench.answer_incomplete then pfnq "Warning: Answer incomplete.\n";
   !phi, !phi_tilde
   
-and synth_inner env options spec m n =
 
-  let unlifted_spec = spec in 
+and synth_inner env options spec m n (pequivc,l) =
   let spec = if options.lift then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
   let n_spec = get_method spec n |> mangle_method_vars false in
   let track_step, track_comm_region = coverage_tracker spec m_spec n_spec in
+  let opts_lattice = options.lattice && (not !(env.lattice_err)) in 
 
-  let preds_unfiltered = match options.preds with
-    | None -> begin 
-      let m_spec2 = get_method unlifted_spec m |> mangle_method_vars true in
-      let n_spec2 = get_method unlifted_spec n |> mangle_method_vars false in
-      generate_predicates unlifted_spec [m_spec2; n_spec2]
-    end
-    | Some x -> x in
-  env.bench := { !(env.bench) with predicates = List.length preds_unfiltered };
-  
-  let preds = filter_predicates options.prover spec preds_unfiltered in
-  env.bench := { !(env.bench) with predicates_filtered = List.length preds };
-  
-  let construct_lattice ps pps = 
-    Choose.order_rels_set := pps;
-    let l = L.construct (List.sort (fun x y -> complexity x - complexity y) ps) in
-    pfv "\n\nLATTICE:\n%s" (L.string_of l);
-    l
-  in
-  
-  let lattice_start_time = Unix.gettimeofday () in
-  let pequivc, l = if options.lattice then begin
-      (* check for a previous lattice construction, and 
-         - if found, load lattice from disk
-         - if not found, construct it and save it to disk
-      *)
-      let lattice_fname = sp "%s.lattice" spec.name in
-      let equivc_fname = sp "%s.equivc" spec.name in
-      if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
-      then begin
-        let inc = open_in lattice_fname in
-        let l_ = L.load inc in
-        close_in inc;
-        let inc = open_in equivc_fname in
-        let pequivc_ = Predicate_analyzer.load_equivc inc in
-        close_in inc;
-        Predicate_analyzer_logger.log_predicates_equiv_classes "Equiv classes loaded from disk"
-          pequivc_;
-        pfv "\nLattice loaded from disk: \n%s" (L.string_of l_);
-        pequivc_, l_
-      end else begin
-        (* One-time analysis of predicates: 
-           1.Get all predicates generated from specs. 
-             Append their negated form to the set of candidates
-           2.Find all pairs (p1, p2) s.t. p1 => p2
-           3.Construct the lattice *)        
-        let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
-            options.prover spec preds in
-        let l_ = construct_lattice ps_ pps_ in
-        Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
-        (if not options.no_cache then
-        let outc = open_out lattice_fname in
-        L.save l_ outc; close_out outc;
-        let outc = open_out equivc_fname in
-        Predicate_analyzer.save_equivc outc pequivc_; close_out outc else ());
-        pequivc_, l_
-      end
-    end else
-      (* make trivial lattice *)
-      [], construct_lattice (List.map (fun p -> P p) preds) []
-  in
-  let lattice_construct_time = (Unix.gettimeofday ()) -. lattice_start_time in
-  env.bench := { !(env.bench) with predicates_in_lattice = if options.lattice then L.length l else 0;
-                                 lattice_construct_time = lattice_construct_time};
-  
   let pfind p pequivc l =
       let ps' = List.find (fun ps -> List.mem p ps) pequivc in
       match List.fold_right (fun p res ->
@@ -291,8 +320,8 @@ and synth_inner env options spec m n =
             let p = !choose { choose_env with h = h; choose_from = l; cex_ncex = (com_cex, non_com_cex) } in
             let neg_p = negate p in
             (* Find lattice keys *)
-            let p_lattice = if options.lattice then pfind p pequivc l else p in
-            let negp_lattice = if options.lattice then pfind neg_p pequivc l else neg_p in
+            let p_lattice = if opts_lattice then pfind p pequivc l else p in
+            let negp_lattice = if opts_lattice then pfind neg_p pequivc l else neg_p in
             let l' = l |> L.remove_v p_lattice |> L.remove_v negp_lattice in
             (* current p is not concluding, then remove its upper set (which comprises weaker predicates) *)
             let l_pos = L.remove_upperset p l' |>
