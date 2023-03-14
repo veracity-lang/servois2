@@ -530,6 +530,7 @@ def make_quality_table(cases, heur = Heuristic.POKE):
                     csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
             except Exception as err:
                 sys.stdout.write(f'\nFailure: {str(err.args)}\n')
+                csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), -1.0, -1, "N/A"])
                 continue
         table += section
     table += quality_table_footer
