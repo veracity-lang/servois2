@@ -1,0 +1,37 @@
+adt and test case,time,natoms,quality
+ht-cond-size-get,1.08,3,simple complete 
+pullPayment,2.74,3,simple complete 
+linear-bool,4.34,9,simple complete 
+linear,0.24,0,simple complete 
+auction1,0.83,0,simple complete 
+ht-add-put,5.12,2,simple complete 
+array2,1.63,3,simple complete 
+simple,3.96,5,simple incomplete 
+auction2,0.78,0,simple complete 
+dict,6.13,3,simple complete 
+nested-counter,34.72,6 115,simple complete complex complete 
+even-odd,-1,-1,error 
+conditional,-1,-1,error 
+nonlinear,1.22,1,simple complete 
+auction4,1.28,1,simple complete 
+ht-cond-mem-get,1.89,3,simple incomplete 
+ht-simple,22.06,3,simple complete 
+calc,0.14,0,simple incomplete 
+standardToken2,120.40,0,simple incomplete 
+array1,1.11,5,simple complete 
+standardToken4,0.86,1,simple complete 
+standardToken5,120.62,0,simple incomplete 
+auction3,26.96,4,simple complete 
+matrix,0.91,1,simple complete 
+counter,0.22,1,simple complete 
+nested,0.25,0 1,simple complete simple complete 
+array3,1.15,3,simple complete 
+standardToken3,120.12,0,simple incomplete 
+linear-cond,3.42,11,complex complete 
+standardToken1,0.11,0,simple complete 
+dot-product,0.20,0,simple complete 
+array-disjoint,0.50,3,simple complete 
+loop-inter,73.40,0,simple incomplete 
+loop-disjoint,0.03,0,simple complete 
+loop-amt,120.07,96,complex incomplete 
+loop-simple,0.10,0,simple complete  

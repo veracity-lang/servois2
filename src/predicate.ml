@@ -96,7 +96,10 @@ let generate_method_terms (spec: spec) (m: method_spec) : term_list list =
       end
     | EUop (uop, exp) -> 
       let t = get_terms exp in
-      begin match find_ty exp spec with | Some ety -> (ety, remove_index_exp e) :: t | None -> t end
+      begin match uop with 
+      | Not -> (TBool, remove_index_exp e) :: t
+      | Neg -> begin match find_ty exp spec with | Some ety -> (ety, remove_index_exp e) :: t | None -> t end
+      end
     | ELop (lop, expl) -> 
       let expl_terms = (List.concat_map get_terms expl) in
       begin match lop with 

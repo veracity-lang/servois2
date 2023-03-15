@@ -1,36 +1,37 @@
 adt and test case,time,natoms,quality
-ht-cond-size-get,0.75,3,simple complete
-pullPayment,3.01,3,simple complete
-linear-bool,3.18,11,complex complete
-linear,0.19,0,simple complete
-auction1,0.28,0,simple complete
-ht-add-put,3.46,3,simple complete
-array2,1.01,3,simple complete
-simple,2.23,5,simple incomplete
-auction2,0.31,0,simple complete
-dict,5.06,3,simple complete
-nested-counter,6.39,3 18,simple complete complex complete
-conditional,0.18,1,simple complete
-nonlinear,0.93,1,simple complete
-auction4,1.03,1,simple complete
-ht-cond-mem-get,2.35,3,simple incomplete
-ht-simple,19.05,3,simple complete
-calc,0.12,0,simple incomplete
-standardToken2,120.00,0,simple incomplete
-array1,0.67,5,simple complete
-standardToken4,0.62,1,simple complete
-standardToken5,120.00,0,simple incomplete
-auction3,23.77,4,simple complete
-matrix,0.57,1,simple complete
-counter,0.16,1,simple complete
-nested,0.22,0 1,simple complete simple complete
-array3,0.90,3,simple complete
-standardToken3,5.96,1,simple complete
-linear-cond,2.46,11,complex complete
-standardToken1,0.13,0,simple complete
-dot-product,0.21,0,simple complete
-array-disjoint,0.54,3,simple complete
-loop-inter,3.84,3,simple complete
-loop-disjoint,0.02,0,simple complete
-loop-amt,120.00,185,complex incomplete
-loop-simple,0.04,0,simple complete 
+ht-cond-size-get,0.77,3,simple complete 
+pullPayment,3.01,3,simple complete 
+linear-bool,3.19,11,complex complete 
+linear,0.19,0,simple complete 
+auction1,0.28,0,simple complete 
+ht-add-put,3.45,3,simple complete 
+array2,1.02,3,simple complete 
+simple,2.26,5,simple incomplete 
+auction2,0.31,0,simple complete 
+dict,5.07,3,simple complete 
+nested-counter,6.39,3 18,simple complete complex complete 
+even-odd,-1,-1,error 
+conditional,0.18,1,simple complete 
+nonlinear,0.93,1,simple complete 
+auction4,1.02,1,simple complete 
+ht-cond-mem-get,2.20,3,simple incomplete 
+ht-simple,19.00,3,simple complete 
+calc,0.12,0,simple incomplete 
+standardToken2,120.00,0,simple incomplete 
+array1,0.67,5,simple complete 
+standardToken4,0.61,1,simple complete 
+standardToken5,120.00,0,simple incomplete 
+auction3,23.75,4,simple complete 
+matrix,0.57,1,simple complete 
+counter,0.16,1,simple complete 
+nested,0.22,0 1,simple complete simple complete 
+array3,0.91,3,simple complete 
+standardToken3,5.96,1,simple complete 
+linear-cond,2.45,11,complex complete 
+standardToken1,0.13,0,simple complete 
+dot-product,0.21,0,simple complete 
+array-disjoint,0.54,3,simple complete 
+loop-inter,3.83,3,simple complete 
+loop-disjoint,0.02,0,simple complete 
+loop-amt,120.00,185,complex incomplete 
+loop-simple,0.04,0,simple complete  
