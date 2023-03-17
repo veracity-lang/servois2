@@ -1,31 +1,31 @@
 adt and test case,time,natoms,quality
-Str: substr $ \bowtie $ hasChar,1.518261,3,simple complete
-Str: substr $ \bowtie $ isEmpty,0.109673,1,simple complete
-Str: hasChar $ \bowtie $ concat,0.621754,3,simple complete
-Str2: set $ \bowtie $ concat,5.486812,9,simple incomplete
-Str3: read $ \bowtie $ write,1.080626,16,complex complete
-LIA: sum $ \bowtie $ posSum,1.98336,4,simple complete
-LIA: sum $ \bowtie $ multiVarSum,6.187541,18,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,6.61258,4,simple complete
+Str: substr $ \bowtie $ hasChar,1.043203,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.230555,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.156585,3,simple complete
+Str2: set $ \bowtie $ concat,22.665582,42,complex incomplete
+Str3: read $ \bowtie $ write,2.966495,34,complex complete
+LIA: sum $ \bowtie $ posSum,1.423181,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,10.242283,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,6.841133,4,simple complete
 DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
-Set: add $ \bowtie $ add,-1.0,-1,N/A
-Set: add $ \bowtie $ contains,-1.0,-1,N/A
-Set: add $ \bowtie $ getsize,-1.0,-1,N/A
-Set: add $ \bowtie $ remove,-1.0,-1,N/A
-Set: contains $ \bowtie $ remove,-1.0,-1,N/A
-Set: getsize $ \bowtie $ remove,-1.0,-1,N/A
-Set: remove $ \bowtie $ remove,-1.0,-1,N/A
-HT: get $ \bowtie $ put,-1.0,-1,N/A
-HT: put $ \bowtie $ get,-1.0,-1,N/A
-HT: get $ \bowtie $ remove,-1.0,-1,N/A
-HT: haskey $ \bowtie $ put,-1.0,-1,N/A
-HT: haskey $ \bowtie $ remove,-1.0,-1,N/A
-HT: put $ \bowtie $ put,-1.0,-1,N/A
-HT: put $ \bowtie $ remove,-1.0,-1,N/A
-HT: put $ \bowtie $ size,-1.0,-1,N/A
-HT: remove $ \bowtie $ remove,-1.0,-1,N/A
-HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,0.087763,1,simple complete
-Sta: push $ \bowtie $ pop,0.656124,2,simple complete
-Sta: pop $ \bowtie $ push,0.217323,1,simple complete
-Sta: push $ \bowtie $ push,0.121549,1,simple complete
+Set: add $ \bowtie $ add,0.349747,3,simple complete
+Set: add $ \bowtie $ contains,0.310799,3,simple complete
+Set: add $ \bowtie $ getsize,0.129296,1,simple complete
+Set: add $ \bowtie $ remove,0.142971,1,simple complete
+Set: contains $ \bowtie $ remove,0.361768,3,simple complete
+Set: getsize $ \bowtie $ remove,0.134129,1,simple complete
+Set: remove $ \bowtie $ remove,0.40735,3,simple complete
+HT: get $ \bowtie $ put,0.306986,3,simple complete
+HT: put $ \bowtie $ get,0.528404,5,simple complete
+HT: get $ \bowtie $ remove,0.141047,1,simple complete
+HT: haskey $ \bowtie $ put,0.40262,3,simple complete
+HT: haskey $ \bowtie $ remove,0.389874,3,simple complete
+HT: put $ \bowtie $ put,1.330997,12,complex complete
+HT: put $ \bowtie $ remove,0.173464,1,simple complete
+HT: put $ \bowtie $ size,0.151211,1,simple complete
+HT: remove $ \bowtie $ remove,0.425614,3,simple complete
+HT: remove $ \bowtie $ size,0.131432,1,simple complete
+Sta: pop $ \bowtie $ pop,0.173522,1,simple complete
+Sta: push $ \bowtie $ pop,0.305326,2,simple complete
+Sta: pop $ \bowtie $ push,0.211317,1,simple complete
+Sta: push $ \bowtie $ push,0.140819,1,simple complete

@@ -1,10 +1,10 @@
 adt and test case,time,natoms,quality
-Str: substr $ \bowtie $ hasChar,2.917285,15,complex complete
-Str: substr $ \bowtie $ isEmpty,0.417987,3,simple complete
-Str: hasChar $ \bowtie $ concat,1.934434,28,complex complete
-Str2: set $ \bowtie $ concat,33.685319,0,simple incomplete
-Str3: read $ \bowtie $ write,4.261718,114,complex complete
-LIA: sum $ \bowtie $ posSum,15.162185,1892,complex complete
-LIA: sum $ \bowtie $ multiVarSum,3.802916,76,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,39.508456,215,complex complete
+Str: substr $ \bowtie $ hasChar,3.306553,15,complex complete
+Str: substr $ \bowtie $ isEmpty,0.524408,3,simple complete
+Str: hasChar $ \bowtie $ concat,2.203337,28,complex complete
+Str2: set $ \bowtie $ concat,33.86115,0,simple incomplete
+Str3: read $ \bowtie $ write,25.87889,114,complex complete
+LIA: sum $ \bowtie $ posSum,23.64904,1892,complex complete
+LIA: sum $ \bowtie $ multiVarSum,4.769495,76,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,39.471638,215,complex complete
 DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
