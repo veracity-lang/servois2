@@ -164,58 +164,65 @@ table1_heuristics = [Heuristic.POKE, Heuristic.POKE2, Heuristic.MC_MAX]
 
 table2_heuristics = [Heuristic.POKE2, Heuristic.POKE2_LATTICE, Heuristic.MC_MAX, Heuristic.MC_MAX_LATTICE]
 
-testcases = {
-    # First, the cases that are to be run on /all/ heuristics (LIA and String)
-    ** make_all_heuristics({
-        'string.yml': [
-            ('substr', 'hasChar'),
-            ('substr', 'isEmpty'),
-            ('hasChar', 'concat')
-        ],
-        'string2.yml': [
-            ('set', 'concat')
-        ],
-        'string3.yml': [
-            ('read', 'write')
-        ],
-        'lia.yml': [
-            ('sum', 'posSum'),
-            ('sum', 'multiVarSum'),
-            ('multiVarA', 'multiVarB')
-        ],
-        'dihedral3.yml' : [ ('motion', 'motion') ]
-    }),
-    # Second, the cases that are to be run on non-mc heuristics only.
-    ** make_gen_heuristics({
-        'set.yml': [
-            ('add', 'add'),
-            ('add', 'contains'),
-            ('add', 'getsize'),
-            ('add', 'remove'),
-            ('contains', 'remove'),
-            ('getsize', 'remove'),
-            ('remove', 'remove')
+testcases = {}
+
+def make_testcases(): 
+    global testcases 
+    testcases = {
+        # First, the cases that are to be run on /all/ heuristics (LIA and String)
+        ** make_all_heuristics({
+            'string.yml': [
+                ('substr', 'hasChar'),
+                ('substr', 'isEmpty'),
+                ('hasChar', 'concat')
             ],
-        'hashtable.yml': [
-            ('get', 'put', AdditionalOptions.RIGHT_MOVER),
-            ('put', 'get', AdditionalOptions.RIGHT_MOVER),
-            ('get', 'remove', AdditionalOptions.RIGHT_MOVER),
-            ('haskey', 'put'),
-            ('haskey', 'remove'),
-            ('put', 'put'),
-            ('put', 'remove'),
-            ('put', 'size'),
-            ('remove', 'remove'),
-            ('remove', 'size')
+            'string2.yml': [
+                ('set', 'concat')
             ],
-        'stack.yml' : [
-            ('pop', 'pop'),
-            ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
-            ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
-            ('push', 'push')
-            ]
-    })
-}
+            'string3.yml': [
+                ('read', 'write')
+            ],
+            'lia.yml': [
+                ('sum', 'posSum'),
+                ('sum', 'multiVarSum'),
+                ('multiVarA', 'multiVarB')
+            ],
+            'dihedral3.yml' : [ ('motion', 'motion') ]
+        }),
+        # Second, the cases that are to be run on non-mc heuristics only.
+        ** make_gen_heuristics({
+            'set.yml': [
+                ('add', 'add'),
+                ('add', 'contains'),
+                ('add', 'getsize'),
+                ('add', 'remove'),
+                ('contains', 'remove'),
+                ('getsize', 'remove'),
+                ('remove', 'remove')
+                ],
+            'hashtable.yml': [
+                ('get', 'put', AdditionalOptions.RIGHT_MOVER),
+                ('put', 'get', AdditionalOptions.RIGHT_MOVER),
+                ('get', 'remove', AdditionalOptions.RIGHT_MOVER),
+                ('haskey', 'put'),
+                ('haskey', 'remove'),
+                ('put', 'put'),
+                ('put', 'remove'),
+                ('put', 'size'),
+                ('remove', 'remove'),
+                ('remove', 'size')
+                ],
+            'stack.yml' : [
+                ('pop', 'pop'),
+                ('push', 'pop', AdditionalOptions.RIGHT_MOVER),
+                ('pop', 'push', AdditionalOptions.RIGHT_MOVER),
+                ('push', 'push')
+                ]
+        })
+    }
+
+make_testcases()
+
 
 def process_output(stdout, stderr):
     try:
@@ -570,6 +577,7 @@ if __name__ == '__main__':
                 global_flags = ['-q'] + solver_arg + autoterms_arg
                 file_postfix = '-' + solver + '-TermGen' if autoterms else '-NoTermGen'
                 make_all_quality_tables(file_postfix)
+                make_testcases()
         exit(1)
     if "--cache" in sys.argv:
         global_flags.append('--cache')

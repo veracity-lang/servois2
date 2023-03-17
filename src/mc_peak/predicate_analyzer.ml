@@ -66,8 +66,10 @@ struct
                ) pps))
         in
         pfvv "\nPRED RELS >>> \n%s\n" string_of_smt_query;
+        pfvv "Line 69\n";
         flush stdout;
         let out = Provers.run_prover (module P) string_of_smt_query in
+        pfvv "Line 72\n";
         if List.length out != (List.length pps)
         then failwith "eval_predicates_rels";
         (List.mapi(fun i (p1, p2) ->
