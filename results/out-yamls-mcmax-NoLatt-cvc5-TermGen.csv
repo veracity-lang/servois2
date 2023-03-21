@@ -1,4 +1,4 @@
-adt and test case,time,natoms,quality
+adt and test case,time,time_synth,time_lattice_construct,natoms,quality
 Str: substr $ \bowtie $ hasChar,-1.0,-1,N/A
 Str: substr $ \bowtie $ isEmpty,-1.0,-1,N/A
 Str: hasChar $ \bowtie $ concat,-1.0,-1,N/A
