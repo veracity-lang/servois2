@@ -575,7 +575,7 @@ if __name__ == '__main__':
             for autoterms in [True, False]:
                 autoterms_arg = ['--auto-terms'] if autoterms else []
                 global_flags = ['-q'] + solver_arg + autoterms_arg
-                file_postfix = '-' + solver + '-TermGen' if autoterms else '-NoTermGen'
+                file_postfix = '-' + solver + ('-TermGen' if autoterms else '-NoTermGen')
                 make_all_quality_tables(file_postfix)
                 make_testcases()
         exit(1)
