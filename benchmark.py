@@ -522,7 +522,7 @@ def make_quality_table(cases, heur = Heuristic.POKE):
     # Speedup relative to poke
     poke2_speedup = []
     mc_max_speedup = []
-    csv_data = [['adt and test case', 'time', 'natoms', 'quality']]
+    csv_data = [['adt and test case', 'time', 'time_synth', 'time_lattice_construct', 'natoms', 'quality']]
     for yml in cases:
         section = ("\\hline\n" if not table is table1_header else "\\midrule\n") + name_of_yml[yml]
         for ms in cases[yml]:
@@ -534,7 +534,7 @@ def make_quality_table(cases, heur = Heuristic.POKE):
                     bench = case.benches
                     good = goodness(case)
                     section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
-                    csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], int(bench["n_atoms"]), good])
+                    csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], bench["time_synth"], bench["time_lattice_construct"], int(bench["n_atoms"]), good])
             except Exception as err:
                 sys.stdout.write(f'\nFailure in {yml}, {string_of_ms(ms)}: {str(err.args)}\n')
                 csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), -1.0, -1, "N/A"])
