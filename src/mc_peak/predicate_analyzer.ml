@@ -36,7 +36,7 @@ struct
   let observe_rels = 
     fun (prover: (module Prover)) spec ps  -> 
     let module P = (val prover) in
-    let part_size = 500 in
+    let part_size = 300 in
     let rec partition: 'a list -> int -> int -> 'a list list -> 'b list list = 
       fun els psize i acc ->
         match els with
@@ -79,7 +79,7 @@ struct
         |> List.map (fun pps_ -> (string_of_smt_query pps_, pps_))
         |> List.map (fun (smt_query, pps_) ->
             pfvv "\nPRED RELS >>> \n%s\n" smt_query;
-            Printf.printf "\n SMT Query length: %d\n" (String.length smt_query);
+            pfvv "\nSMT Query string length: %d \n" (String.length smt_query);
             flush stdout;
             let out = Provers.run_prover (module P) smt_query in
             if List.length out != (List.length pps_) 
