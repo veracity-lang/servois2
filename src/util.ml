@@ -179,6 +179,16 @@ let waitpid_poll ?(interval=0.01) pid =
     if !ret = 0 then Unix.sleepf interval
   done
 
+let output_string_long buf str =
+  let i = ref 0 in
+  let len = String.length str in
+  let size = 16384 in
+  while !i < len do
+    output_string buf (String.sub str !i size);
+    flush buf;
+    i := !i + size
+  done
+
 let run_exec (prog : string) (args : string array) (output : string) =
   let chan_out, chan_in, chan_err =
     Unix.open_process_args_full prog args [||] in
@@ -188,7 +198,7 @@ let run_exec (prog : string) (args : string array) (output : string) =
           Unix.kill pid Sys.sigkill;
           raise Timeout)
       );
-  output_string chan_in output; flush chan_in; close_out chan_in;
+  output_string_long chan_in output; close_out chan_in;
   let _ = waitpid_poll pid in
   set_timeout_handler ();
   let sout = read_all_in chan_out in
