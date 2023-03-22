@@ -184,7 +184,8 @@ let output_string_long buf str =
   let len = String.length str in
   let size = 16384 in
   while !i < len do
-    output_string buf (String.sub str !i size);
+    let sublen = min size (len - i)
+    output_string buf (String.sub str !i sublen);
     flush buf;
     i := !i + size
   done
