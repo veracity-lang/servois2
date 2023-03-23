@@ -15,33 +15,82 @@ sig
   val observe_rels: (module Prover) -> spec ->pred list -> (predP * predP * int) list
 end
 
+module VarSet = Set.Make (struct type t = string let compare = String.compare end)
+
 module PredicateAnalyzer: PredicateAnalyzerSig =
 struct
  
   let pred_rel_set: pred list -> (pred -> predP) * (pred -> predP) -> (predP * predP) list = 
     fun ps (liftp1, liftp2)->
-    (* let ps = List.filteri (fun i p -> i < 30) ps in *)
-    let aps = List.mapi (fun i p -> (i, p)) ps
-    in aps 
-       |> List.fold_left (
-         fun acc (i, p) -> 
-           (List.fold_left (
-               fun acc' (j, p') ->
-                 if (i < j) then
-                   (liftp1 p, liftp2 p') :: acc'
-                 else acc'
-             ) acc aps)
-       ) [] 
+      let vars p =  
+        let rec vars_ e acc = 
+          match e with
+          | EVar ((Var _) as x) -> VarSet.union acc (VarSet.singleton (string_of_var x))
+          | EVar ((VarM _) as x) -> VarSet.union acc (VarSet.singleton (string_of_var x))
+          | EBop (_, e1, e2) -> vars_ e2 (vars_ e1 acc)
+          | EUop (_, e1) -> vars_ e1 acc
+          | ELop (_, es) -> List.fold_right vars_ es acc
+          | EFunc (_, es) -> List.fold_right vars_ es acc
+          | _ -> acc 
+        in
+        let _, e1, e2 = p in
+        VarSet.union (vars_ e1 VarSet.empty) (vars_ e2 VarSet.empty)
+      in
+      let string_of_varset name vset = 
+        sp "Vars (%s): {%s}" name (String.concat "," (List.of_seq (VarSet.to_seq vset)))
+      in
+
+      (* let ps = List.filteri (fun i p -> i < 30) ps in *)
+      let pps_total, pps_excluded = ref 0, ref 0 in
+      let aps = List.mapi (fun i p -> (i, p)) ps
+      in aps 
+         |> List.fold_left (
+           fun acc (i, p) -> 
+             (List.fold_left (
+                 fun acc' (j, p') ->                 
+                   if (i < j) then
+                     begin
+                       pps_total := !pps_total + 1;
+                       (* filter out predicates with disjoint set of varoables *)
+                       let vsetp, vsetp' = vars p, vars p' in
+                       if (VarSet.disjoint vsetp vsetp') && 
+                          (vsetp <> VarSet.empty || vsetp' <> VarSet.empty) then
+                         begin
+                           pps_excluded := !pps_excluded + 1;
+                           pfv "Implication excluded %s => %s\n" 
+                             (string_of_pred p) (string_of_pred p');
+                           pfvv "VarsSet: %s , %s\n" 
+                             (string_of_varset "p" vsetp) (string_of_varset "p'" vsetp');
+                           acc
+                         end
+                       else
+                         (liftp1 p, liftp2 p') :: acc'
+                     end
+                   else acc'
+               ) acc aps)
+         ) []
+         |> (fun res ->
+             pfv "Implication filtering summary: %d/%d" !pps_excluded !pps_total;
+             res) 
 
   let observe_rels = 
     fun (prover: (module Prover)) spec ps  -> 
     let module P = (val prover) in
+    let part_size = 300 in
+    let rec partition: 'a list -> int -> int -> 'a list list -> 'b list list = 
+      fun els psize i acc ->
+        match els with
+        | [] -> acc
+        | el::tl when i < psize -> partition tl psize (i+1) ((el::(List.hd acc))::(List.tl acc))
+        | el::tl when i = psize -> partition tl psize 1 ([el]::acc)
+        | _ -> failwith "Unexpected pattern reached"
+    in
     let impl_rels: pred list -> ((pred -> predP) * (pred -> predP)) -> (predP * predP * int) list = 
       fun ps (liftp1, liftp2) -> 
-        pfv "\nLogical Implication Check\n";
+        pfv "\nLogical Implication Check\n";        
         pred_rel_set ps (liftp1, liftp2) 
         |> fun pps ->
-                
+        pfvv "\n# implications checked: %d\n" (List.length pps);
         (* I  => uncomment this to revert to the Logical Implication Checker *)
         (* let res = List.map (fun (p1, p2) -> 
          *     let conseq = Implication_checker.check_implication (p1, p2) in
@@ -56,27 +105,31 @@ struct
         (* II. Run SMT Queries to discover all logical implications *)
         let pred_rel p1 p2 = ELop (Smt.Or, [exp_of_predP (negate p1); exp_of_predP p2]) in
         let query_rel e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
-        
-        let string_of_smt_query = unlines ~trailing_newline: true (
-           [ "(set-logic ALL);"
-           ; smt_of_spec spec] @
-            (map_tr (fun (p1, p2) ->
-                 let e = pred_rel p1 p2
-                 in query_rel e
-               ) pps))
+       
+        let string_of_smt_query pps_ = 
+          unlines ~trailing_newline: true (
+              [ "(set-logic ALL);"
+              ; smt_of_spec spec] @
+              (map_tr (fun (p1, p2) ->
+                   let e = pred_rel p1 p2
+                   in query_rel e
+                 ) pps_))
         in
-        pfvv "\nPRED RELS >>> \n%s\n" string_of_smt_query;
-        pfvv "Line 69\n";
-        flush stdout;
-        let out = Provers.run_prover (module P) string_of_smt_query in
-        pfvv "Line 72\n";
-        if List.length out != (List.length pps)
-        then failwith "eval_predicates_rels";
-        (List.mapi(fun i (p1, p2) ->
-            let pp_sat_res = List.nth out i in
-            if (pp_sat_res = "unsat") then (p1, p2, 0)
-            else if (pp_sat_res = "sat") then (p1, p2, 1)
-            else (p1, p2, -1)) pps)
+        partition pps part_size 0 [[]] 
+        |> List.map (fun pps_ -> (string_of_smt_query pps_, pps_))
+        |> List.map (fun (smt_query, pps_) ->
+            pfvv "\nPRED RELS >>> \n%s\n" smt_query;
+            pfvv "\nSMT Query string length: %d \n" (String.length smt_query);
+            flush stdout;
+            let out = Provers.run_prover (module P) smt_query in
+            if List.length out != (List.length pps_) 
+            then failwith "eval_predicates_rels";
+            (List.mapi(fun i (p1, p2) ->
+                 let pp_sat_res = List.nth out i in
+                 if (pp_sat_res = "unsat") then (p1, p2, 0)
+                 else if (pp_sat_res = "sat") then (p1, p2, 1)
+                 else (p1, p2, -1)) pps_))
+            |> List.flatten
     in
     (impl_rels ps ((fun p -> P p), (fun p -> P p))) @ 
     (impl_rels ps ((fun p -> P p), (fun p -> NotP p))) @
