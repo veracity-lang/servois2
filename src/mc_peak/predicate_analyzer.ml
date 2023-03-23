@@ -15,23 +15,63 @@ sig
   val observe_rels: (module Prover) -> spec ->pred list -> (predP * predP * int) list
 end
 
+module VarSet = Set.Make (struct type t = string let compare = String.compare end)
+
 module PredicateAnalyzer: PredicateAnalyzerSig =
 struct
  
   let pred_rel_set: pred list -> (pred -> predP) * (pred -> predP) -> (predP * predP) list = 
     fun ps (liftp1, liftp2)->
-    (* let ps = List.filteri (fun i p -> i < 30) ps in *)
-    let aps = List.mapi (fun i p -> (i, p)) ps
-    in aps 
-       |> List.fold_left (
-         fun acc (i, p) -> 
-           (List.fold_left (
-               fun acc' (j, p') ->
-                 if (i < j) then
-                   (liftp1 p, liftp2 p') :: acc'
-                 else acc'
-             ) acc aps)
-       ) [] 
+      let vars p =  
+        let rec vars_ e acc = 
+          match e with
+          | EVar ((Var _) as x) -> VarSet.union acc (VarSet.singleton (string_of_var x))
+          | EVar ((VarM _) as x) -> VarSet.union acc (VarSet.singleton (string_of_var x))
+          | EBop (_, e1, e2) -> vars_ e2 (vars_ e1 acc)
+          | EUop (_, e1) -> vars_ e1 acc
+          | ELop (_, es) -> List.fold_right vars_ es acc
+          | EFunc (_, es) -> List.fold_right vars_ es acc
+          | _ -> acc 
+        in
+        let _, e1, e2 = p in
+        VarSet.union (vars_ e1 VarSet.empty) (vars_ e2 VarSet.empty)
+      in
+      let string_of_varset name vset = 
+        sp "Vars (%s): {%s}" name (String.concat "," (List.of_seq (VarSet.to_seq vset)))
+      in
+
+      (* let ps = List.filteri (fun i p -> i < 30) ps in *)
+      let pps_total, pps_excluded = ref 0, ref 0 in
+      let aps = List.mapi (fun i p -> (i, p)) ps
+      in aps 
+         |> List.fold_left (
+           fun acc (i, p) -> 
+             (List.fold_left (
+                 fun acc' (j, p') ->                 
+                   if (i < j) then
+                     begin
+                       pps_total := !pps_total + 1;
+                       (* filter out predicates with disjoint set of varoables *)
+                       let vsetp, vsetp' = vars p, vars p' in
+                       if (VarSet.disjoint vsetp vsetp') && 
+                          (vsetp <> VarSet.empty || vsetp' <> VarSet.empty) then
+                         begin
+                           pps_excluded := !pps_excluded + 1;
+                           pfv "Implication excluded %s => %s\n" 
+                             (string_of_pred p) (string_of_pred p');
+                           pfvv "VarsSet: %s , %s\n" 
+                             (string_of_varset "p" vsetp) (string_of_varset "p'" vsetp');
+                           acc
+                         end
+                       else
+                         (liftp1 p, liftp2 p') :: acc'
+                     end
+                   else acc'
+               ) acc aps)
+         ) []
+         |> (fun res ->
+             pfv "Implication filtering summary: %d/%d" !pps_excluded !pps_total;
+             res) 
 
   let observe_rels = 
     fun (prover: (module Prover)) spec ps  -> 
@@ -47,7 +87,7 @@ struct
     in
     let impl_rels: pred list -> ((pred -> predP) * (pred -> predP)) -> (predP * predP * int) list = 
       fun ps (liftp1, liftp2) -> 
-        pfv "\nLogical Implication Check\n";
+        pfv "\nLogical Implication Check\n";        
         pred_rel_set ps (liftp1, liftp2) 
         |> fun pps ->
         pfvv "\n# implications checked: %d\n" (List.length pps);
