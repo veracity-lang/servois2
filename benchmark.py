@@ -18,6 +18,8 @@ file_postfix = ''
 servois2 = servois2_dir + 'src/servois2'
 
 TIMEOUT = 30
+LATTICE_TIMEOUT = 30.0
+EPSILON = 0.5
 
 N_TRIALS = 1
 
@@ -534,6 +536,9 @@ def make_quality_table(cases, heur = Heuristic.POKE):
                     bench = case.benches
                     good = goodness(case)
                     section += f' & {string_of_ms(ms)} & ' + "\\bf{{{:.2f}}}".format(bench["time"]) + f'& {res} & {good}' + "\\\\\n"
+                    if bench["time_lattice_construct"] > LATTICE_TIMEOUT - EPSILON:
+                        bench["time"] = -2
+                        bench["time_synth"] = -2
                     csv_data.append([name_of_yml[yml]+ ': ' +string_of_ms(ms), bench["time"], bench["time_synth"], bench["time_lattice_construct"], int(bench["n_atoms"]), good])
             except Exception as err:
                 sys.stdout.write(f'\nFailure in {yml}, {string_of_ms(ms)}: {str(err.args)}\n')
