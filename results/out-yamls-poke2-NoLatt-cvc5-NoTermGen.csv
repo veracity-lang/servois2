@@ -1,13 +1,13 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,-2,-2,30.000665,3,simple complete
-Str: substr $ \bowtie $ isEmpty,0.440412,0.223233,0.186006,1,simple complete
-Str: hasChar $ \bowtie $ concat,2.131758,1.716192,0.384267,3,simple complete
-Str2: set $ \bowtie $ concat,-2,-2,30.001155,17,complex incomplete
-Str3: read $ \bowtie $ write,2.257444,2.108837,0.117497,19,complex complete
-LIA: sum $ \bowtie $ posSum,-2,-2,30.002564,4,simple complete
-LIA: sum $ \bowtie $ multiVarSum,13.565424,13.390705,0.132674,31,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,-2,-2,30.020204,4,simple complete
-DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
+Str: substr $ \bowtie $ hasChar,1.238248,1.196408,0.0,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.255356,0.223555,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.994007,1.962437,0.0,3,simple complete
+Str2: set $ \bowtie $ concat,30.063212,30.000029,0.0,0,simple incomplete
+Str3: read $ \bowtie $ write,2.43294,2.401789,0.0,1,simple incomplete
+LIA: sum $ \bowtie $ posSum,0.877539,0.846012,0.0,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,14.224751,14.182145,0.0,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,3.719881,3.63251,0.0,4,simple complete
+DiH: motion $ \bowtie $ motion,10.529804,10.507908,0.0,131,complex complete
 Set: add $ \bowtie $ add,-1.0,-1,N/A
 Set: add $ \bowtie $ contains,-1.0,-1,N/A
 Set: add $ \bowtie $ getsize,-1.0,-1,N/A
@@ -25,7 +25,7 @@ HT: put $ \bowtie $ remove,-1.0,-1,N/A
 HT: put $ \bowtie $ size,-1.0,-1,N/A
 HT: remove $ \bowtie $ remove,-1.0,-1,N/A
 HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,0.164982,0.11218,0.04173,1,simple complete
+Sta: pop $ \bowtie $ pop,0.12313,0.112119,0.0,1,simple complete
 Sta: push $ \bowtie $ pop,-1.0,-1,N/A
 Sta: pop $ \bowtie $ push,-1.0,-1,N/A
-Sta: push $ \bowtie $ push,0.197244,0.13252,0.043265,1,simple complete
+Sta: push $ \bowtie $ push,0.14386,0.122459,0.0,1,simple complete

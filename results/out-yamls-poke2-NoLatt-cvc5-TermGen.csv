@@ -1,12 +1,12 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,-1.0,-1,N/A
-Str: substr $ \bowtie $ isEmpty,-1.0,-1,N/A
-Str: hasChar $ \bowtie $ concat,-1.0,-1,N/A
-Str2: set $ \bowtie $ concat,-1.0,-1,N/A
-Str3: read $ \bowtie $ write,-1.0,-1,N/A
-LIA: sum $ \bowtie $ posSum,-1.0,-1,N/A
-LIA: sum $ \bowtie $ multiVarSum,-1.0,-1,N/A
-LIA: multiVarA $ \bowtie $ multiVarB,-1.0,-1,N/A
+Str: substr $ \bowtie $ hasChar,1.360283,1.307918,0.0,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.254979,0.22353,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.728683,1.69727,0.0,3,simple complete
+Str2: set $ \bowtie $ concat,30.063098,30.000026,0.0,17,complex incomplete
+Str3: read $ \bowtie $ write,2.078636,2.047321,0.0,19,complex complete
+LIA: sum $ \bowtie $ posSum,1.878826,1.825266,0.0,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,13.278544,13.235893,0.0,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,7.661734,7.488918,0.0,4,simple complete
 DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
 Set: add $ \bowtie $ add,-1.0,-1,N/A
 Set: add $ \bowtie $ contains,-1.0,-1,N/A
@@ -25,7 +25,7 @@ HT: put $ \bowtie $ remove,-1.0,-1,N/A
 HT: put $ \bowtie $ size,-1.0,-1,N/A
 HT: remove $ \bowtie $ remove,-1.0,-1,N/A
 HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,-1.0,-1,N/A
+Sta: pop $ \bowtie $ pop,0.123182,0.112104,0.0,1,simple complete
 Sta: push $ \bowtie $ pop,-1.0,-1,N/A
 Sta: pop $ \bowtie $ push,-1.0,-1,N/A
-Sta: push $ \bowtie $ push,-1.0,-1,N/A
+Sta: push $ \bowtie $ push,0.143963,0.122471,0.0,1,simple complete

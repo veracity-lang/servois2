@@ -1,13 +1,13 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,-2,-2,30.000665,3,simple complete
-Str: substr $ \bowtie $ isEmpty,0.440412,0.223233,0.186006,1,simple complete
-Str: hasChar $ \bowtie $ concat,2.131758,1.716192,0.384267,3,simple complete
-Str2: set $ \bowtie $ concat,-2,-2,30.001155,17,complex incomplete
-Str3: read $ \bowtie $ write,2.257444,2.108837,0.117497,19,complex complete
-LIA: sum $ \bowtie $ posSum,-2,-2,30.002564,4,simple complete
-LIA: sum $ \bowtie $ multiVarSum,13.565424,13.390705,0.132674,31,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,-2,-2,30.020204,4,simple complete
-DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
+Str: substr $ \bowtie $ hasChar,1.792187,1.166523,0.584003,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.492625,0.223726,0.237453,1,simple complete
+Str: hasChar $ \bowtie $ concat,2.181901,1.91973,0.230816,3,simple complete
+Str2: set $ \bowtie $ concat,-2,-2,30.001311,0,simple incomplete
+Str3: read $ \bowtie $ write,-2,-2,30.000754,1,simple incomplete
+LIA: sum $ \bowtie $ posSum,1.190782,0.681887,0.477616,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,14.267719,14.094081,0.131497,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,-2,-2,30.004071,4,simple complete
+DiH: motion $ \bowtie $ motion,10.691735,10.603238,0.066789,131,complex complete
 Set: add $ \bowtie $ add,-1.0,-1,N/A
 Set: add $ \bowtie $ contains,-1.0,-1,N/A
 Set: add $ \bowtie $ getsize,-1.0,-1,N/A
@@ -25,7 +25,7 @@ HT: put $ \bowtie $ remove,-1.0,-1,N/A
 HT: put $ \bowtie $ size,-1.0,-1,N/A
 HT: remove $ \bowtie $ remove,-1.0,-1,N/A
 HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,0.164982,0.11218,0.04173,1,simple complete
+Sta: pop $ \bowtie $ pop,0.164763,0.112065,0.041699,1,simple complete
 Sta: push $ \bowtie $ pop,-1.0,-1,N/A
 Sta: pop $ \bowtie $ push,-1.0,-1,N/A
-Sta: push $ \bowtie $ push,0.197244,0.13252,0.043265,1,simple complete
+Sta: push $ \bowtie $ push,0.1866,0.122553,0.042746,1,simple complete
