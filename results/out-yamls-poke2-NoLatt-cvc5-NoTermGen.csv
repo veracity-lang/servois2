@@ -1,13 +1,13 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,1.238248,1.196408,0.0,3,simple complete
-Str: substr $ \bowtie $ isEmpty,0.255356,0.223555,0.0,1,simple complete
-Str: hasChar $ \bowtie $ concat,1.994007,1.962437,0.0,3,simple complete
-Str2: set $ \bowtie $ concat,30.063212,30.000029,0.0,0,simple incomplete
-Str3: read $ \bowtie $ write,2.43294,2.401789,0.0,1,simple incomplete
-LIA: sum $ \bowtie $ posSum,0.877539,0.846012,0.0,4,simple complete
-LIA: sum $ \bowtie $ multiVarSum,14.224751,14.182145,0.0,31,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,3.719881,3.63251,0.0,4,simple complete
-DiH: motion $ \bowtie $ motion,10.529804,10.507908,0.0,131,complex complete
+Str: substr $ \bowtie $ hasChar,1.238336,1.196295,0.0,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.255125,0.223486,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.993373,1.961847,0.0,3,simple complete
+Str2: set $ \bowtie $ concat,30.063308,30.000021,0.0,0,simple incomplete
+Str3: read $ \bowtie $ write,2.451592,2.420461,0.0,1,simple incomplete
+LIA: sum $ \bowtie $ posSum,0.898554,0.86684,0.0,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,14.190334,14.14768,0.0,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,3.700888,3.613184,0.0,4,simple complete
+DiH: motion $ \bowtie $ motion,10.573289,10.551419,0.0,131,complex complete
 Set: add $ \bowtie $ add,-1.0,-1,N/A
 Set: add $ \bowtie $ contains,-1.0,-1,N/A
 Set: add $ \bowtie $ getsize,-1.0,-1,N/A
@@ -25,7 +25,7 @@ HT: put $ \bowtie $ remove,-1.0,-1,N/A
 HT: put $ \bowtie $ size,-1.0,-1,N/A
 HT: remove $ \bowtie $ remove,-1.0,-1,N/A
 HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,0.12313,0.112119,0.0,1,simple complete
+Sta: pop $ \bowtie $ pop,0.123184,0.112132,0.0,1,simple complete
 Sta: push $ \bowtie $ pop,-1.0,-1,N/A
 Sta: pop $ \bowtie $ push,-1.0,-1,N/A
-Sta: push $ \bowtie $ push,0.14386,0.122459,0.0,1,simple complete
+Sta: push $ \bowtie $ push,0.144128,0.122611,0.0,1,simple complete
