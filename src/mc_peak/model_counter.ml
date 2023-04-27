@@ -18,7 +18,8 @@ type region_predicate = HPredConj of conjunction | HPredDisj of disjunction
 module type ModelCounterSig = sig
   val name : string
   val exec_paths : string list
-  val bound_v : int
+  val bound_int : int
+  val bound_str : int
   val smt_fname : string
   val args : string array
   val parse_output : string list * string list -> mc_result
@@ -38,18 +39,20 @@ struct
   let name = "abc"
 
   let exec_paths = [    
+    "/tools/home/pepper/projects/ABC/src/abc";
     "/usr/local/bin/abc";
     "/usr/bin/abc"
   ]
   
   let smt_fname = "tmp.smt2"
 
-  let bound_v = 4
- 
+  let bound_int = 4
+  let bound_str = 4
+
   let args = [| ""; "-v"; "0"; 
-                (* "-bi"; string_of_int bound_int; 
-                 * "-bs"; string_of_int bound_str; *)
-                "-bv"; string_of_int bound_v; 
+                "-bi"; string_of_int bound_int; 
+                "-bs"; string_of_int bound_str;
+                (* "-bv"; string_of_int bound_v; *) 
                 "-i"; smt_fname |]
 
   let line_count_regex = Str.regexp {|.*report bound: [0-9]+ count: \([0-9]+\) time:.*.*|}
@@ -126,7 +129,7 @@ struct
     let result = run_model_counter (module MC) |> MC.parse_output in
     pfvv "\nModel counter result: \n%s\n--------------------------\n" 
       (begin match result with
-         | Sat c -> sp "Sat; bound %d; count: %s" MC.bound_v (Z.to_string c)
+         | Sat c -> sp "Sat; bound int: %d, bound str: %d; count: %s" MC.bound_int MC.bound_str (Z.to_string c)
          | Unsat -> "Unsat"
          | Unknown -> "Unknown"
        end);

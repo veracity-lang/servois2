@@ -9,7 +9,8 @@ array2,-1,-1,-1,-1,error
 simple,21.22,20.82,0.26,25,complex incomplete 
 auction2,72.34,0.07,71.46,0,simple complete 
 dict,16.78,11.38,5.16,3,simple complete 
-nested-counter,-1,-1,-1,-1,error 
+nested-counter_1,-1,-1,-1,-1,error 
+nested-counter_2,-1,-1,-1,-1,error 
 even-odd,-2,-2,300.00,1,simple incomplete 
 conditional,-1,-1,-1,-1,error 
 nonlinear,-2,-2,300.05,1,simple complete 
