@@ -174,23 +174,21 @@ struct
       let es', newcs = List.split @@ List.map (repl_compound_index_terms fva freshvar_gen) es in
       (EFunc(s, es'), List.flatten newcs)
 
-  let rec repl_compound_index_terms_full fva freshvar_gen rho = function
-    | true -> 
-      let rho', newc = repl_compound_index_terms fva freshvar_gen rho in
-      begin match newc with  
-        | [] -> 
-          begin match rho' with
-            | ELop(And, es) -> repl_compound_index_terms_full fva freshvar_gen rho' false
-            | _ -> raise (UnreachableFailure "Root expression is required to be a conjunction")
-          end  
-        | _ -> 
-          begin match rho' with
-            | ELop(And, es) -> 
-              repl_compound_index_terms_full fva freshvar_gen (ELop(And, es @ newc)) true
-            | _ -> raise (UnreachableFailure "Root expression is required to be a conjunction")
-          end
+  let rec repl_compound_index_terms_wrapper fva freshvar_gen rho = 
+    let rho', newc = repl_compound_index_terms fva freshvar_gen rho in
+    begin match newc with
+      | [] -> 
+        begin match rho' with
+          | ELop (And, _) -> rho'
+          | _ -> raise (UnreachableFailure "Root expression is required to be a conjunction")
         end
-      | false -> rho
+      | _ ->
+        begin match rho' with
+          | ELop (And, es) -> 
+            repl_compound_index_terms_wrapper fva freshvar_gen (ELop (And, es @ newc))
+          | _ -> raise (UnreachableFailure "Root expression is required to be a conjuction")
+        end
+    end
 
   let array_bounds_constraints fva array_length e = 
     let rec collect_arrays_bv = function
@@ -328,7 +326,7 @@ struct
       in
       let rho = ELop(And, ces) in
       (* Step 2. Replacement of compound array index terms *)
-      let rho = repl_compound_index_terms_full fva fresh_ivar_gen rho true in
+      let rho = repl_compound_index_terms_wrapper fva fresh_ivar_gen rho in
       (* Step 3. Add array bounds constraints for index variables*)
       let arr_bv_bc = array_bounds_constraints fva array_length rho in
       let rho = match rho with ELop(And, ces) -> ELop(And, arr_bv_bc @ ces) 
