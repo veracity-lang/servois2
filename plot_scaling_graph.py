@@ -40,6 +40,7 @@ def plot_all_30vars():
    
     new_d = d[['#predicates', 'simple', 'poke', 'poke2']]
     new_d = new_d.melt(id_vars='#predicates', value_name='val', var_name='type')
+    sns.set_style("ticks",{'axes.grid' : True})
     sns.lineplot(data=new_d, x='#predicates', y='val', hue='type', linewidth=3)
 
     xticks = d['#predicates'].astype(str).map('{}'.format) + ' (' + d['#vars'].astype(str) + ')'
@@ -49,24 +50,30 @@ def plot_all_30vars():
     plt.ylabel('time(s)', fontsize=22)
 
     #plt.rcParams.update({'font.size': 36})
-    plt.rcParams['figure.figsize'] = (13,7)
+    plt.rcParams['figure.figsize'] = (10,7)
+    #plt.figure(figsize=(36,21))
     plt.legend(loc='lower right', prop={'size': 22})
     plt.subplots_adjust(bottom=0.2)    
-    plt.savefig('scalability_plot.pdf')
+    plt.savefig('scalability_plot.pdf', dpi=300)
     plt.show()
 
 def plot_regression_vars_preds_30vars():
      # sns.set_theme(style="whitegrid")
-    d = pd.read_csv('./scalability_data_all_30v.csv')   
+    d = pd.read_csv('./scalability_data_all_30v.csv')
+    sns.set_style("ticks",{'axes.grid' : True})
     sns.lmplot(data=d, x='#vars', y='#predicates')
-
+    
     plt.xticks(ticks=d['#vars'].iloc[::3], rotation=315)
-    #plt.rcParams['figure.figsize'] = (11,6)
-    #plt.legend(loc='center right')
-    #plt.subplots_adjust(bottom=0.2)
-    plt.show()
-    #plt.savefig('vars_preds_regression.pdf')
+    plt.xlabel('#vars', fontsize=16)
+    plt.ylabel('#predicates', fontsize=16)
+    #plt.rcParams['figure.figsize'] = (11.7,6)
 
+    #plt.legend(loc='center right')
+    plt.subplots_adjust(bottom=0.2)
+    #plt.subplots_adjust(left=0.2)
+    
+    plt.savefig('vars_preds_regression.pdf', dpi = 500)
+    plt.show()
 
 def plot_poke2_50vars():
     # sns.set_theme(style="whitegrid")
@@ -105,5 +112,5 @@ if __name__ == '__main__':
     #plot_predicates_regression()
     #plot_poke2_50vars()
     #plot_predicates_50vars_regression()
-    plot_all_30vars()
+    #plot_all_30vars()
     plot_regression_vars_preds_30vars()
