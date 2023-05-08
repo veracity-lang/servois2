@@ -14,26 +14,26 @@ nested-counter_2,-1,-1,-1,-1,error
 even-odd,-1,-1,-1,-1,error 
 conditional,-1,-1,-1,-1,error 
 nonlinear,-2,-2,300.05,1,simple complete 
-auction4,124.60,120.00,3.85,0,simple incomplete 
+auction4,-2,-2,3.85,0,simple incomplete 
 ht-cond-mem-get,2.92,2.09,0.78,3,simple incomplete 
 ht-simple,24.74,22.16,2.27,3,simple complete 
 calc,-2,-2,300.01,0,simple incomplete 
 standardToken2,-2,-2,300.08,0,simple incomplete 
 array1,1.61,1.13,0.43,5,simple complete 
 standardToken4,-2,-2,300.03,1,simple complete 
-standardToken5,133.56,120.00,12.98,0,simple incomplete 
-auction3,123.59,120.00,2.98,0,simple incomplete 
+standardToken5,-2,-2,12.98,0,simple incomplete 
+auction3,-2,-2,2.98,0,simple incomplete 
 matrix,-2,-2,300.10,1,simple complete 
 counter,-2,-2,300.01,1,simple complete 
 nested_1,0.45,0.02,0.39,0,simple complete 
 nested_2,0.45,0.15,0.26,1,simple complete 
 array3,1.85,1.08,0.69,3,simple complete 
-standardToken3,121.83,120.00,1.71,0,simple incomplete 
+standardToken3,-2,-2,1.71,0,simple incomplete 
 linear-cond,-2,-2,300.00,11,complex complete 
 standardToken1,0.92,0.05,0.82,0,simple complete 
 dot-product,18.46,0.06,18.25,0,simple complete 
 array-disjoint,0.74,0.51,0.19,3,simple complete 
 loop-inter,74.19,73.89,0.26,0,simple incomplete 
 loop-disjoint,0.11,0.02,0.08,0,simple complete 
-loop-amt,120.83,120.00,0.77,96,complex incomplete 
+loop-amt,-2,-2,0.77,96,complex incomplete 
 loop-simple,0.55,0.03,0.45,0,simple complete  

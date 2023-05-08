@@ -1,28 +1,28 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
 ht-cond-size-get,13.32,13.01,0.22,179,complex complete 
-pullPayment,120.29,120.00,0.18,14154,complex incomplete 
+pullPayment,-2,-2,0.18,14154,complex incomplete 
 linear-bool,3.07,1.83,1.21,46,complex complete 
 linear,-2,-2,300.02,0,simple complete 
 auction1,1.46,0.07,1.18,0,simple complete 
-ht-add-put,120.42,120.00,0.34,4118,complex incomplete 
+ht-add-put,-2,-2,0.34,4118,complex incomplete 
 array2,-2,-2,300.00,24,complex complete 
-simple,120.21,120.00,0.15,15520,complex incomplete 
+simple,-2,-2,0.15,15520,complex incomplete 
 auction2,2.06,0.06,1.75,0,simple complete 
 dict,-2,-2,300.02,4182,complex incomplete 
 nested-counter_1,-2,-2,300.00,11,complex complete 
 nested-counter_2,4.51,4.35,0.15,168,complex incomplete 
 even-odd,-1,-1,-1,-1,error 
 conditional,0.29,0.24,0.04,5,simple complete 
-nonlinear,121.25,120.00,1.09,1489,complex incomplete 
-auction4,122.88,120.00,2.33,0,simple incomplete 
+nonlinear,-2,-2,1.09,1489,complex incomplete 
+auction4,-2,-2,2.33,0,simple incomplete 
 ht-cond-mem-get,15.72,15.56,0.11,287,complex incomplete 
-ht-simple,121.41,120.00,1.18,1071,complex incomplete 
+ht-simple,-2,-2,1.18,1071,complex incomplete 
 calc,-2,-2,300.00,0,simple incomplete 
-standardToken2,121.86,120.00,1.50,174,complex incomplete 
+standardToken2,-2,-2,1.50,174,complex incomplete 
 array1,-2,-2,300.00,11,complex complete 
 standardToken4,-2,-2,300.02,2,simple complete 
-standardToken5,122.56,120.00,2.08,0,simple incomplete 
-auction3,122.11,120.00,1.66,0,simple incomplete 
+standardToken5,-2,-2,2.08,0,simple incomplete 
+auction3,-2,-2,1.66,0,simple incomplete 
 matrix,-1,-1,-1,-1,error 
 counter,0.36,0.18,0.15,3,simple complete 
 nested_1,0.23,0.02,0.19,0,simple complete 
@@ -33,7 +33,7 @@ linear-cond,-2,-2,300.01,52,complex complete
 standardToken1,0.68,0.06,0.53,0,simple complete 
 dot-product,13.43,0.06,13.22,0,simple complete 
 array-disjoint,4.79,4.59,0.16,203,complex complete 
-loop-inter,120.28,120.00,0.18,948,complex incomplete 
+loop-inter,-2,-2,0.18,948,complex incomplete  
 loop-disjoint,0.06,0.01,0.04,0,simple complete 
 loop-amt,-2,-2,300.01,37,complex incomplete 
 loop-simple,0.10,0.03,0.04,0,simple complete  

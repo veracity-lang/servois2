@@ -14,15 +14,15 @@ nested-counter_2,5.53,5.37,0.10,13,complex incomplete
 even-odd,11.23,10.74,0.47,42,complex incomplete 
 conditional,0.28,0.22,0.04,1,simple complete 
 nonlinear,1.57,0.60,0.89,1,simple complete 
-auction4,122.58,120.00,2.31,0,simple incomplete 
+auction4,-2,-2,2.31,0,simple incomplete 
 ht-cond-mem-get,-1,-1,-1,-1,error 
 ht-simple,-1,-1,-1,-1,error 
 calc,-2,-2,300.01,59,complex incomplete 
 standardToken2,12.96,11.89,0.90,2,simple complete 
 array1,-2,-2,300.00,5,simple complete 
 standardToken4,-2,-2,300.02,1,simple complete 
-standardToken5,121.68,120.00,1.46,0,simple incomplete 
-auction3,121.89,120.00,1.68,0,simple incomplete 
+standardToken5,-2,-2,1.46,0,simple incomplete 
+auction3,-2,-2,1.68,0,simple incomplete 
 matrix,-1,-1,-1,-1,error 
 counter,0.25,0.14,0.09,1,simple complete 
 nested_1,0.14,0.02,0.10,0,simple complete 

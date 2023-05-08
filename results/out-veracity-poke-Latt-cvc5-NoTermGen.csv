@@ -14,21 +14,21 @@ nested-counter_2,4.00,3.78,0.14,10,complex incomplete
 even-odd,2.07,1.06,0.96,1,simple incomplete 
 conditional,0.32,0.27,0.04,1,simple complete 
 nonlinear,8.83,7.54,1.09,1,simple complete 
-auction4,123.00,120.00,2.30,0,simple incomplete 
+auction4,-2,-2,2.30,0,simple incomplete 
 ht-cond-mem-get,2.42,2.26,0.10,1,simple incomplete 
 ht-simple,45.29,43.83,1.17,3,simple complete 
 calc,-2,-2,300.00,37,complex incomplete 
-standardToken2,121.99,120.00,1.56,0,simple incomplete 
+standardToken2,-2,-2,1.56,0,simple incomplete 
 array1,-2,-2,300.00,9,simple complete 
 standardToken4,-2,-2,300.02,1,simple complete 
-standardToken5,122.76,120.00,2.16,0,simple incomplete 
-auction3,122.26,120.00,1.69,0,simple incomplete 
+standardToken5,-2,-2,2.16,0,simple incomplete 
+auction3,-2,-2,1.69,0,simple incomplete 
 matrix,-1,-1,-1,-1,error 
 counter,0.46,0.25,0.19,1,simple complete 
 nested_1,0.25,0.02,0.21,0,simple complete 
 nested_2,0.46,0.36,0.08,1,simple complete 
 array3,2.55,2.18,0.28,3,simple complete 
-standardToken3,121.27,120.00,1.07,0,simple incomplete 
+standardToken3,-2,-2,1.07,0,simple incomplete 
 linear-cond,-2,-2,300.06,4,simple complete 
 standardToken1,0.72,0.06,0.56,0,simple complete 
 dot-product,13.64,0.06,13.42,0,simple complete 

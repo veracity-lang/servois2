@@ -18,22 +18,22 @@ auction4,-1,-1,-1,-1,error
 ht-cond-mem-get,5.61,5.54,0.00,3,simple incomplete 
 ht-simple,49.02,48.64,0.00,3,simple complete 
 calc,32.66,32.53,0.00,245,complex incomplete 
-standardToken2,120.47,120.00,0.00,0,simple incomplete 
+standardToken2,-2,-2,0.00,0,simple incomplete 
 array1,-1,-1,-1,-1,error 
 standardToken4,-1,-1,-1,-1,error 
-standardToken5,120.76,120.00,0.00,0,simple incomplete 
+standardToken5,-2,-2,0.00,0,simple incomplete 
 auction3,-1,-1,-1,-1,error 
 matrix,4.75,4.23,0.00,2,simple complete 
 counter,1.52,1.48,0.00,33,complex complete 
 nested_1,0.06,0.02,0.00,0,simple complete 
 nested_2,0.65,0.61,0.00,2,simple complete 
 array3,28.46,28.36,0.00,1601,complex complete 
-standardToken3,120.14,120.00,0.00,0,simple incomplete 
+standardToken3,-2,-2,0.00,0,simple incomplete 
 linear-cond,9.25,9.16,0.00,263,complex complete 
 standardToken1,0.13,0.06,0.00,0,simple complete 
 dot-product,0.22,0.06,0.00,0,simple complete 
 array-disjoint,-1,-1,-1,-1,error 
-loop-inter,120.05,120.00,0.00,0,simple incomplete 
+loop-inter,-2,-2,0.00,0,simple incomplete 
 loop-disjoint,0.03,0.02,0.00,0,simple complete 
 loop-amt,3.78,3.71,0.00,30,complex incomplete 
 loop-simple,0.12,0.03,0.00,0,simple complete  

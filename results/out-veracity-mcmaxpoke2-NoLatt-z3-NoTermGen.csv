@@ -14,16 +14,16 @@ nested-counter_2,4.68,4.65,0.00,52,complex incomplete
 even-odd,5.85,5.83,0.00,63,complex incomplete 
 conditional,0.21,0.20,0.00,1,simple complete 
 nonlinear,32.23,32.15,0.00,1125,complex complete 
-auction4,120.32,120.00,0.00,2579,complex incomplete 
+auction4,-2,-2,0.00,2579,complex incomplete 
 ht-cond-mem-get,-1,-1,-1,-1,error 
 ht-simple,-1,-1,-1,-1,error 
-calc,120.04,120.00,0.00,88,complex incomplete 
+calc,-2,-2,0.00,88,complex incomplete 
 standardToken2,75.02,74.84,0.00,126,complex complete 
 array1,0.89,0.87,0.00,6,simple complete 
 standardToken4,15.14,15.06,0.00,77,complex complete 
-standardToken5,120.26,120.00,0.00,146,complex incomplete 
-auction3,120.25,120.00,0.00,12506,complex incomplete 
-matrix,120.16,120.00,0.00,5046,complex incomplete 
+standardToken5,-2,-2,0.00,146,complex incomplete 
+auction3,-2,-2,0.00,12506,complex incomplete 
+matrix,-2,-2,0.00,5046,complex incomplete 
 counter,0.48,0.46,0.00,3,simple complete 
 nested_1,0.04,0.02,0.00,0,simple complete 
 nested_2,0.37,0.36,0.00,2,simple complete 
