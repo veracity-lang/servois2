@@ -1,10 +1,10 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,0.915592,0.873706,0.0,4,simple complete
-Str: substr $ \bowtie $ isEmpty,0.58262,0.550958,0.0,3,simple complete
-Str: hasChar $ \bowtie $ concat,1.133501,1.101937,0.0,18,complex complete
-Str2: set $ \bowtie $ concat,30.063745,30.000021,0.0,40,complex incomplete
-Str3: read $ \bowtie $ write,2.221334,2.190246,0.0,3,simple incomplete
-LIA: sum $ \bowtie $ posSum,0.828853,0.797231,0.0,5,simple complete
-LIA: sum $ \bowtie $ multiVarSum,17.092516,17.050009,0.0,650,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,4.011161,3.923127,0.0,27,complex complete
-DiH: motion $ \bowtie $ motion,6.51103,6.488988,0.0,194,complex complete
+Str: substr $ \bowtie $ hasChar,0.91637,0.874333,0.0,4,simple complete
+Str: substr $ \bowtie $ isEmpty,0.592998,0.561366,0.0,3,simple complete
+Str: hasChar $ \bowtie $ concat,1.113473,1.081942,0.0,18,complex complete
+Str2: set $ \bowtie $ concat,30.063226,30.000041,0.0,40,complex incomplete
+Str3: read $ \bowtie $ write,2.150729,2.129621,0.0,3,simple incomplete
+LIA: sum $ \bowtie $ posSum,0.828395,0.79684,0.0,5,simple complete
+LIA: sum $ \bowtie $ multiVarSum,17.05065,17.00799,0.0,650,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,4.006131,3.917954,0.0,27,complex complete
+DiH: motion $ \bowtie $ motion,6.39719,6.375275,0.0,194,complex complete

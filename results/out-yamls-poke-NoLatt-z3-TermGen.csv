@@ -1,12 +1,12 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
-Str: substr $ \bowtie $ hasChar,3.384433,3.352194,0.0,10,complex complete
-Str: substr $ \bowtie $ isEmpty,0.612238,0.590941,0.0,1,simple complete
-Str: hasChar $ \bowtie $ concat,1.466493,1.435013,0.0,3,simple complete
-Str2: set $ \bowtie $ concat,10.85938,10.816256,0.0,12,complex incomplete
-Str3: read $ \bowtie $ write,2.046695,2.025441,0.0,15,complex complete
-LIA: sum $ \bowtie $ posSum,6.594166,6.560369,0.0,4,simple complete
-LIA: sum $ \bowtie $ multiVarSum,16.389927,16.366925,0.0,17,complex incomplete
-LIA: multiVarA $ \bowtie $ multiVarB,25.266957,25.194335,0.0,7,simple complete
+Str: substr $ \bowtie $ hasChar,3.365101,3.332798,0.0,10,complex complete
+Str: substr $ \bowtie $ isEmpty,0.612508,0.591175,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.455615,1.434182,0.0,3,simple complete
+Str2: set $ \bowtie $ concat,10.847082,10.8143,0.0,12,complex incomplete
+Str3: read $ \bowtie $ write,2.046023,2.024599,0.0,15,complex complete
+LIA: sum $ \bowtie $ posSum,6.581138,6.557653,0.0,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,16.388843,16.366045,0.0,17,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,25.261782,25.189532,0.0,7,simple complete
 DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
 Set: add $ \bowtie $ add,-1.0,-1,N/A
 Set: add $ \bowtie $ contains,-1.0,-1,N/A
@@ -25,7 +25,7 @@ HT: put $ \bowtie $ remove,-1.0,-1,N/A
 HT: put $ \bowtie $ size,-1.0,-1,N/A
 HT: remove $ \bowtie $ remove,-1.0,-1,N/A
 HT: remove $ \bowtie $ size,-1.0,-1,N/A
-Sta: pop $ \bowtie $ pop,0.173852,0.162772,0.0,1,simple complete
-Sta: push $ \bowtie $ pop,2.373292,2.361838,0.0,2,simple complete
-Sta: pop $ \bowtie $ push,1.070671,1.059203,0.0,1,simple complete
-Sta: push $ \bowtie $ push,0.419057,0.407461,0.0,1,simple complete
+Sta: pop $ \bowtie $ pop,0.173812,0.162761,0.0,1,simple complete
+Sta: push $ \bowtie $ pop,2.374797,2.363367,0.0,2,simple complete
+Sta: pop $ \bowtie $ push,1.070232,1.05879,0.0,1,simple complete
+Sta: push $ \bowtie $ push,0.418895,0.407399,0.0,1,simple complete
