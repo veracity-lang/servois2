@@ -53,15 +53,15 @@ struct
                        pps_total := !pps_total + 1;
                        (* filter out predicates with disjoint set of varoables *)
                        let vsetp, vsetp' = vars p, vars p' in
-                       if (VarSet.disjoint vsetp vsetp') && 
+                       if (VarSet.disjoint vsetp vsetp') &&
                           (vsetp <> VarSet.empty || vsetp' <> VarSet.empty) then
                          begin
                            pps_excluded := !pps_excluded + 1;
-                           pfv "Implication excluded %s => %s\n" 
+                           pfv "Implication excluded %s => %s\n"
                              (string_of_pred p) (string_of_pred p');
-                           pfvv "VarsSet: %s , %s\n" 
+                           pfvv "VarsSet: %s , %s\n"
                              (string_of_varset "p" vsetp) (string_of_varset "p'" vsetp');
-                           acc
+                           acc'
                          end
                        else
                          (liftp1 p, liftp2 p') :: acc'
@@ -189,10 +189,14 @@ let observe_rels (prover: (module Prover)) spec ps =
 
   let pred_equiv_classes: predP list -> (predP * predP) list -> predP list list = 
     fun ps pps ->
+      
+
       let rec equiv_classes xs eqrels acc =
         match xs with
         | [] -> acc
         | x::xs' -> 
+          
+
           let xeqrel = List.filter (fun (y1, y2) -> x = y1 || x = y2) eqrels in
           let xeqc = List.rev @@ List.fold_left (
               fun xyacc (y1, y2)-> 

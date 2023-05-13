@@ -181,7 +181,7 @@ let make_lattice env options spec m n preds =
             let ps_, pps_, pequivc_ = Predicate_analyzer.observe_rels 
                 options.prover spec preds in
             let l_ = construct_lattice ps_ pps_ in
-            Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_);
+            (* Predicate_analyzer_logger.log_predicate_implication_chains (L.chains_of l_); *)
             (if not options.no_cache then
                let outc = open_out lattice_fname in
                L.save l_ outc; close_out outc;
