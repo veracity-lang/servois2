@@ -35,5 +35,5 @@ dot-product,29.61,0.06,29.39,0,simple complete
 array-disjoint,3.64,0.55,3.03,3,simple complete 
 loop-inter,17.55,3.60,13.82,3,simple complete 
 loop-disjoint,0.06,0.01,0.04,0,simple complete 
-loop-amt,124.23,120.00,4.17,237,complex incomplete 
+loop-amt,-2,-2,4.17,237,complex incomplete 
 loop-simple,0.30,0.03,0.25,0,simple complete  

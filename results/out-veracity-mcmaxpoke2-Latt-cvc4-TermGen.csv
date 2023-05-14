@@ -1,6 +1,6 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
 ht-cond-size-get,11.98,8.83,3.10,3,simple complete 
-pullPayment,138.52,120.00,18.40,8142,complex incomplete 
+pullPayment,-2,-2,18.40,8142,complex incomplete 
 linear-bool,109.30,101.93,7.30,4823,complex complete 
 linear,82.35,0.04,82.11,0,simple complete 
 auction1,-2,-2,300.24,0,simple complete 
@@ -10,7 +10,7 @@ simple,-1,-1,-1,-1,error
 auction2,-2,-2,300.26,0,simple complete 
 dict,82.42,28.01,54.21,3,simple complete 
 nested-counter_1,56.98,51.22,5.70,2312,complex complete 
-nested-counter_2,130.30,120.00,10.22,10798,complex incomplete 
+nested-counter_2,-2,-2,10.22,10798,complex incomplete 
 even-odd,-1,-1,-1,-1,error 
 conditional,-1,-1,-1,-1,error 
 nonlinear,-2,-2,300.01,26,complex complete 
@@ -20,7 +20,7 @@ ht-simple,227.74,66.37,161.07,3,simple complete
 calc,15.27,0.05,15.12,0,simple incomplete 
 standardToken2,-2,-2,300.02,0,simple incomplete 
 array1,63.65,61.44,2.15,2275,complex complete 
-standardToken4,173.92,120.00,53.73,154,complex incomplete 
+standardToken4,-2,-2,53.73,154,complex incomplete 
 standardToken5,-2,-2,300.05,0,simple incomplete 
 auction3,-1,-1,-1,-1,error 
 matrix,-2,-2,300.03,2,simple complete 
@@ -28,12 +28,12 @@ counter,2.45,1.45,0.96,12,complex complete
 nested_1,1.58,0.02,1.51,0,simple complete 
 nested_2,4.27,2.73,1.51,32,complex complete 
 array3,29.65,21.86,7.72,510,complex complete 
-standardToken3,139.03,120.00,18.91,303,complex incomplete 
-linear-cond,126.72,120.00,6.65,9211,complex incomplete 
+standardToken3,-2,-2,18.91,303,complex incomplete 
+linear-cond,-2,-2,6.65,9211,complex incomplete 
 standardToken1,4.35,0.05,4.24,0,simple complete 
 dot-product,28.37,0.06,28.16,0,simple complete 
 array-disjoint,3.14,2.22,0.89,15,complex complete 
 loop-inter,31.50,29.37,2.08,0,simple incomplete 
 loop-disjoint,0.11,0.02,0.08,0,simple complete 
-loop-amt,124.42,120.00,4.35,0,simple incomplete 
+loop-amt,-2,-2,4.35,0,simple incomplete 
 loop-simple,4.97,0.03,4.88,0,simple complete  

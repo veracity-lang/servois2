@@ -17,11 +17,11 @@ nonlinear,68.83,12.44,56.27,1,simple complete
 auction4,-2,-2,300.33,1,simple complete 
 ht-cond-mem-get,-1,-1,-1,-1,error 
 ht-simple,-1,-1,-1,-1,error 
-calc,128.99,120.00,8.94,6,simple incomplete 
+calc,-2,-2,8.94,6,simple incomplete 
 standardToken2,147.71,34.95,112.58,3,simple complete 
 array1,4.62,3.55,1.04,4,simple complete 
 standardToken4,37.30,8.77,28.43,1,simple complete 
-standardToken5,373.02,120.00,252.74,0,simple incomplete 
+standardToken5,-2,-2,252.74,0,simple incomplete 
 auction3,-2,-2,300.23,2,simple incomplete 
 matrix,-2,-2,300.03,1,simple complete 
 counter,1.30,0.77,0.50,1,simple complete 
@@ -33,7 +33,7 @@ linear-cond,11.48,7.68,3.77,20,complex complete
 standardToken1,2.06,0.02,2.01,0,simple complete 
 dot-product,14.22,0.02,14.14,0,simple complete 
 array-disjoint,1.94,1.46,0.46,3,simple complete 
-loop-inter,121.12,120.00,1.10,0,simple incomplete 
+loop-inter,-2,-2,1.10,0,simple incomplete 
 loop-disjoint,0.08,0.02,0.05,0,simple complete 
 loop-amt,4.03,1.51,2.49,0,simple incomplete 
 loop-simple,2.75,0.02,2.69,0,simple complete  

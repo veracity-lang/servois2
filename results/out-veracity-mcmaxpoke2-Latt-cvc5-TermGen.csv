@@ -1,7 +1,7 @@
 adt and test case,time,time_synth,time_lattice_construct,natoms,quality
 ht-cond-size-get,12.86,9.55,3.25,3,simple complete 
-pullPayment,139.09,120.00,18.96,7071,complex incomplete 
-linear-bool,128.16,120.00,8.07,6511,complex incomplete 
+pullPayment,-2,-2,18.96,7071,complex incomplete 
+linear-bool,-2,-2,8.07,6511,complex incomplete 
 linear,87.69,0.03,87.40,0,simple complete 
 auction1,-2,-2,300.24,0,simple complete 
 ht-add-put,32.90,17.57,15.21,2,simple complete 
@@ -10,17 +10,17 @@ simple,-1,-1,-1,-1,error
 auction2,-2,-2,300.25,0,simple complete 
 dict,77.33,20.79,56.31,3,simple complete 
 nested-counter_1,62.93,56.52,6.33,2312,complex complete 
-nested-counter_2,131.36,120.00,11.26,9384,complex incomplete 
+nested-counter_2,-2,-2,11.26,9384,complex incomplete 
 even-odd,15.86,11.72,4.08,168,complex incomplete 
 conditional,-1,-1,-1,-1,error 
 nonlinear,-2,-2,300.01,26,complex complete 
 auction4,-1,-1,-1,-1,error 
 ht-cond-mem-get,11.01,7.40,3.54,3,simple incomplete 
 ht-simple,233.00,67.32,165.31,3,simple complete 
-calc,136.62,120.00,16.49,913,complex incomplete 
-standardToken2,353.36,120.00,232.91,0,simple incomplete 
+calc,-2,-2,16.49,913,complex incomplete 
+standardToken2,-2,-2,232.91,0,simple incomplete 
 array1,69.44,67.16,2.23,2275,complex complete 
-standardToken4,177.45,120.00,57.20,154,complex incomplete 
+standardToken4,-2,-2,57.20,154,complex incomplete 
 standardToken5,-2,-2,300.04,0,simple incomplete 
 auction3,-1,-1,-1,-1,error 
 matrix,-2,-2,300.02,2,simple complete 
@@ -28,12 +28,12 @@ counter,2.58,1.45,1.08,12,complex complete
 nested_1,1.76,0.02,1.69,0,simple complete 
 nested_2,4.47,2.74,1.69,32,complex complete 
 array3,34.11,25.64,8.37,510,complex complete 
-standardToken3,141.08,120.00,20.94,234,complex incomplete 
-linear-cond,127.42,120.00,7.33,8299,complex incomplete 
+standardToken3,-2,-2,20.94,234,complex incomplete 
+linear-cond,-2,-2,7.33,8299,complex incomplete 
 standardToken1,4.83,0.06,4.71,0,simple complete 
 dot-product,29.27,0.06,29.05,0,simple complete 
 array-disjoint,3.33,2.32,0.97,15,complex complete 
 loop-inter,31.81,29.45,2.30,0,simple incomplete 
 loop-disjoint,0.12,0.02,0.08,0,simple complete 
-loop-amt,124.88,120.00,4.81,0,simple incomplete 
+loop-amt,-2,-2,4.81,0,simple incomplete 
 loop-simple,5.41,0.03,5.29,0,simple complete  

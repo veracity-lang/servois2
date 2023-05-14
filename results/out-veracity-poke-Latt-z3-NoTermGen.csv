@@ -17,12 +17,12 @@ nonlinear,30.09,6.97,23.05,1,simple complete
 auction4,-2,-2,300.24,1,simple complete 
 ht-cond-mem-get,-1,-1,-1,-1,error 
 ht-simple,-1,-1,-1,-1,error 
-calc,123.94,120.00,3.91,18,complex incomplete 
-standardToken2,230.37,120.00,110.20,49,complex incomplete 
+calc,-2,-2,3.91,18,complex incomplete 
+standardToken2,-2,-2,110.20,49,complex incomplete 
 array1,1.99,1.83,0.14,4,simple complete 
 standardToken4,27.63,7.12,20.42,1,simple complete 
-standardToken5,329.96,120.00,209.73,0,simple incomplete 
-auction3,361.48,120.00,241.27,0,simple incomplete 
+standardToken5,-2,-2,209.73,0,simple incomplete 
+auction3,-2,-2,241.27,0,simple incomplete 
 matrix,-2,-2,300.02,1,simple complete 
 counter,0.40,0.28,0.09,1,simple complete 
 nested_1,0.14,0.02,0.10,0,simple complete 

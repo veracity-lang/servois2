@@ -28,12 +28,12 @@ counter,1.18,0.18,0.96,1,simple complete
 nested_1,1.57,0.02,1.50,0,simple complete 
 nested_2,1.66,0.14,1.49,1,simple complete 
 array3,8.58,0.84,7.66,3,simple complete 
-standardToken3,139.01,120.00,18.89,0,simple incomplete 
+standardToken3,-2,-2,18.89,0,simple incomplete 
 linear-cond,9.46,2.79,6.61,11,complex complete 
 standardToken1,4.33,0.05,4.22,0,simple complete 
 dot-product,28.19,0.06,27.99,0,simple complete 
 array-disjoint,1.42,0.50,0.89,3,simple complete 
 loop-inter,75.93,73.80,2.09,0,simple incomplete 
 loop-disjoint,0.11,0.02,0.08,0,simple complete 
-loop-amt,124.36,120.00,4.30,103,complex incomplete 
+loop-amt,-2,-2,4.30,103,complex incomplete 
 loop-simple,4.97,0.03,4.87,0,simple complete  
