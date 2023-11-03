@@ -20,7 +20,8 @@
 %token LT GT LTE GTE
 %token NOT
 %token ADD AND OR
-%token LET ITE EXISTS
+%token LET ITE
+%token FORALL EXISTS
 
 %start <ty> ty_top
 %start <exp> exp_top
@@ -54,6 +55,8 @@ exp:
   | LP l=lop el=nonempty_list(exp) RP { ELop (l, el) }
   | LP SUB el=nonempty_list(exp) RP { match el with [e1] -> EUop(Neg, e1) | [e1; e2] -> EBop(Sub, e1, e2) | _ -> failwith "Too many arguments with sub" }
   | LP f=SYMBOL el=nonempty_list(exp) RP { EFunc (f, el) }
+  | LP FORALL LP bl=nonempty_list(ty_binding) RP e=exp RP { EForall(bl, e) }
+  | LP EXISTS LP bl=nonempty_list(ty_binding) RP e=exp RP { EExists(bl, e) }
 
   | v=SYMBOL { EVar (Var v) }
   | v=SYMBOL_NEW { EVar (VarPost v) }
