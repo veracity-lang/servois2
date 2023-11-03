@@ -6,6 +6,11 @@ open Smt_parsing
 
 
 type term_list = ty * (exp list)
+type smt_fn =
+  { name : string
+  ; args : ty list
+  ; ret : ty
+  }
 
 type method_spec =
   { name  : string
@@ -24,6 +29,7 @@ type spec =
   ; precond  : exp
   ; state    : ty bindlist
   ; methods  : method_spec list
+  ; smt_fns  : smt_fn list
   }
 
 let has_err_state spec = List.exists (fun binding -> name_of_binding binding = "err") spec.state
@@ -56,7 +62,7 @@ let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_
   let mangle_var = function
     | Var v ->
       if List.mem v local_names
-      then VarM (is_left, v)
+      then VarM (is_left, sp "%s_%s" name v)
       else Var v
     | VarPost v ->
       if List.mem v local_names
@@ -71,6 +77,7 @@ let mangle_method_vars (is_left : bool) {name;args;ret;pre;post;terms} : method_
   in
   
   (* Mangle variables in appropriate fields of method spec *)
+  let name = if is_left then "m1_" ^ name else "m2_" ^ name in
   let args  = List.map (first mangle_var) args in
   let ret   = List.map (first mangle_var) ret in
   let pre   = mangle_exp pre in
@@ -116,6 +123,21 @@ let pred_of_yaml (y : Yaml.value) : pred_sig =
 
   PredSig (name, ty)
 
+let smt_fn_of_yaml y : smt_fn =
+  let d = get_dict y "Function isn't dict" in
+  let get_field s =
+    assoc_dict s d @@ sp "Pred is missing '%s' field" s
+  in
+  let f_name = get_field "name" in
+  let f_args = get_field "args" in
+  let f_ret = get_field "ret" in
+  
+  let name = get_string f_name "'name' isn't string" in
+  let args = get_list f_args "'args' isn't list" |> List.map ty_of_yaml in
+  let ret = ty_of_yaml f_ret in
+  
+  { name ; args ; ret }
+  
 let exp_of_yaml (y : Yaml.value) : exp =
   let s =
     match y with
@@ -173,6 +195,7 @@ let method_spec_of_yaml (y : Yaml.value) : method_spec =
       EITE (bake_args b, bake_args t, bake_args f)
     | EFunc (s, el) ->
       EFunc (s, List.map bake_args el)
+    | e -> e
   in
 
   (* Return *)
@@ -249,14 +272,21 @@ let spec_of_yaml (y : Yaml.value) : spec =
   let precond = try let f_precond = get_field "precondition" in exp_of_yaml f_precond with 
       | BadInputFormat _ -> EConst (CBool true)
   in
-
+  
+  (* Functions *)
+  let functions = try let f_functions = get_field "functions" in get_list f_functions "'functions' isn't list" |> List.map smt_fn_of_yaml with
+      | BadInputFormat _ -> []
+  in
+  
+  
   { name = name
   ; preamble = preamble
   ; preds = preds
   ; state_eq = state_eq
   ; precond = precond
   ; state = state
-  ; methods = methods }
+  ; methods = methods 
+  ; smt_fns = functions }
 
 
 
@@ -267,6 +297,9 @@ module Spec_ToMLString = struct
 
   let term_list =
     ToMLString.pair Smt_ToMLString.ty (ToMLString.list Smt_ToMLString.exp)
+  
+  let smt_fn (s : smt_fn) =
+    sp "{name=%s; args=%s; ret=%s}" s.name (ToMLString.list Smt_ToMLString.ty s.args) (Smt_ToMLString.ty s.ret)
 
   let method_spec {name;args;ret;pre;post;terms} =
     sp "{name=%s;\nargs=%s;\nret=%s;\npre=%s;\npost=%s;\nterms=%s}"
@@ -277,8 +310,8 @@ module Spec_ToMLString = struct
     (Smt_ToMLString.exp post)
     (ToMLString.list term_list terms)
 
-  let spec {name;preamble;preds;state_eq;precond;state;methods} =
-    sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s}"
+  let spec {name;preamble;preds;state_eq;precond;state;methods;smt_fns} =
+    sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s;\nsmt_fns=%s}"
     (ToMLString.str name)
     (ToMLString.option ToMLString.str preamble)
     (ToMLString.list pred_sig preds)
@@ -286,5 +319,6 @@ module Spec_ToMLString = struct
     (Smt_ToMLString.exp precond)
     (Smt_ToMLString.ty_bindlist state)
     (ToMLString.list method_spec methods)
+    (ToMLString.list smt_fn smt_fns)
 
 end

@@ -13,6 +13,17 @@ let set_timeout_handler () = Sys.set_signal Sys.sigalrm @@
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
+let assoc_default (k : 'a) (l : ('a * 'b) list) (v : 'b) =
+  match List.assoc_opt k l with
+  | Some res -> res
+  | _ -> v
+
+let rec concat_unique r s = match r with
+  | [] -> s
+  | h :: t -> if List.mem h s then concat_unique t s else h :: concat_unique t s
+
+let flip f x y = f y x
+
 let swap (a,b) = b,a
 
 let compose f g x = f (g x)
@@ -21,6 +32,9 @@ let curry f x y = f (x, y)
 let uncurry f (x, y) = f x y
 
 let curry3 f x y z = f (x, y, z)
+
+let curry4 f x y z t = f (x, y, z, t)
+let uncurry4 f (x, y, z, t) = f x y z t
 
 let remove (x : 'a) : 'a list -> 'a list = List.filter (fun x' -> x' != x)
 
@@ -48,7 +62,16 @@ let memoize f =
         | None -> let res = f x in memo := (x, res) :: !memo; res
     end
 
+(* tail-recursive map: https://stackoverflow.com/a/27389842 *)
+let map_tr f l =
+  let rec map_aux acc = function
+    | [] -> List.rev acc
+    | x :: xs -> map_aux (f x :: acc) xs
+  in
+  map_aux [] l
+
 (* Global options *)
+let quiet = ref false
 let verbosity = ref false
 let very_verbose = ref false
 let if_verbose action = if !verbosity || !very_verbose then action () else ()
@@ -61,6 +84,7 @@ let sp = Printf.sprintf
 let epf = Printf.eprintf
 let pfv fmt = printf_verbose fmt
 let pfvv fmt = printf_very_verbose fmt
+let pfnq fmt = if !quiet then Printf.ifprintf stdout fmt else Printf.printf fmt
 
 (* Randomize order of items in a list *)
 let shuffle =
@@ -144,7 +168,7 @@ let find_exec (name : string) (progs : string list) : string =
   match List.find_opt Sys.file_exists progs with
   | Some s -> s
   | None ->
-    Printf.eprintf "%s not found at locations %s\n" name @@
+    Printf.eprintf "error: %s not found at locations %s\n" name @@
       String.concat ", " progs;
     exit 1
 
@@ -153,6 +177,17 @@ let waitpid_poll ?(interval=0.01) pid =
   while (!ret = 0) do
     ret := fst @@ Unix.waitpid [Unix.WNOHANG] pid;
     if !ret = 0 then Unix.sleepf interval
+  done
+
+let output_string_long buf str =
+  let i = ref 0 in
+  let len = String.length str in
+  let size = 16384 in
+  while !i < len do
+    let sublen = min size (len - !i) in
+    output_string buf (String.sub str !i sublen);
+    flush buf;
+    i := !i + size
   done
 
 let run_exec (prog : string) (args : string array) (output : string) =
@@ -164,7 +199,7 @@ let run_exec (prog : string) (args : string array) (output : string) =
           Unix.kill pid Sys.sigkill;
           raise Timeout)
       );
-  output_string chan_in output; flush chan_in; close_out chan_in;
+  output_string_long chan_in output; close_out chan_in;
   let _ = waitpid_poll pid in
   set_timeout_handler ();
   let sout = read_all_in chan_out in
@@ -312,3 +347,26 @@ let run_with_time_limit (limit : float) f =
   Fun.protect f ~finally:(fun () ->
     ignore @@ Unix.setitimer Unix.ITIMER_REAL Unix.{it_value = 0.; it_interval = 0. }
   )
+
+let remove_duplicate lst =
+  let rec is_member n mlst =
+    match mlst with
+    | [] -> false
+    | h::tl ->
+        begin
+          if h=n then true
+          else is_member n tl
+        end
+  in
+  let rec loop lbuf =
+    match lbuf with
+    | [] -> []
+    | h::tl ->
+        begin
+        let rbuf = loop tl
+        in
+          if is_member h rbuf then rbuf
+          else h::rbuf
+        end
+  in
+  loop lst

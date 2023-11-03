@@ -1,0 +1,31 @@
+adt and test case,time,time_synth,time_lattice_construct,natoms,quality
+Str: substr $ \bowtie $ hasChar,1.723482,1.691231,0.0,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.20458,0.183298,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,0.784874,0.763481,0.0,3,simple complete
+Str2: set $ \bowtie $ concat,6.70469,6.661836,0.0,9,simple incomplete
+Str3: read $ \bowtie $ write,1.537195,1.515919,0.0,16,complex complete
+LIA: sum $ \bowtie $ posSum,3.248475,3.224963,0.0,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,10.019227,9.996697,0.0,18,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,10.00492,9.932694,0.0,4,simple complete
+DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
+Set: add $ \bowtie $ add,-1.0,-1,N/A
+Set: add $ \bowtie $ contains,-1.0,-1,N/A
+Set: add $ \bowtie $ getsize,-1.0,-1,N/A
+Set: add $ \bowtie $ remove,-1.0,-1,N/A
+Set: contains $ \bowtie $ remove,-1.0,-1,N/A
+Set: getsize $ \bowtie $ remove,-1.0,-1,N/A
+Set: remove $ \bowtie $ remove,-1.0,-1,N/A
+HT: get $ \bowtie $ put,-1.0,-1,N/A
+HT: put $ \bowtie $ get,-1.0,-1,N/A
+HT: get $ \bowtie $ remove,-1.0,-1,N/A
+HT: haskey $ \bowtie $ put,-1.0,-1,N/A
+HT: haskey $ \bowtie $ remove,-1.0,-1,N/A
+HT: put $ \bowtie $ put,-1.0,-1,N/A
+HT: put $ \bowtie $ remove,-1.0,-1,N/A
+HT: put $ \bowtie $ size,-1.0,-1,N/A
+HT: remove $ \bowtie $ remove,-1.0,-1,N/A
+HT: remove $ \bowtie $ size,-1.0,-1,N/A
+Sta: pop $ \bowtie $ pop,0.15343,0.142353,0.0,1,simple complete
+Sta: push $ \bowtie $ pop,1.212746,1.201368,0.0,2,simple complete
+Sta: pop $ \bowtie $ push,0.3991,0.387647,0.0,1,simple complete
+Sta: push $ \bowtie $ push,0.154065,0.142463,0.0,1,simple complete

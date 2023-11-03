@@ -1,0 +1,68 @@
+# Bit-vector representation of a dynamic set
+
+name: bv-set
+
+state:
+  - name: a
+    type: (_ BitVec 16)
+
+states_equal:
+  definition: (bvequal a_1 a_2)
+
+precondition: "true"
+
+preamble: |
+  (define-fun bvequal ((a (_ BitVec 16)) (b (_ BitVec 16))) Bool (and (bvule a b) (bvuge a b)))
+
+methods:
+  - name: contains
+    args:
+      - name: x
+        type: (_ BitVec 16)
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (bvule x #b0000000000001111)
+    ensures: |
+      (and
+         (= a_new a)
+         (= result
+            (let ( (i (bvshl #b0000000000000001 x)) )
+                 (bvequal (bvand a i) i))))
+    terms:
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvand a (bvshl #b0000000000000001 $1))"]
+      
+  - name: insert
+    args:
+      - name: x
+        type: (_ BitVec 16)
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (bvule x #b0000000000001111)
+    ensures: |
+      (and (= a_new (bvor a (bvshl #b0000000000000001 x)))
+           (= result true))
+    terms:
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvor a (bvshl #b0000000000000001 $1))"]
+
+  - name: delete
+    args:
+      - name: x
+        type: (_ BitVec 16)
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (bvule x #b0000000000001111)
+    ensures: |
+      (and (= a_new (bvand a (bvnot (bvshl #b0000000000000001 x))))
+           (= result true))
+    terms:
+      (_ BitVec 16): [a, $1, "#b0000000000000001", "(bvshl #b0000000000000001 $1)", "(bvadd a (bvnot (bvshl #b0000000000000001 $1)))"]
+            
+predicates:
+  - name: "bvequal"
+    type: [(_ BitVec 16), (_ BitVec 16)]

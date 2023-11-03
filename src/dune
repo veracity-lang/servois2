@@ -1,7 +1,9 @@
+(include_subdirs unqualified)
+
 (library
  (name servois2)
  (public_name servois2)
- (libraries unix str yaml)
+ (libraries unix str yaml zarith)
  (modules (:standard \ run))
  (wrapped true)
  (synopsis "Servois"))

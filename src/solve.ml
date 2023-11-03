@@ -23,6 +23,8 @@ type mode = Bowtie | LeftMover | RightMover
 
 let mode = ref Bowtie
 
+let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n"
+
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     unlines [
         sp "(define-fun %s" name;
@@ -38,19 +40,26 @@ let smt_of_spec = memoize @@ fun spec ->
         ""] @
         begin match spec.preamble with
             | Some s -> [s]
-            | None -> [] end @ [
+            | None -> [] end @
+        (* Make a variable for state variable *)
+        List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
+        (* Make a variable for each method argument *)
+        let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
+        let args = List.map (fun x -> x.args) all_mangled in
+        let args_str = List.concat_map (List.map (first string_of_var)) args in
+        List.map (uncurry mk_var) args_str @ [
         define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq] @
-        (List.map (fun (m : method_spec) ->
+        let mk_method (m : method_spec) = 
             let s_old = s in let s_new = make_new_bindings s in
             sp "%s\n%s"
                 (define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre)
                 (define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post)
-            ) spec.methods) @ [
+        in
+        List.map mk_method all_mangled @ [
         ";; END: smt_of_spec " ^ spec.name]
 
 let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let (datanames : string list) = List.map name_of_binding spec.state in
-    let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n" in
     let pre_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) datanames @ argslist) in
     let post_args_list old_postfix new_postfix argslist ret = String.concat " "
         (List.map (fun a -> a ^ old_postfix) datanames @
@@ -66,12 +75,9 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let vars_ref = ref "" in
     let (^=) s1 s2 = s1 := !s1 ^ s2 in
     
-    (* Make a variable for each argument *)
-    vars_ref ^= (uncurry mk_var |> Fun.flip List.map (m1args_binding @ m2args_binding) |> String.concat "");
-    
     (* Make a variable for each state variable in each post state *)
     iter_prod (fun databinding e -> vars_ref ^= mk_var (name_of_binding databinding ^ e) (snd databinding))
-        spec.state [""; "1"; "2"; "12"; "21"];
+        spec.state ["1"; "2"; "12"; "21"];
     (* TODO: What if result is in datanames? *)
     
     (* Make results for m1, then m2, for each of the times we call them in the diamond. *)
@@ -147,13 +153,12 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   flush stdout;
   run_prover prover s |> parse_prover_output prover
 
-let filter_predicates (prover : (module Prover)) spec m1 m2 (preds : pred list) =
+let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
     let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in
 
     let full_input = unlines @@
         [ "(set-logic ALL)"
-        ; smt_of_spec spec
-        ; generate_bowtie spec m1 m2] @
+        ; smt_of_spec spec] @
         List.concat_map (fun p -> let e = smt_of_pred p in
             [query e; query (EUop(Not, e))]) preds in
             

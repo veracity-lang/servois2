@@ -1,0 +1,39 @@
+adt and test case,time,time_synth,time_lattice_construct,natoms,quality
+ht-cond-size-get,1.70,1.67,0.00,3,simple complete 
+pullPayment,1.97,1.92,0.00,3,simple complete 
+linear-bool,6.41,6.37,0.00,9,simple complete 
+linear,0.14,0.02,0.00,0,simple complete 
+auction1,0.47,0.03,0.00,0,simple complete 
+ht-add-put,-1,-1,-1,-1,error 
+array2,2.12,2.08,0.00,3,simple complete 
+simple,-1,-1,-1,-1,error 
+auction2,0.43,0.03,0.00,0,simple complete 
+dict,-1,-1,-1,-1,error 
+nested-counter_1,2.65,2.61,0.00,3,simple complete 
+nested-counter_2,16.40,16.35,0.00,26,complex complete 
+even-odd,42.26,42.22,0.00,79,complex incomplete 
+conditional,-1,-1,-1,-1,error 
+nonlinear,0.85,0.72,0.00,1,simple complete 
+auction4,0.81,0.34,0.00,1,simple complete 
+ht-cond-mem-get,-1,-1,-1,-1,error 
+ht-simple,-1,-1,-1,-1,error 
+calc,-2,-2,0.00,73,complex incomplete 
+standardToken2,11.51,11.31,0.00,2,simple complete 
+array1,3.65,3.61,0.00,8,simple complete 
+standardToken4,1.27,1.17,0.00,1,simple complete 
+standardToken5,14.44,14.11,0.00,2,simple complete 
+auction3,-2,-2,0.00,9,simple incomplete 
+matrix,0.59,0.37,0.00,1,simple complete 
+counter,0.25,0.22,0.00,1,simple complete 
+nested_1,0.04,0.02,0.00,0,simple complete 
+nested_2,0.21,0.18,0.00,1,simple complete 
+array3,0.81,0.77,0.00,3,simple complete 
+standardToken3,1.50,1.45,0.00,1,simple complete 
+linear-cond,2.00,1.96,0.00,5,simple complete 
+standardToken1,0.05,0.02,0.00,0,simple complete 
+dot-product,0.08,0.02,0.00,0,simple complete 
+array-disjoint,0.71,0.69,0.00,3,simple complete 
+loop-inter,-2,-2,0.00,0,simple incomplete 
+loop-disjoint,0.03,0.02,0.00,0,simple complete 
+loop-amt,0.89,0.86,0.00,0,simple incomplete 
+loop-simple,0.06,0.02,0.00,0,simple complete  

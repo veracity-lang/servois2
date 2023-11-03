@@ -1,0 +1,31 @@
+adt and test case,time,time_synth,time_lattice_construct,natoms,quality
+Str: substr $ \bowtie $ hasChar,3.035184,1.005227,1.977942,3,simple complete
+Str: substr $ \bowtie $ isEmpty,0.545901,0.223356,0.301337,1,simple complete
+Str: hasChar $ \bowtie $ concat,1.870404,1.091823,0.737218,3,simple complete
+Str2: set $ \bowtie $ concat,26.061805,22.209788,3.789626,42,complex incomplete
+Str3: read $ \bowtie $ write,3.550118,2.934773,0.584157,34,complex complete
+LIA: sum $ \bowtie $ posSum,4.78283,1.367087,3.372909,4,simple complete
+LIA: sum $ \bowtie $ multiVarSum,9.97526,8.068034,1.875182,31,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,-2,-2,30.007687,4,simple complete
+DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
+Set: add $ \bowtie $ add,0.349925,0.29732,0.041522,3,simple complete
+Set: add $ \bowtie $ contains,0.308841,0.256088,0.041801,3,simple complete
+Set: add $ \bowtie $ getsize,0.164444,0.112155,0.041467,1,simple complete
+Set: add $ \bowtie $ remove,0.226299,0.132538,0.072529,1,simple complete
+Set: contains $ \bowtie $ remove,0.330307,0.256769,0.052532,3,simple complete
+Set: getsize $ \bowtie $ remove,0.164561,0.112147,0.041516,1,simple complete
+Set: remove $ \bowtie $ remove,0.400489,0.275927,0.103338,3,simple complete
+HT: get $ \bowtie $ put,0.369326,0.234571,0.113699,3,simple complete
+HT: put $ \bowtie $ get,0.512842,0.377809,0.113978,5,simple complete
+HT: get $ \bowtie $ remove,0.1957,0.112359,0.062399,1,simple complete
+HT: haskey $ \bowtie $ put,0.430835,0.326893,0.082868,3,simple complete
+HT: haskey $ \bowtie $ remove,0.339862,0.256066,0.062808,3,simple complete
+HT: put $ \bowtie $ put,1.54245,1.180045,0.330946,12,complex complete
+HT: put $ \bowtie $ remove,0.339593,0.162701,0.15562,1,simple complete
+HT: put $ \bowtie $ size,0.195107,0.112232,0.061907,1,simple complete
+HT: remove $ \bowtie $ remove,0.400129,0.275621,0.103416,3,simple complete
+HT: remove $ \bowtie $ size,0.174702,0.112257,0.041533,1,simple complete
+Sta: pop $ \bowtie $ pop,0.216267,0.153348,0.051814,1,simple complete
+Sta: push $ \bowtie $ pop,0.320308,0.214785,0.084041,2,simple complete
+Sta: pop $ \bowtie $ push,0.279235,0.173965,0.083839,1,simple complete
+Sta: push $ \bowtie $ push,0.258252,0.112354,0.124466,1,simple complete

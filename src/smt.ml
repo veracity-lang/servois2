@@ -30,6 +30,10 @@ type const =
   | CInt of int
   | CBool of bool
   | CString of string
+  | CBitVector of bool list
+
+let bv_of_string s = let acc = ref [] in String.iter (fun c -> acc := (c != '0') :: !acc) s; List.rev !acc
+let string_of_bv = compose (String.concat "") @@ List.map (fun b -> if b then "1" else "0")
 
 type bop =
   | Sub | Mul | Mod | Div
@@ -79,7 +83,7 @@ let rec make_recursive (f : exp -> exp) (* f only needs to work on EVar, EArg, E
   | EBop(b, el, er) -> EBop(b, make_recursive f el, make_recursive f er)
   | EUop(u, e) -> EUop(u, make_recursive f e)
   | ELop(lop, es) -> ELop(lop, List.map (make_recursive f) es)
-  | ELet(binds, e) -> ELet(binds, make_recursive f e)
+  | ELet(binds, e) -> ELet(List.map (second (make_recursive f)) binds, make_recursive f e)
   | EForall(binds, e) -> EForall(binds, make_recursive f e)
   | EExists(binds, e) -> EExists(binds, make_recursive f e)
   | EITE(i, t, e) -> EITE(make_recursive f i, make_recursive f t, make_recursive f e)
@@ -110,6 +114,7 @@ module To_String = struct
     | CInt i  -> string_of_int i
     | CBool b -> if b then "true" else "false"
     | CString s -> sp "\"%s\"" s
+    | CBitVector v -> sp "#b%s" (string_of_bv v)
 
   let bop : bop -> string = function
     | Sub -> "-"
@@ -188,6 +193,7 @@ module Smt_ToMLString = struct
     | CInt i  -> "CInt " ^ string_of_int i
     | CBool b -> if b then "CBool true" else "CBool false"
     | CString s -> "CString " ^ ToMLString.str s
+    | CBitVector v -> "CBitVector " ^ ToMLString.list string_of_bool v
 
   let bop = function
     | Sub -> "Sub"
@@ -242,7 +248,75 @@ let make_new : ty binding -> ty binding = function
 
 let make_new_bindings = List.map make_new
 
+let rec size = string_of_smt |> compose (String.split_on_char ' ') |> compose List.length
+(* function
+  | EVar _ -> 1
+  | EArg _ -> raise @@ UnreachableFailure "Unbaked indexed argument"
+  | EConst _ -> 1
+  | EBop(_, e1, e2) -> 1 + size e1 + size e2
+  | EUop(_, e) -> 1 + size e
+  | ELop(_, es) -> List.length es + list_sum (List.map size es)
+  | ELet(_, e) -> 1 + size e
+  | EITE(e1, e2, e3) -> 1 + size e1 + size e2 + size e3
+  | EFunc(_, es) -> List.length es + list_sum (List.map size es)
+  | EExists(_, e) -> 1 + size e
+*)
+
 type pred = string * exp * exp
+type predP = P of pred | NotP of pred
+let negate: predP -> predP = function
+  | P p -> NotP p
+  | NotP p -> P p
 
 let smt_of_pred (op, e1, e2) = EFunc(op, [e1; e2])
 let string_of_pred = compose string_of_smt smt_of_pred
+let exp_of_predP: predP -> exp = function
+  |P p -> smt_of_pred p
+  |NotP p -> EUop (Not, smt_of_pred p)
+let string_of_predP: predP -> string = compose string_of_smt exp_of_predP
+
+let pred_pretty_print ?(negate = false) ?(paran = ("", "")) p =
+  let (op, e1, e2) = p in
+  let op_pretty_print ?(negate = false) o = 
+    match negate, o  with
+      ( _, "+" | _, "-" | _, "*" | _, "div" | _, "mod" | _, "abs") -> o 
+    | false, o -> o 
+    | true, "=" -> "\u{2260}"
+    | true, ">" -> "\u{2264}"
+    | true, ">=" -> "<"
+    | true, "<" -> "\u{2265}"
+    | true, "<=" -> ">"
+    | true, o -> sp "not %s" o 
+  in
+  let rec exp_pretty_print ?(negate = false) e = 
+    match e with
+    |EBop (o, e1, e2) -> sp "(%s %s %s)" 
+                           (exp_pretty_print ~negate:negate e1) 
+                           (op_pretty_print ~negate:negate (To_String.bop o))
+                           (exp_pretty_print ~negate:negate e2)
+    |ELop (Add as o, [e1; e2]) -> sp "(%s %s %s)" 
+                                    (exp_pretty_print ~negate:negate e1) 
+                                    (op_pretty_print ~negate:negate (To_String.lop o))
+                                    (exp_pretty_print ~negate:negate e2)
+    |EFunc (f, es) -> 
+      begin match f, es with
+        | ("+", [e1;e2] | "-", [e1;e2] 
+          | "*", [e1;e2] | "div", [e1;e2] 
+          | "mod", [e1;e2]
+          | "abs", [e1;e2]) ->
+          sp ("%s %s %s") 
+            (exp_pretty_print ~negate:negate e1) 
+            (op_pretty_print ~negate:false f)
+            (exp_pretty_print ~negate:negate e2)
+        | _, _ -> To_String.exp e
+      end
+    | _ -> To_String.exp e
+    in
+    let e1_pp = exp_pretty_print ~negate:negate e1 in
+    let e2_pp = exp_pretty_print ~negate:negate e2 in
+    let op_pp = op_pretty_print ~negate:negate op in
+    sp "%s%s %s %s%s" (fst paran) e1_pp op_pp e2_pp (snd paran)
+
+let predP_pretty_print = function
+  | P p -> pred_pretty_print ~paran:("(", ")") p
+  | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p

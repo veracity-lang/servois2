@@ -1,0 +1,155 @@
+# Hash table data structure's abstract definition
+
+name: Dihedral
+
+precondition:
+  (and (= x0 0) (= x1 1) (= x2 2) (= x3 3) (= x4 4) (= x5 5))
+
+preamble: |
+  (define-fun r0 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x0
+      (ite (= n 1) x1
+      (ite (= n 2) x2
+      (ite (= n 3) x3
+      (ite (= n 4) x4 x5
+      )))))
+  )
+  (define-fun r1 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x1
+      (ite (= n 1) x2
+      (ite (= n 2) x3
+      (ite (= n 3) x4
+      (ite (= n 4) x5 x0
+      )))))
+  )
+  (define-fun r2 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int
+      (ite (= n 0) x2
+      (ite (= n 1) x3
+      (ite (= n 2) x4
+      (ite (= n 3) x5
+      (ite (= n 4) x0 x1
+      )))))
+  )
+  (define-fun r3 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x3
+      (ite (= n 1) x4
+      (ite (= n 2) x5
+      (ite (= n 3) x0
+      (ite (= n 4) x1 x2
+      )))))
+  )
+  (define-fun r4 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x4
+      (ite (= n 1) x5
+      (ite (= n 2) x0
+      (ite (= n 3) x1
+      (ite (= n 4) x2 x3
+      )))))
+  )
+  (define-fun r5 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x5
+      (ite (= n 1) x0
+      (ite (= n 2) x1
+      (ite (= n 3) x2
+      (ite (= n 4) x3 x4
+      )))))
+  )
+  (define-fun s0 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x0
+      (ite (= n 1) x5
+      (ite (= n 2) x4
+      (ite (= n 3) x3
+      (ite (= n 4) x2 x1
+      )))))
+  )
+  (define-fun s1 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x5
+      (ite (= n 1) x1
+      (ite (= n 2) x3
+      (ite (= n 3) x2
+      (ite (= n 4) x1 x0
+      )))))
+  )
+  (define-fun s2 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x4
+      (ite (= n 1) x0
+      (ite (= n 2) x2
+      (ite (= n 3) x1
+      (ite (= n 4) x0 x5
+      )))))
+  )
+  (define-fun s3 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x3
+      (ite (= n 1) x4
+      (ite (= n 2) x1
+      (ite (= n 3) x0
+      (ite (= n 4) x5 x4
+      )))))
+  )
+  (define-fun s4 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x2
+      (ite (= n 1) x3
+      (ite (= n 2) x0
+      (ite (= n 3) x5
+      (ite (= n 4) x4 x3
+      )))))
+  )
+  (define-fun s5 ((n Int) (x0 Int) (x1 Int) (x2 Int) (x3 Int) (x4 Int) (x5 Int)) Int 
+      (ite (= n 0) x1
+      (ite (= n 1) x2
+      (ite (= n 2) x5
+      (ite (= n 3) x4
+      (ite (= n 4) x3 x2
+      )))))
+  )
+
+state:
+  - name: x0
+    type: Int
+  - name: x1
+    type: Int
+  - name: x2
+    type: Int
+  - name: x3
+    type: Int
+  - name: x4
+    type: Int
+  - name: x5
+    type: Int
+
+states_equal:
+  definition: |
+    (and (= x0_1 x0_2)
+         (= x1_1 x1_2)
+         (= x2_1 x2_2)
+         (= x3_1 x3_2)
+         (= x4_1 x4_2)
+         (= x5_1 x5_2)
+    )
+
+methods:
+  - name: rotate
+    args:
+      - name: rn
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (and (<= 0 rn) (< rn 6))
+    ensures: |
+      (and (= result true)
+           (= x0_new (r0 rn x0 x1 x2 x3 x4 x5))
+           (= x1_new (r1 rn x0 x1 x2 x3 x4 x5))
+           (= x2_new (r2 rn x0 x1 x2 x3 x4 x5))
+           (= x3_new (r3 rn x0 x1 x2 x3 x4 x5))
+           (= x4_new (r4 rn x0 x1 x2 x3 x4 x5))
+           (= x5_new (r5 rn x0 x1 x2 x3 x4 x5))
+       )
+    terms:
+      Int: [rn, 0, 1, 2, 3]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
+

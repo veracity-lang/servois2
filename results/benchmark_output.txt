@@ -1,0 +1,2340 @@
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--auto-terms', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'z3', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--auto-terms', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc4', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--auto-terms', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+
+Failure: ('Fatal error: exception Failure("this function is not defined: r0")\n',)
+Done.
+
+Failure in dihedral3.yml, motion $ \bowtie $ motion: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'add', 'add']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ add: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'add', 'contains']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ contains: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'add', 'getsize']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ getsize: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'add', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, add $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'contains', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, contains $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'getsize', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, getsize $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/set.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in set.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'get']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ get: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', '--lattice', './yamls/hashtable.yml', 'get', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, get $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'haskey', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, haskey $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'put']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ put: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'put', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, put $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'remove']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ remove: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/hashtable.yml', 'remove', 'size']
+
+Failure: ('Fatal error: exception Failure("filter_predicates")\n',)
+Done.
+
+Failure in hashtable.yml, remove $ \bowtie $ size: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'pop']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'pop']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, push $ \bowtie $ pop: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--rightmover', '--poke2', '--lattice', './yamls/stack.yml', 'pop', 'push']
+
+Failure: ('Fatal error: exception SMT parse failure at [1.2-1.7] of \'(error "Parse Error: <stdin>:266.10: Invalid argument \'groundTerm_2\' for \'*d_node\', expected Term to be an abstract value when calling getUninterpretedSortValue()")\'\n',)
+Done.
+
+Failure in stack.yml, pop $ \bowtie $ push: ("'NoneType' object is not subscriptable",)
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--poke2', '--lattice', './yamls/stack.yml', 'push', 'push']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max', '--lattice', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'hasChar']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/string.yml', 'substr', 'isEmpty']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/string.yml', 'hasChar', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/string2.yml', 'set', 'concat']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/string3.yml', 'read', 'write']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'posSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/lia.yml', 'sum', 'multiVarSum']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/lia.yml', 'multiVarA', 'multiVarB']
+Done.
+Running command: ['./src/servois2', 'synth', '--timeout', '30', '-q', '--prover', 'cvc5', '--mcpeak-max-poke2', './yamls/dihedral3.yml', 'motion', 'motion']
+Done.

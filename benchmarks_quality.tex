@@ -1,0 +1,69 @@
+\begin{table} \begin{center} \begin{tabular}{l|c|c|c|c} \toprule
+\bf{ADT} & \bf{Methods} & Wallclock Time (seconds) & Condition & Goodness\\
+\toprule
+\hline
+Str & substr $ \bowtie $ hasChar &  & \bf{1.53}& \texttt{(or (not (str.contains data m2\_hasChar\_chara)) (and (str.contains (str.substr data m1\_substr\_start m1\_substr\_end) m2\_hasChar\_chara) (str.contains data m2\_hasChar\_chara)))
+} & simple complete\\
+ & substr $ \bowtie $ isEmpty &  & \bf{0.77}& \texttt{(not (<= m1\_substr\_end 0))
+} & simple complete\\
+ & hasChar $ \bowtie $ concat &  & \bf{2.80}& \texttt{(or (and (not (str.contains m2\_concat\_other m1\_hasChar\_chara)) (not (str.contains m1\_hasChar\_chara m2\_concat\_other)) (not (str.contains data m2\_concat\_other))) (and (str.contains data m1\_hasChar\_chara) (str.contains m2\_concat\_other m1\_hasChar\_chara) (not (str.contains m1\_hasChar\_chara m2\_concat\_other)) (not (str.contains data m2\_concat\_other))) (str.contains data m2\_concat\_other))
+} & simple complete\\
+\hline
+LIA & sum $ \bowtie $ posSum &  & \bf{1.55}& \texttt{(or (and (not (\textgreater\ 0 x)) (not (\textgreater\ 0 (+ x y))) (not (= 0 y))) (= 0 y))
+} & simple complete\\
+ & sum $ \bowtie $ multiVarSum &  & \bf{7.69}& \texttt{(or (and (\textgreater\ i z) (not (\textgreater\ y z)) (not (\textgreater\ 0 (+ x y))) (not (\textgreater\ (+ y i) x)) (not (\textgreater\ (+ x y) 0)) (not (\textgreater\ z y)) (not (\textgreater\ x (+ y i))) (not (= 0 y))) (and (not (\textgreater\ i x)) (= z (+ y i)) (not (\textgreater\ (+ x y) z)) (\textgreater\ (+ x y) 0) (not (\textgreater\ z y)) (not (\textgreater\ x (+ y i))) (not (= 0 y))) (= 0 y))
+} & complex incomplete\\
+ & multiVarA $ \bowtie $ multiVarB &  & \bf{8.53}& \texttt{(or (and (not (\textgreater\ x y)) (not (\textgreater\ x 0)) (not (= y 0))) (= y 0))
+} & simple complete\\
+\hline
+Set & add $ \bowtie $ add &  & \bf{1.16}& \texttt{(or (and (not (= m2\_add\_v m1\_add\_v)) (not (member m1\_add\_v S))) (member m1\_add\_v S))
+} & simple complete\\
+ & add $ \bowtie $ contains &  & \bf{0.65}& \texttt{(or (and (not (= m2\_contains\_v m1\_add\_v)) (not (member m1\_add\_v S))) (member m1\_add\_v S))
+} & simple complete\\
+ & add $ \bowtie $ getsize &  & \bf{0.24}& \texttt{(member m1\_add\_v S)
+} & simple complete\\
+ & add $ \bowtie $ remove &  & \bf{0.73}& \texttt{(not (= m2\_remove\_v m1\_add\_v))
+} & simple complete\\
+ & contains $ \bowtie $ remove &  & \bf{0.95}& \texttt{(or (not (member m1\_contains\_v S)) (and (not (= m2\_remove\_v m1\_contains\_v)) (member m1\_contains\_v S)))
+} & simple complete\\
+ & getsize $ \bowtie $ remove &  & \bf{0.23}& \texttt{(not (member m2\_remove\_v S))
+} & simple complete\\
+ & remove $ \bowtie $ remove &  & \bf{1.12}& \texttt{(or (not (member m1\_remove\_v S)) (and (not (= m2\_remove\_v m1\_remove\_v)) (member m1\_remove\_v S)))
+} & simple complete\\
+\hline
+HT & get $ \bowtie $ put &  & \bf{0.56}& \texttt{(or (and (not (= m2\_put\_k0 m1\_get\_k0)) (not (= m2\_put\_v0 (select H m2\_put\_k0)))) (= m2\_put\_v0 (select H m2\_put\_k0)))
+} & simple complete\\
+ & put $ \bowtie $ get &  & \bf{0.86}& \texttt{(or (and (not (= m2\_get\_k0 m1\_put\_k0)) (not (= m1\_put\_v0 (select H m1\_put\_k0))) (member m2\_get\_k0 keys)) (and (= m1\_put\_v0 (select H m1\_put\_k0)) (member m2\_get\_k0 keys)))
+} & simple complete\\
+ & get $ \bowtie $ remove &  & \bf{0.41}& \texttt{(not (= m2\_remove\_v m1\_get\_k0))
+} & simple complete\\
+ & haskey $ \bowtie $ put &  & \bf{0.60}& \texttt{(or (and (not (= m2\_put\_k0 m1\_haskey\_k0)) (not (member m2\_put\_k0 keys))) (member m2\_put\_k0 keys))
+} & simple complete\\
+ & haskey $ \bowtie $ remove &  & \bf{0.61}& \texttt{(or (not (member m1\_haskey\_k0 keys)) (and (not (= m2\_remove\_v m1\_haskey\_k0)) (member m1\_haskey\_k0 keys)))
+} & simple complete\\
+ & put $ \bowtie $ put &  & \bf{2.36}& \texttt{(or (and (not (= m2\_put\_k0 m1\_put\_k0)) (not (member m1\_put\_k0 keys))) (and (not (= m2\_put\_k0 m1\_put\_k0)) (not (= m2\_put\_v0 (select H m2\_put\_k0))) (member m1\_put\_k0 keys)) (and (not (= m2\_put\_k0 m1\_put\_k0)) (not (= m1\_put\_v0 (select H m1\_put\_k0))) (= m2\_put\_v0 (select H m2\_put\_k0)) (member m1\_put\_k0 keys)) (and (= m1\_put\_v0 (select H m1\_put\_k0)) (= m2\_put\_v0 (select H m2\_put\_k0)) (member m1\_put\_k0 keys)))
+} & complex complete\\
+ & put $ \bowtie $ remove &  & \bf{0.51}& \texttt{(not (= m2\_remove\_v m1\_put\_k0))
+} & simple complete\\
+ & put $ \bowtie $ size &  & \bf{0.32}& \texttt{(member m1\_put\_k0 keys)
+} & simple complete\\
+ & remove $ \bowtie $ remove &  & \bf{1.55}& \texttt{(or (not (member m1\_remove\_v keys)) (and (not (= m2\_remove\_v m1\_remove\_v)) (member m1\_remove\_v keys)))
+} & simple complete\\
+ & remove $ \bowtie $ size &  & \bf{0.26}& \texttt{(not (member m1\_remove\_v keys))
+} & simple complete\\
+\hline
+Sta & pop $ \bowtie $ pop &  & \bf{0.32}& \texttt{(= top nextToTop)
+} & simple complete\\
+ & push $ \bowtie $ pop &  & \bf{0.53}& \texttt{(and (= top m1\_push\_v) (not (= size 0)))
+} & simple complete\\
+ & pop $ \bowtie $ push &  & \bf{0.34}& \texttt{(= top m2\_push\_v)
+} & simple complete\\
+ & push $ \bowtie $ push &  & \bf{0.55}& \texttt{(= m2\_push\_v m1\_push\_v)
+} & simple complete\\
+\hline
+DiH & motion $ \bowtie $ motion &  & \bf{12.89}& \texttt{(or (and (= 3 m1\_motion\_rn) (not (= m2\_motion\_s m1\_motion\_s)) (= false m1\_motion\_s) (not (= m2\_motion\_rn 2)) (not (= 4 m1\_motion\_rn)) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= false m1\_motion\_s) (not (= m2\_motion\_rn 2)) (not (= 4 m1\_motion\_rn)) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= false m1\_motion\_s) (not (= 5 m1\_motion\_rn)) (= m2\_motion\_rn 2) (not (= 4 m1\_motion\_rn)) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= 5 m1\_motion\_rn) (= m2\_motion\_rn 2) (not (= 4 m1\_motion\_rn)) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (not (= m2\_motion\_rn 2)) (= 4 m1\_motion\_rn) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= false m1\_motion\_s) (= m2\_motion\_rn 2) (= 4 m1\_motion\_rn) (not (= m2\_motion\_rn 5)) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (not (= 4 m1\_motion\_rn)) (not (= m2\_motion\_s m1\_motion\_s)) (not (= 2 m1\_motion\_rn)) (not (= false m2\_motion\_s)) (= m2\_motion\_rn 5) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= 2 m1\_motion\_rn) (not (= false m2\_motion\_s)) (= m2\_motion\_rn 5) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= false m2\_motion\_s) (= m2\_motion\_rn 5) (not (= 1 m1\_motion\_rn)) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= false m1\_motion\_s) (= 1 m1\_motion\_rn) (not (= m2\_motion\_rn 4)) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (not (= 5 m1\_motion\_rn)) (not (= m2\_motion\_s m1\_motion\_s)) (not (= 1 m1\_motion\_rn)) (not (= 2 m1\_motion\_rn)) (not (= false m2\_motion\_s)) (= m2\_motion\_rn 4) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= 1 m1\_motion\_rn) (not (= 2 m1\_motion\_rn)) (not (= false m2\_motion\_s)) (= m2\_motion\_rn 4) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= false m2\_motion\_s) (= m2\_motion\_rn 4) (not (= m2\_motion\_rn m1\_motion\_rn)) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= m2\_motion\_s m1\_motion\_s) (= m2\_motion\_rn m1\_motion\_rn) (not (= 0 m1\_motion\_rn)) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= false m1\_motion\_s) (= 0 m1\_motion\_rn) (not (= m2\_motion\_rn 3)) (not (= m2\_motion\_rn 0))) (and (= 3 m1\_motion\_rn) (not (= false m2\_motion\_s)) (not (= 0 m1\_motion\_rn)) (= m2\_motion\_rn 3) (not (= m2\_motion\_rn 0))) (and (= false m2\_motion\_s) (not (= 0 m1\_motion\_rn)) (= m2\_motion\_rn 3) (not (= m2\_motion\_rn 0))) (and (= 0 m1\_motion\_rn) (= m2\_motion\_rn 3) (not (= m2\_motion\_rn 0))) (and (= 3 m1\_motion\_rn) (not (= false m2\_motion\_s)) (not (= 0 m1\_motion\_rn)) (= m2\_motion\_rn 0)) (and (= false m2\_motion\_s) (not (= 0 m1\_motion\_rn)) (= m2\_motion\_rn 0)) (and (= 0 m1\_motion\_rn) (= m2\_motion\_rn 0)))
+} & complex complete\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

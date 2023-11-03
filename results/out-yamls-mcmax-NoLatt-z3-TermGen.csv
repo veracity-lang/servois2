@@ -1,0 +1,10 @@
+adt and test case,time,time_synth,time_lattice_construct,natoms,quality
+Str: substr $ \bowtie $ hasChar,1.176016,1.14346,0.0,15,complex complete
+Str: substr $ \bowtie $ isEmpty,0.3067,0.285398,0.0,1,simple complete
+Str: hasChar $ \bowtie $ concat,0.970308,0.948979,0.0,15,complex complete
+Str2: set $ \bowtie $ concat,30.042793,30.000032,0.0,0,simple incomplete
+Str3: read $ \bowtie $ write,6.598211,6.57684,0.0,114,complex complete
+LIA: sum $ \bowtie $ posSum,9.361666,9.33823,0.0,304,complex complete
+LIA: sum $ \bowtie $ multiVarSum,15.424265,15.401763,0.0,652,complex incomplete
+LIA: multiVarA $ \bowtie $ multiVarB,11.584663,11.512442,0.0,215,complex complete
+DiH: motion $ \bowtie $ motion,-1.0,-1,N/A
