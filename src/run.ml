@@ -91,7 +91,7 @@ end
 
 module RunSynth : Runner = struct
   let usage_msg exe_name =
-    "Usage: " ^ exe_name ^ " synth [<flags>] <vcy program> <method 1> <method 2>"
+    "Usage: " ^ exe_name ^ " synth [<flags>] <yaml file> <method 1> <method 2>"
   
   open CommonOptions
   
