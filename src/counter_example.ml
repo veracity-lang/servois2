@@ -73,6 +73,7 @@ let spec : spec =
   EBop (Eq, EVar (Var "contents"),
    EVar (VarPost "contents"));
  precond = (EBop (Gte, EVar (Var "contents"), EConst (CInt 0)));
+ postcond = (EConst (CBool true));
  state = [(Var "contents", TInt)];
  methods =
   [{Spec.name = "increment"; args = [];
