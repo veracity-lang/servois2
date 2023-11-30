@@ -1,0 +1,43 @@
+
+# Unit tests for Hoare logic
+
+name: hoare
+
+state:
+  - name: xx
+    type: Int
+
+states_equal:
+  definition: (= xx_1 xx_2)
+
+methods:
+  - name: flip
+    args: []
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= xx_new (* xx (- 1)))
+           (= result true))
+    terms:
+      Int: [xx, (- 1), (* xx (- 1))]
+  - name: add
+    args:
+      - name: 'y'
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= xx_new (+ xx y))
+           (= result true))
+    terms:
+      Int: [xx, $1, (+ xx $1), $1]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
