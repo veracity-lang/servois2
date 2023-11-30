@@ -1,6 +1,14 @@
 
 # Unit tests for Hoare logic
 
+# ./servois2 synth ../yamls/hoare.yml skip flip --prover cvc5 --very-verbose
+# The postcondition is that xx is -5, so should generate
+# precondition that xx is 5.
+
+# ./servois2 synth ../yamls/hoare.yml skip add --prover cvc5 --very-verbose
+# The postcondition is that xx is -5, so should generate
+# precondition that xx is -6, and require that y is 1???
+
 name: hoare
 
 state:
@@ -10,7 +18,21 @@ state:
 states_equal:
   definition: (= xx_1 xx_2)
 
+postcondition: (= xx (- 5))
+
 methods:
+  - name: skip
+    args: []
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= xx_new xx)
+           (= result true))
+    terms:
+      Int: [xx]
   - name: flip
     args: []
     return: 
