@@ -22,8 +22,8 @@ let verify ?(options = default_verify_options) spec m n cond =
     let spec = if options.lift then lift spec else spec in
     
     let implication_function = if options.ncom
-        then non_commute_of_smt
-        else commute_of_smt
+        then non_commute_of_smt spec
+        else commute_of_smt spec
     in
     
     let m_spec = get_method spec m |> mangle_method_vars true in
