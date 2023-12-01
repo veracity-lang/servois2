@@ -49,6 +49,12 @@ let smt_of_spec = memoize @@ fun spec ->
         let args_str = List.concat_map (List.map (first string_of_var)) args in
         let (postcond_datanames : string list) = find_vars spec.postcond in
         let postcond_newbindings = List.filter (fun (VarPost s, _) -> List.mem s postcond_datanames) (make_new_bindings s) in
+        let postcond_fun =
+        begin match postcond_newbindings with
+        | [] -> ""
+        | p -> define_fun "postcondition" p TBool (make_new_exp spec.postcond)
+        end 
+        in
 
         List.map (uncurry mk_var) args_str @ [
         define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq;
@@ -121,12 +127,14 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
         ["))"]
     in
     
+    let post = if String.equal (postcond_args_list "12" []) "" then [] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in
+
     (* TODO: deterministic, complete? *)
     let bowtie = unlines @@
         [ "(define-fun bowtie () Bool (and" ] @ 
         List.mapi (fun i _ -> sp "   (= result_%d_1 result_%d_21)" i i) m1.ret @
         List.mapi (fun i _ -> sp "   (= result_%d_2 result_%d_12)" i i) m2.ret @
-        [ sp "   (postcondition %s)" (postcond_args_list "12" [])] @
+        post @
         [ sp "   (states_equal %s %s)" (pre_args_list "12" []) (pre_args_list "21" [])
         ; "))"
         ]
