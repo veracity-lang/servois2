@@ -19,10 +19,11 @@ states_equal:
   definition: (= xx_1 xx_2)
 
 precondition: 
-  definition: (= xx 5)
+  definition: true
+# (= xx 5)
 
 postcondition: 
-  definition: (= xx (- 5))
+  definition: (= xx 1)
 
 methods:
   - name: skip
