@@ -320,3 +320,26 @@ let pred_pretty_print ?(negate = false) ?(paran = ("", "")) p =
 let predP_pretty_print = function
   | P p -> pred_pretty_print ~paran:("(", ")") p
   | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p
+
+
+let rec find_vars : exp -> string list = function
+  | EVar (Var v)           -> [v]
+  | EArg n           -> []
+  | EConst c         -> [] 
+  | EBop (o, e1, e2) -> (find_vars e1) @ (find_vars e2)
+  | EUop (o, e)      -> (find_vars e)
+  | ELop (o, [])     -> []
+  | ELop (o, el)     -> (List.concat_map find_vars el)
+  | _ -> []
+  (* | ELet (bl, e)     -> (list exp_binding bl) @ (find_vars e)
+  | EForall (bl, e)  -> (list ty_binding bl) @ (find_vars e)
+  | EExists (bl, e)  -> (list ty_binding bl) @ (find_vars e)
+  | EITE (g, e1, e2) -> (find_vars g) @ (find_vars e1) @ (find_vars e2)
+  | EFunc (f, el)    -> (list find_vars el) *)
+
+let rec make_new_exp : exp -> exp = function
+  | EVar (Var v)     -> EVar (VarPost v) 
+  | EBop (o, e1, e2) -> EBop (o, (make_new_exp e1), (make_new_exp e2))
+  | EUop (o, e)      -> EUop (o, (make_new_exp e))
+  | ELop (o, el)     -> ELop (o, (List.map make_new_exp el))
+  | e -> e

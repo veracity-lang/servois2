@@ -18,7 +18,8 @@ state:
 states_equal:
   definition: (= xx_1 xx_2)
 
-postcondition: (= xx (- 5))
+postcondition: 
+  definition: (= xx (- 5))
 
 methods:
   - name: skip
