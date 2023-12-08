@@ -322,20 +322,17 @@ let predP_pretty_print = function
   | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p
 
 
-let rec find_vars : exp -> string list = function
-  | EVar (Var v)           -> [v]
-  | EArg n           -> []
-  | EConst c         -> [] 
-  | EBop (o, e1, e2) -> (find_vars e1) @ (find_vars e2)
-  | EUop (o, e)      -> (find_vars e)
-  | ELop (o, [])     -> []
-  | ELop (o, el)     -> (List.concat_map find_vars el)
-  | _ -> []
-  (* | ELet (bl, e)     -> (list exp_binding bl) @ (find_vars e)
-  | EForall (bl, e)  -> (list ty_binding bl) @ (find_vars e)
-  | EExists (bl, e)  -> (list ty_binding bl) @ (find_vars e)
-  | EITE (g, e1, e2) -> (find_vars g) @ (find_vars e1) @ (find_vars e2)
-  | EFunc (f, el)    -> (list find_vars el) *)
+let find_vars e : string list = 
+  let rec lookup : exp -> string list = function
+    | EVar (Var v)           -> [v]
+    | EArg n           -> []
+    | EConst c         -> [] 
+    | EBop (o, e1, e2) -> (lookup e1) @ (lookup e2)
+    | EUop (o, e)      -> (lookup e)
+    | ELop (o, [])     -> []
+    | ELop (o, el)     -> (List.concat_map lookup el)
+    | _ -> []
+  in remove_duplicate @@ lookup e
 
 let rec make_new_exp : exp -> exp = function
   | EVar (Var v)     -> EVar (VarPost v) 

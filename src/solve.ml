@@ -58,7 +58,7 @@ let smt_of_spec = memoize @@ fun spec ->
 
         List.map (uncurry mk_var) args_str @ [
         define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq;
-        define_fun "postcondition" postcond_newbindings TBool (make_new_exp spec.postcond)] @
+        postcond_fun] @
         let mk_method (m : method_spec) = 
             let s_old = s in let s_new = make_new_bindings s in
             sp "%s\n%s"
