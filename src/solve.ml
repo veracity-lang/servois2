@@ -24,6 +24,7 @@ type mode = Bowtie | LeftMover | RightMover
 let mode = ref Bowtie
 
 let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n"
+let mk_uninterp_method name args_ty ty = "(declare-fun " ^ name ^ " ("^ (String.concat ", " args_ty) ^") " ^ string_of_ty ty ^ ")\n"
 
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     unlines [
@@ -32,6 +33,10 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
         "  " ^ string_of_ty r_ty;
         "  " ^ Str.global_replace (Str.regexp_string "\n") "\n  " (String.trim @@ string_of_smt def);
         ")"]
+
+let string_of_smt_fn (s: smt_fn) = 
+    let args_types = List.map string_of_ty s.args in 
+    mk_uninterp_method s.name args_types s.ret
 
 let smt_of_spec = memoize @@ fun spec ->
     let s = spec.state in
@@ -43,6 +48,7 @@ let smt_of_spec = memoize @@ fun spec ->
             | None -> [] end @
         (* Make a variable for state variable *)
         List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
+        List.map string_of_smt_fn spec.smt_fns @
         (* Make a variable for each method argument *)
         let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
         let args = List.map (fun x -> x.args) all_mangled in
