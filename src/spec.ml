@@ -27,6 +27,7 @@ type spec =
   ; preds    : pred_sig list
   ; state_eq : exp
   ; precond  : exp
+  ; postcond : exp
   ; state    : ty bindlist
   ; methods  : method_spec list
   ; smt_fns  : smt_fn list
@@ -269,7 +270,18 @@ let spec_of_yaml (y : Yaml.value) : spec =
   in
 
   (* Precondition *)
-  let precond = try let f_precond = get_field "precondition" in exp_of_yaml f_precond with 
+  let precond = try let f_precond = get_field "precondition" in
+      let d = get_dict f_precond "'precondition' isn't dict" in
+      assoc_dict "definition" d "Missing 'defintion' field" |>
+      exp_of_yaml with 
+      | BadInputFormat _ -> EConst (CBool true)
+  in
+
+  (* Postcondition *)
+  let postcond = try let f_postcond = get_field "postcondition" in
+      let d = get_dict f_postcond "'postcondition' isn't dict" in
+      assoc_dict "definition" d "Missing 'defintion' field" |>
+      exp_of_yaml with 
       | BadInputFormat _ -> EConst (CBool true)
   in
   
@@ -284,6 +296,7 @@ let spec_of_yaml (y : Yaml.value) : spec =
   ; preds = preds
   ; state_eq = state_eq
   ; precond = precond
+  ; postcond = postcond
   ; state = state
   ; methods = methods 
   ; smt_fns = functions }
@@ -310,13 +323,14 @@ module Spec_ToMLString = struct
     (Smt_ToMLString.exp post)
     (ToMLString.list term_list terms)
 
-  let spec {name;preamble;preds;state_eq;precond;state;methods;smt_fns} =
-    sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\nstate=%s;\nmethods=%s;\nsmt_fns=%s}"
+  let spec {name;preamble;preds;state_eq;precond;postcond;state;methods;smt_fns} =
+    sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\npostcondition=%s;\nstate=%s;\nmethods=%s;\nsmt_fns=%s}"
     (ToMLString.str name)
     (ToMLString.option ToMLString.str preamble)
     (ToMLString.list pred_sig preds)
     (Smt_ToMLString.exp state_eq)
     (Smt_ToMLString.exp precond)
+    (Smt_ToMLString.exp postcond)
     (Smt_ToMLString.ty_bindlist state)
     (ToMLString.list method_spec methods)
     (ToMLString.list smt_fn smt_fns)

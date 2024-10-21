@@ -320,3 +320,23 @@ let pred_pretty_print ?(negate = false) ?(paran = ("", "")) p =
 let predP_pretty_print = function
   | P p -> pred_pretty_print ~paran:("(", ")") p
   | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p
+
+
+let find_vars e : string list = 
+  let rec lookup : exp -> string list = function
+    | EVar (Var v)           -> [v]
+    | EArg n           -> []
+    | EConst c         -> [] 
+    | EBop (o, e1, e2) -> (lookup e1) @ (lookup e2)
+    | EUop (o, e)      -> (lookup e)
+    | ELop (o, [])     -> []
+    | ELop (o, el)     -> (List.concat_map lookup el)
+    | _ -> []
+  in remove_duplicate @@ lookup e
+
+let rec make_new_exp : exp -> exp = function
+  | EVar (Var v)     -> EVar (VarPost v) 
+  | EBop (o, e1, e2) -> EBop (o, (make_new_exp e1), (make_new_exp e2))
+  | EUop (o, e)      -> EUop (o, (make_new_exp e))
+  | ELop (o, el)     -> ELop (o, (List.map make_new_exp el))
+  | e -> e
