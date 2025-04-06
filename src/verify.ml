@@ -10,7 +10,7 @@ type verify_options =
   }
 
 let default_verify_options =
-  { prover = (module Provers.ProverCVC4)
+  { prover = (module Provers.ProverCVC5)
   ; lift = true
   ; ncom = false
   }
