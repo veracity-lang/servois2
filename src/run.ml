@@ -15,7 +15,7 @@ module CommonOptions = struct
     [ "--debug", Arg.Set debug, " Display verbose debugging info during interpretation"
     ; "-d",      Arg.Set debug, " Short for --debug"
     ; "-o",      Arg.Set_string output_file, "<file> File to output to. Default file is stdout"
-    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC4)"
+    ; "--prover", Arg.Set_string prover_name, "<name> Use a particular prover (default: CVC5)"
     ; "--quiet", Arg.Set Util.quiet, " Print only the smt expression for the commutativity condition"
     ; "-q", Arg.Set Util.quiet, " Short for --quiet"
     ; "--verbose", Arg.Set Util.verbosity, " Verbose output"
@@ -31,7 +31,7 @@ module CommonOptions = struct
       | "cvc4" -> (module Provers.ProverCVC4)
       | "cvc5" -> (module Provers.ProverCVC5)
       | "z3"   -> (module Provers.ProverZ3)
-      | ""     -> (module Provers.ProverCVC4)
+      | ""     -> (module Provers.ProverCVC5)
       | "mathsat" -> (module Provers.ProverMathSAT)
       | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
 
