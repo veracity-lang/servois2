@@ -23,17 +23,17 @@ methods:
     requires: |
       true
     ensures: |
-      (ite (member v S)
+      (ite (set.member v S)
            (and (= S_new S)
                 (= size_new size)
                 (not result))
-           (and (= S_new (union S (singleton v)))
+           (and (= S_new (set.union S (set.singleton v)))
                 (= size_new (+ size 1))
                 result))
     terms:
       E: [$1]
       Int: [size, 1, (+ size 1)]
-      (Set E): [S, (singleton $1), (union S (singleton $1))]
+      (Set E): [S, (set.singleton $1), (set.union S (set.singleton $1))]
   - name: remove
     args:
       - name: v
@@ -44,8 +44,8 @@ methods:
     requires: |
       true
     ensures: |
-      (ite (member v S)
-           (and (= S_new (setminus S (singleton v)))
+      (ite (set.member v S)
+           (and (= S_new (set.minus S (set.singleton v)))
                 (= size_new (- size 1))
                 result)
            (and (= S_new S)
@@ -54,7 +54,7 @@ methods:
     terms:
       E: [$1]
       Int: [size, 1, (- size 1)]
-      (Set E): [S, (singleton $1), (setminus S (singleton $1))]
+      (Set E): [S, (set.singleton $1), (set.minus S (set.singleton $1))]
   - name: contains
     args:
       - name: v
@@ -67,11 +67,11 @@ methods:
     ensures: |
       (and (= S_new S)
            (= size_new size)
-           (= (member v S) result))
+           (= (set.member v S) result))
     terms:
       E: [$1]
       Int: [size]
-      (Set E): [S, (singleton $1), (setminus S (singleton $1))]
+      (Set E): [S, (set.singleton $1), (set.minus S (set.singleton $1))]
   - name: getsize
     args: []
     return:
@@ -93,5 +93,5 @@ predicates:
     type: [E, E]
   - name: "="
     type: [(Set E), (Set E)]
-  - name: "member"
+  - name: "set.member"
     type: [E, (Set E)]
