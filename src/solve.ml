@@ -134,6 +134,8 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     in
     
     let post = if String.equal (postcond_args_list "12" []) "" then [] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in
+    (* For the above, it's (always?) sufficient to have the postcondition on the -12 version of the variables and not also the -21 version, as we
+       already suppose states_equal of -12 and -21. *)
 
     (* TODO: deterministic, complete? *)
     let bowtie = unlines @@
@@ -163,12 +165,12 @@ let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
 (* let commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), ELop(And, [spec.postcond; smt_bowtie])) *)
-let commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), smt_bowtie)
-let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt spec
+let commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), smt_bowtie)
+let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt
 
 (* let non_commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, ELop(And, [spec.postcond; smt_bowtie]))) *)
-let non_commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
-let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt spec
+let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
+let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
