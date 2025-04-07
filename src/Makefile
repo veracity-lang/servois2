@@ -7,3 +7,6 @@ all:
 clean:
 	dune clean
 	rm -f $(EXECNAME)
+
+test: all
+	python ./test.py ./$(EXECNAME)

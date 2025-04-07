@@ -179,32 +179,43 @@ let waitpid_poll ?(interval=0.01) pid =
     if !ret = 0 then Unix.sleepf interval
   done
 
-let output_string_long buf str =
-  let i = ref 0 in
-  let len = String.length str in
-  let size = 16384 in
-  while !i < len do
-    let sublen = min size (len - !i) in
-    output_string buf (String.sub str !i sublen);
-    flush buf;
-    i := !i + size
-  done
-
 let run_exec (prog : string) (args : string array) (output : string) =
-  let chan_out, chan_in, chan_err =
-    Unix.open_process_args_full prog args [||] in
-  let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
-  Sys.set_signal Sys.sigalrm (
-      Sys.Signal_handle (fun _ ->
-          Unix.kill pid Sys.sigkill;
-          raise Timeout)
-      );
-  output_string_long chan_in output; close_out chan_in;
-  let _ = waitpid_poll pid in
-  set_timeout_handler ();
-  let sout = read_all_in chan_out in
-  let serr = read_all_in chan_err in
-  sout, serr
+  if String.length output > 16384 then
+    (* We write to a temporary file and use that. *)
+    let tmp_out = open_out "_servois2_temp.smt" in
+    output_string tmp_out output;
+    flush tmp_out;
+    close_out tmp_out;
+    let chan_out, chan_in, chan_err =
+      Unix.open_process_args_full prog (Array.append args [|"_servois2_temp.smt"|]) [||] in
+    let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
+    Sys.set_signal Sys.sigalrm (
+        Sys.Signal_handle (fun _ ->
+            Unix.kill pid Sys.sigkill;
+            raise Timeout)
+        );
+    let _ = waitpid_poll pid in
+    Sys.remove "_servois2_temp.smt";
+    let sout = read_all_in chan_out in
+    let serr = read_all_in chan_err in
+    sout, serr
+  else   
+    let chan_out, chan_in, chan_err =
+      Unix.open_process_args_full prog args [||] in
+    let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
+    Sys.set_signal Sys.sigalrm (
+        Sys.Signal_handle (fun _ ->
+            Unix.kill pid Sys.sigkill;
+            raise Timeout)
+        );
+    output_string chan_in output; close_out chan_in;
+    let _ = waitpid_poll pid in
+    let sout = read_all_in chan_out in
+    let serr = read_all_in chan_err in
+    sout, serr
+    
+    
+
 
 let print_exec_result (out : string list) (err : string list) =
   pfv "* * * OUT * * * \n%s\n* * * ERR * * * \n%s\n* * * * * *\n"

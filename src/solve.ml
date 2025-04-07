@@ -24,6 +24,7 @@ type mode = Bowtie | LeftMover | RightMover
 let mode = ref Bowtie
 
 let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n"
+let mk_uninterp_method name args_ty ty = "(declare-fun " ^ name ^ " ("^ (String.concat ", " args_ty) ^") " ^ string_of_ty ty ^ ")\n"
 
 let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : string =
     unlines [
@@ -32,6 +33,10 @@ let define_fun (name : string) (args : ty bindlist) (r_ty : ty) (def : exp) : st
         "  " ^ string_of_ty r_ty;
         "  " ^ Str.global_replace (Str.regexp_string "\n") "\n  " (String.trim @@ string_of_smt def);
         ")"]
+
+let string_of_smt_fn (s: smt_fn) = 
+    let args_types = List.map string_of_ty s.args in 
+    mk_uninterp_method s.name args_types s.ret
 
 let smt_of_spec = memoize @@ fun spec ->
     let s = spec.state in
@@ -43,12 +48,23 @@ let smt_of_spec = memoize @@ fun spec ->
             | None -> [] end @
         (* Make a variable for state variable *)
         List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
+        List.map string_of_smt_fn spec.smt_fns @
         (* Make a variable for each method argument *)
         let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
         let args = List.map (fun x -> x.args) all_mangled in
         let args_str = List.concat_map (List.map (first string_of_var)) args in
+        let (postcond_datanames : string list) = find_vars spec.postcond in
+        let postcond_newbindings = List.filter (fun (VarPost s, _) -> List.mem s postcond_datanames) (make_new_bindings s) in
+        let postcond_fun =
+        begin match postcond_newbindings with
+        | [] -> ""
+        | p -> define_fun "postcondition" p TBool (make_new_exp spec.postcond)
+        end 
+        in
+
         List.map (uncurry mk_var) args_str @ [
-        define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq] @
+        define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq;
+        postcond_fun] @
         let mk_method (m : method_spec) = 
             let s_old = s in let s_new = make_new_bindings s in
             sp "%s\n%s"
@@ -71,6 +87,9 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let m1args_name = List.map fst m1args_binding in
     let m2args_binding = List.map (first string_of_var) m2.args in
     let m2args_name = List.map fst m2args_binding in
+
+    let (postcond_datanames : string list) = find_vars spec.postcond in
+    let postcond_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) postcond_datanames @ argslist) in
     
     let vars_ref = ref "" in
     let (^=) s1 s2 = s1 := !s1 ^ s2 in
@@ -114,11 +133,16 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
         ["))"]
     in
     
+    let post = if String.equal (postcond_args_list "12" []) "" then [] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in
+    (* For the above, it's (always?) sufficient to have the postcondition on the -12 version of the variables and not also the -21 version, as we
+       already suppose states_equal of -12 and -21. *)
+
     (* TODO: deterministic, complete? *)
     let bowtie = unlines @@
         [ "(define-fun bowtie () Bool (and" ] @ 
         List.mapi (fun i _ -> sp "   (= result_%d_1 result_%d_21)" i i) m1.ret @
         List.mapi (fun i _ -> sp "   (= result_%d_2 result_%d_12)" i i) m2.ret @
+        post @
         [ sp "   (states_equal %s %s)" (pre_args_list "12" []) (pre_args_list "21" [])
         ; "))"
         ]
@@ -140,9 +164,11 @@ let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid
 let smt_bowtie = EVar(Var("bowtie"))
 let smt_oper = EVar(Var("oper"))
 
+(* let commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), ELop(And, [spec.postcond; smt_bowtie])) *)
 let commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), smt_bowtie)
 let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt
 
+(* let non_commute_of_smt spec smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, ELop(And, [spec.postcond; smt_bowtie]))) *)
 let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
 let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
@@ -167,6 +193,6 @@ let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
     let out = run_prover prover full_input in
     
     if List.length out != 2*List.length preds
-    then failwith "filter_predicates";
+    then failwith "filter_predicates. hint: try --very-verbose for more details";
     
     List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds
