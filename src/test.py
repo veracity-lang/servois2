@@ -41,7 +41,7 @@ def main():
         print("Failed tests:")
         failed_tests = [y + (z,) for (x, y, z) in zip(results, test_cases, outputs) if not x]
         for failed_test in failed_tests:
-            print(f"\tyaml: {failed_test[0]}, m1: {failed_test[1]}, m2: {failed_test[2]}; expected: {failed_test[3]}, got {failed_test[4]}.")
+            print(f"\tyaml: {failed_test[0]}, m1: {failed_test[1]}, m2: {failed_test[2]}; expected: {failed_test[3]}, got {failed_test[-1]}.")
 
 
 main()
