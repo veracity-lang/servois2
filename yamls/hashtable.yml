@@ -146,11 +146,3 @@ predicates:
     type: [(Array E F), (Array E F)]
   - name: "member"
     type: [E, (Set E)]
-
-functions:
-  - name: select
-    args: [(Array E F), E]
-    ret: F
-  - name: store
-    args: [(Array E F), E, F]
-    ret: (Array E F)
