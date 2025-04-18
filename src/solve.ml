@@ -53,7 +53,7 @@ let smt_of_spec = memoize @@ fun spec ->
         let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
         let args = List.map (fun x -> x.args) all_mangled in
         let args_str = List.concat_map (List.map (first string_of_var)) args in
-        let (postcond_datanames : string list) = find_vars spec.postcond in
+        let (postcond_datanames : string list) = List.sort String.compare(find_vars spec.postcond) in
         let postcond_newbindings = List.filter (fun (VarPost s, _) -> List.mem s postcond_datanames) (make_new_bindings s) in
         let postcond_fun =
         begin match postcond_newbindings with
@@ -88,7 +88,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let m2args_binding = List.map (first string_of_var) m2.args in
     let m2args_name = List.map fst m2args_binding in
 
-    let (postcond_datanames : string list) = find_vars spec.postcond in
+    let (postcond_datanames : string list) = List.sort String.compare (find_vars spec.postcond) in
     let postcond_args_list postfix (argslist : string list) = String.concat " " (List.map (fun a -> a ^ postfix) postcond_datanames @ argslist) in
     
     let vars_ref = ref "" in

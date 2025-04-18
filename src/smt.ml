@@ -331,6 +331,7 @@ let find_vars e : string list =
     | EUop (o, e)      -> (lookup e)
     | ELop (o, [])     -> []
     | ELop (o, el)     -> (List.concat_map lookup el)
+    | EFunc (s, el)    -> (List.concat_map lookup el)
     | _ -> []
   in remove_duplicate @@ lookup e
 
@@ -339,4 +340,5 @@ let rec make_new_exp : exp -> exp = function
   | EBop (o, e1, e2) -> EBop (o, (make_new_exp e1), (make_new_exp e2))
   | EUop (o, e)      -> EUop (o, (make_new_exp e))
   | ELop (o, el)     -> ELop (o, (List.map make_new_exp el))
+  | EFunc (s, el) -> EFunc (s, List.map make_new_exp el)
   | e -> e
