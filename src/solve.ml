@@ -43,36 +43,46 @@ let smt_of_spec = memoize @@ fun spec ->
     unlines ~trailing_newline:false @@ [
         sp ";; BEGIN: smt_of_spec " ^ spec.name;
         ""] @
-        begin match spec.preamble with
-            | Some s -> [s]
-            | None -> [] end @
-        (* Make a variable for state variable *)
-        List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
-        List.map string_of_smt_fn spec.smt_fns @
-        (* Make a variable for each method argument *)
-        let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
-        let args = List.map (fun x -> x.args) all_mangled in
-        let args_str = List.concat_map (List.map (first string_of_var)) args in
-        let (postcond_datanames : string list) = List.sort String.compare(find_vars spec.postcond) in
-        let postcond_newbindings = List.filter (fun (VarPost s, _) -> List.mem s postcond_datanames) (make_new_bindings s) in
-        let postcond_fun =
-        begin match postcond_newbindings with
-        | [] -> ""
-        | p -> define_fun "postcondition" p TBool (make_new_exp spec.postcond)
-        end 
-        in
+    begin match spec.preamble with
+        | Some s -> [s]
+        | None -> [] end @
+    (* Make a variable for state variable *)
+    List.map (fun databinding -> mk_var (name_of_binding databinding) (snd databinding)) spec.state @
+    List.map string_of_smt_fn spec.smt_fns @
+    (* Make a variable for each method argument *)
+    let all_mangled = List.map (mangle_method_vars true) spec.methods @ List.map (mangle_method_vars false) spec.methods in
+    let args = List.map (fun x -> x.args) all_mangled in
+    let args_str = List.concat_map (List.map (first string_of_var)) args in
+    let (postcond_datanames : string list) = List.sort String.compare(find_vars spec.postcond) in
+    (* let postcond_newbindings = List.filter (fun (VarPost v, _) -> Printf.printf "v: %s \n" v; List.mem v postcond_datanames) (make_new_bindings s) in *)
+    let new_bindings = make_new_bindings s in
 
-        List.map (uncurry mk_var) args_str @ [
-        define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq;
-        postcond_fun] @
-        let mk_method (m : method_spec) = 
-            let s_old = s in let s_new = make_new_bindings s in
-            sp "%s\n%s"
-                (define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre)
-                (define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post)
+    let postcond_newbindings =
+    List.filter_map
+        (fun v ->
+        List.find_opt
+            (fun (VarPost v', _) -> v' = v)
+            new_bindings)
+        postcond_datanames
         in
-        List.map mk_method all_mangled @ [
-        ";; END: smt_of_spec " ^ spec.name]
+    let postcond_fun =
+    begin match postcond_newbindings with
+    | [] -> ""
+    | p -> define_fun "postcondition" p TBool (make_new_exp spec.postcond)
+    end 
+    in
+
+    List.map (uncurry mk_var) args_str @ [
+    define_fun "states_equal" (s @ make_new_bindings s) TBool spec.state_eq;
+    postcond_fun] @
+    let mk_method (m : method_spec) = 
+        let s_old = s in let s_new = make_new_bindings s in
+        sp "%s\n%s"
+            (define_fun (m.name ^ "_pre_condition") (s_old @ m.args) TBool m.pre)
+            (define_fun (m.name ^ "_post_condition") (s_old @ m.args @ s_new @ m.ret) TBool m.post)
+    in
+    List.map mk_method all_mangled @ [
+    ";; END: smt_of_spec " ^ spec.name]
 
 let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
     let (datanames : string list) = List.map name_of_binding spec.state in
