@@ -66,10 +66,13 @@ let smt_of_spec = memoize @@ fun spec ->
         postcond_datanames
         in
     let postcond_fun =
-    begin match postcond_newbindings with
+    (* begin match postcond_newbindings with
     | [] -> ""
     | p -> define_fun "postcondition" p TBool (make_new_exp spec.postcond)
-    end 
+    end  *)
+        
+    define_fun "postcondition" postcond_newbindings TBool (make_new_exp spec.postcond)
+    
     in
 
     List.map (uncurry mk_var) args_str @ [
@@ -143,7 +146,8 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
         ["))"]
     in
     
-    let post = if String.equal (postcond_args_list "12" []) "" then [] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in
+    (* let post = if String.equal (postcond_args_list "12" []) "" then [] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in *)
+    let post = if String.equal (postcond_args_list "12" []) "" then [ sp "   postcondition"] else [ sp "   (postcondition %s)" (postcond_args_list "12" [])] in
     (* For the above, it's (always?) sufficient to have the postcondition on the -12 version of the variables and not also the -21 version, as we
        already suppose states_equal of -12 and -21. *)
 
