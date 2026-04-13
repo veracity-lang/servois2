@@ -1,0 +1,47 @@
+
+# Unit tests for forall-exists
+
+name: havoc
+
+state:
+  - name: xx
+    type: Int
+
+states_equal:
+  definition: (= xx_1 xx_2)
+
+precondition: 
+  definition: true
+
+postcondition: 
+  definition: (= xx 1)
+
+
+methods:
+  - name: skip
+    args: []
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= xx_new xx) (= result true))
+    terms:
+      Int: [xx]
+  - name: havoc
+    args: []
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (havoc xx xx_new)
+           (= result true))
+    terms:
+      Int: [xx, (- 1), (* xx (- 1))]
+
+predicates:
+  - name: "="
+    type: [Int, Int]

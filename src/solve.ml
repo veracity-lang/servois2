@@ -167,6 +167,7 @@ let generate_bowtie = curry3 @@ memoize @@ fun (spec, m1, m2) ->
 let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid *)
     unlines @@
     [ "(set-logic ALL)"
+    ; "(define-fun havoc  ( (vpre Int) (vpost Int) ) Bool true)"
     ; smt_of_spec spec
     ; generate_bowtie spec m1 m2
     ; sp "(assert (not %s))" (string_of_smt smt_exp)
@@ -198,6 +199,7 @@ let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
 
     let full_input = unlines @@
         [ "(set-logic ALL)"
+        ; "(define-fun havoc  ( (vpre Int) (vpost Int) ) Bool true)"
         ; smt_of_spec spec] @
         List.concat_map (fun p -> let e = smt_of_pred p in
             [query e; query (EUop(Not, e))]) preds in
@@ -206,7 +208,19 @@ let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
     flush stdout;
     let out = run_prover prover full_input in
     
+    List.iter (fun ln ->
+        if Str.string_match (Str.regexp_string "Parse Error") ln 0 
+        then failwith ("Solver couldn't parse SMT: " ^ ln) 
+    ) out;
+
     if List.length out != 2*List.length preds
-    then failwith "filter_predicates. hint: try --very-verbose for more details";
-    
+    then begin 
+        let fn = write_temp_string full_input in
+        failwith ("filter_predicates: output from prover was not as expected."
+        ^ " received predicates: \n"
+        ^ (String.concat " NEWLINE " out) ^ "\n"
+        ^ "smt input saved in file: " ^ fn ^ "\n"
+        ^ "try --very-verbose for more details")
+    end;
+
     List.filteri (fun i _ -> List.nth out (2*i) = "sat" && List.nth out (2*i+1) = "sat") preds

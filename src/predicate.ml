@@ -67,6 +67,7 @@ let rec find_ty (e: exp) (spec: spec) : ty option =
     | "store" -> find_ty (List.hd expl) spec
     | "singleton" -> find_ty (List.hd expl) spec
     | "setminus" -> find_ty (List.hd expl) spec
+    | "havoc" -> find_ty (List.hd expl) spec
     | _ -> failwith ("this function is not defined: "^str)
     end
   | _ -> Some TInt

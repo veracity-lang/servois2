@@ -10,6 +10,14 @@ let set_timeout_handler () = Sys.set_signal Sys.sigalrm @@
 
 (*** Utility functions ***)
 
+
+let write_temp_string (s : string) : string =
+  let filename = Filename.temp_file "prefix_" ".smt" in
+  let oc = open_out filename in
+  output_string oc s;
+  close_out oc;
+  filename
+
 let assoc_update (k : 'a) (v : 'b) (l : ('a * 'b) list) =
   (k,v) :: List.remove_assoc k l
 
@@ -311,7 +319,6 @@ module Yaml_util = struct
     let s = read_all_in chan |> String.concat "\n" in
     let y = Yaml.of_string_exn s in
     y
-
     
   let assoc_dict field dict msg =
     match List.assoc_opt field dict with
