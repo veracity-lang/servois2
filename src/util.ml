@@ -160,7 +160,7 @@ print $out <<HEADER;
   .banner { margin: 0.4em 0 1.2em 0; }
   .mode   { font-size: 1.4em; font-weight: bold; color: #f9c74f; }
   .methods { font-size: 1.6em; font-weight: bold; color: #90e0ef; }
-  .cmdline { font-size: 0.85em; color: #888; margin-top: 0.4em; }
+  .cmdline { font-size: 1.0em; color: #888; margin-top: 0.4em; }
   h2      { color: #4ec9b0; margin-top: 2em; border-top: 1px solid #444;
             padding-top: 0.5em; }
   .row    { display: flex; gap: 20px; align-items: flex-start;
@@ -169,22 +169,73 @@ print $out <<HEADER;
             white-space: pre; overflow-x: auto; flex: 1; min-width: 400px;
             font-size: 12px; line-height: 1.4; }
   .diagram img { border: 1px solid #555; max-width: 700px; height: auto; }
+  .result     { display: inline-block; margin-left: 0.6em; padding: 2px 10px;
+                border-radius: 4px; font-weight: bold; font-size: 0.85em; }
+  .sat        { background: #5a1a1a; color: #f28b82; }
+  .unsat      { background: #1a3a1a; color: #81c995; }
+  .unknown    { background: #2a2a1a; color: #f9c74f; }
+  .phi-box    { margin: 1em 0 1.6em 0; padding: 12px 16px;
+                background: #252526; border: 1px solid #555;
+                border-radius: 4px; font-size: 1em; line-height: 1.8; }
+  .phi-label  { color: #888; font-size: 1.4em; margin-right: 0.5em; }
+  .phi-val    { color: #ce9178; font-weight: bold; font-size: 1.4em; white-space: pre-wrap; }
+  .toc        { margin: 1.2em 0 2em 0; padding: 10px 16px;
+                background: #252526; border: 1px solid #444;
+                border-radius: 4px; display: inline-block; min-width: 200px; }
+  .toc strong { color: #9cdcfe; }
+  .toc ul     { margin: 0.4em 0 0 0; padding-left: 1.2em; }
+  .toc li     { margin: 0.2em 0; }
+  .toc a      { color: #4ec9b0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-<h1>Servois2 Examination</h1>
+<h1>Servois2 Output</h1>
 <div class="banner">
-  <div class="methods">$method1 <div class="mode">$mode_label</div> $method2</div>
+  <div class="methods">Query: <span class="mode">$method1 ($mode_label) $method2</span></div>
   <div class="cmdline">@{[he($cmdline)]}</div>
 </div>
 HEADER
 
-my @queries = sort glob("servois2_query_*.smt");
-if (!@queries) {
-    print $out "<p>No query files found.</p>\n";
+# Show final phi / phi-tilde if available
+for my $entry (
+    [ 'servois2_phi.txt',      "\x{03c6}",        'commutativity condition'     ],
+    [ 'servois2_phitilde.txt', "\x{03c6}\x{0303}", 'non-commutativity condition' ],
+) {
+    my ($file, $sym, $label) = @$entry;
+    next unless -f $file;
+    open(my $fh, '<', $file) or next;
+    my $val = do { local $/; <$fh> }; close($fh); chomp $val;
+    print $out "<div class='phi-box'>"
+             . "<span class='phi-label'>$sym &nbsp;($label):</span>"
+             . "<span class='phi-val'>" . he($val) . "</span>"
+             . "</div>\n";
+}
+
+# Read query indices from the manifest (only queries from this run)
+my @indices;
+if (open(my $mfh, '<', 'servois2_run_manifest.txt')) {
+    while (my $line = <$mfh>) { chomp $line; push @indices, $line if $line =~ /^\d+$/; }
+    close($mfh);
+}
+
+if (!@indices) {
+    print $out "<p>No queries recorded for this run.</p>\n";
 } else {
-    for my $qfile (@queries) {
-        (my $padded = $qfile) =~ s/^servois2_query_(\d+)\.smt$/$1/;
+    # Table of contents
+    print $out "<nav class='toc'><strong>Queries</strong><ul>\n";
+    for my $padded (@indices) {
+        my $result = '';
+        my $rfile = "servois2_result_${padded}.txt";
+        if (open(my $rfh, '<', $rfile)) { $result = <$rfh>; chomp $result; close($rfh); }
+        my $badge = $result ? " <span class='result $result'>$result</span>" : '';
+        print $out "<li><a href='#query-$padded'>Query $padded</a>$badge</li>\n";
+    }
+    print $out "</ul></nav>\n";
+
+    # Per-query sections
+    for my $padded (@indices) {
+        my $qfile    = "servois2_query_${padded}.smt";
         my $dfile_jpg = "servois2_diagram_${padded}.jpg";
 
         open(my $qfh, '<', $qfile) or die "Cannot open $qfile: $!";
@@ -192,7 +243,11 @@ if (!@queries) {
         close($qfh);
         $text = he($text);
 
-        print $out "<h2>Query $padded</h2>\n<div class='row'>\n";
+        my $result = '';
+        my $rfile = "servois2_result_${padded}.txt";
+        if (open(my $rfh, '<', $rfile)) { $result = <$rfh>; chomp $result; close($rfh); }
+        my $badge = $result ? "<span class='result $result'>$result</span>" : '';
+        print $out "<h2 id='query-$padded'>Query $padded $badge</h2>\n<div class='row'>\n";
         print $out "<div class='query'>$text</div>\n";
         if (-f $dfile_jpg) {
             print $out "<div class='diagram'><img src='$dfile_jpg' alt='Diagram $padded'></div>\n";
@@ -216,6 +271,9 @@ let write_examine_script () =
     let oc = open_out "servois2_run_info.txt" in
     output_string oc (String.concat " " (Array.to_list Sys.argv));
     output_char oc '\n';
+    close_out oc;
+    (* Reset manifest for this run *)
+    let oc = open_out "servois2_run_manifest.txt" in
     close_out oc
 
 let dump_query_if_enabled (s : string) : unit =
@@ -227,7 +285,35 @@ let dump_query_if_enabled (s : string) : unit =
         let oc = open_out filename in
         output_string oc s;
         output_char oc '\n';
+        close_out oc;
+        (* Append this index to the run manifest *)
+        let oc = open_out_gen [Open_append; Open_creat] 0o644 "servois2_run_manifest.txt" in
+        output_string oc (Printf.sprintf "%04d\n" idx);
         close_out oc
+    end
+
+(* Call this after each solver call to record sat/unsat/unknown alongside the query. *)
+let dump_result_if_enabled (result : string) : unit =
+    if !dump_queries && !query_counter > 0 then begin
+        let idx = !query_counter - 1 in
+        let filename = Printf.sprintf "servois2_result_%04d.txt" idx in
+        let oc = open_out filename in
+        output_string oc result;
+        output_char oc '\n';
+        close_out oc
+    end
+
+(* Call after synthesis to record the final phi and phi-tilde. *)
+let dump_phi_if_enabled (phi : string) (phi_tilde : string) : unit =
+    if !dump_queries then begin
+        let write name s =
+            let oc = open_out name in
+            output_string oc s;
+            output_char oc '\n';
+            close_out oc
+        in
+        write "servois2_phi.txt" phi;
+        write "servois2_phitilde.txt" phi_tilde
     end
 
 let if_verbose action = if !verbosity || !very_verbose then action () else ()

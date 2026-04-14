@@ -155,6 +155,8 @@ module RunSynth : Runner = struct
     let s_phi_comm    = Phi.ToString.t phi_comm in
     let s_phi_noncomm = Phi.ToString.t phi_noncomm in
 
+    Util.dump_phi_if_enabled s_phi_comm s_phi_noncomm;
+
     let out =
       if !quiet then s_phi_comm ^ "\n" else
       sp "phi = %s\nphi-tilde = %s\n" 

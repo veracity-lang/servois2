@@ -236,6 +236,7 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
     dump_query_if_enabled s;
     flush stdout;
     let raw = run_prover prover s |> parse_prover_output prover in
+    dump_result_if_enabled (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown");
     if !Util.diagram then begin
         let model_opt = match raw with
             | Sat vs ->
