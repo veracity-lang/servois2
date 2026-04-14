@@ -24,6 +24,8 @@ module CommonOptions = struct
     ; "-vv", Arg.Set Util.very_verbose, " Short for --very-verbose"
     ; "--leftmover", Arg.Unit (fun () -> Solve.mode := Solve.LeftMover), " Synthesize left-mover condition (default: bowtie)"
     ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
+    ; "--diagram", Arg.Set Util.diagram, " After each solver query write a Graphviz .dot diagram to servois2_diagram_NNNN.dot"
+    ; "--dump-queries", Arg.Set Util.dump_queries, " Write each SMT query to servois2_query_NNNN.smt"
     ]
     
   let get_prover () : (module Provers.Prover) =
@@ -102,6 +104,7 @@ module RunSynth : Runner = struct
   let no_cache = ref true
   let coverage_term = ref None
   let track_coverage_progress = ref false
+  let ae = ref false
 
   let speclist =
     [ "--poke", Arg.Unit (fun () -> Choose.choose := Choose.poke), " Use servois poke heuristic (default: simple)"
@@ -118,6 +121,8 @@ module RunSynth : Runner = struct
     ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
     ; "--mc-term", Arg.Float (fun f -> coverage_term := Some f), " Set coverage ratio for termination"
     ; "--track-coverage-progress", Arg.Unit (fun () -> track_coverage_progress := true), " Track and report the coverage of mapped regions"
+    ; "-ae", Arg.Set ae, " Use AE (forall-exists) commutativity: for every m1;m2, some m2;m1 reaches an equal state"
+    ; "--forall-exists", Arg.Set ae, " Alias for -ae"
     ] @ common_speclist |>
     Arg.align
 
@@ -141,7 +146,8 @@ module RunSynth : Runner = struct
                                          no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
                                          coverage_termination = !coverage_term;
-                                         track_coverage_progress = !track_coverage_progress
+                                         track_coverage_progress = !track_coverage_progress;
+                                         use_ae = !ae
       } in
       Synth.synth ~options:synth_options spec method1 method2
     in
@@ -182,10 +188,13 @@ module RunVerify : Runner = struct
     
     let ncom = ref false
     let complete = ref false
-    
-    let speclist = 
+    let ae = ref false
+
+    let speclist =
       [ "--ncom", Arg.Set ncom, " Verify non-commutativity condition instead of commutativity condition."
       ; "--complete", Arg.Set complete, " Also verify completeness."
+      ; "-ae", Arg.Set ae, " Use AE (forall-exists) commutativity: for every m1;m2, some m2;m1 reaches an equal state"
+      ; "--forall-exists", Arg.Set ae, " Alias for -ae"
       ] @ common_speclist |> Arg.align
     
     let run_verify yaml m1 m2 cond =
@@ -204,19 +213,19 @@ module RunVerify : Runner = struct
         in
         
         let valid = let verify_options = {
-          Verify.default_verify_options with prover = get_prover ()
+          Verify.default_verify_options with prover = get_prover (); use_ae = !ae
           } in Verify.verify ~options:verify_options spec m1 m2 cond_smt |> string_of_bool_option
         in
-        
+
         let out_1 = if !quiet
             then valid ^ "\n"
             else sp "Valid: %s\n" valid
         in
-        
+
         let out = if !complete
             then out_1 ^ begin
               let compl = let verify_options = {
-                  Verify.default_verify_options with prover = get_prover (); ncom = true
+                  Verify.default_verify_options with prover = get_prover (); ncom = true; use_ae = !ae
                   } in Verify.verify ~options:verify_options spec m1 m2 (EUop(Not, cond_smt)) |> string_of_bool_option
               in if !quiet then compl ^ "\n" else sp "Complete: %s\n" compl
             end

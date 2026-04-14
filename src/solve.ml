@@ -188,11 +188,34 @@ let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt
 let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
-  let s = string_of_smt_query spec m1 m2 get_vals smt_exp in
+  let n_orig = List.length get_vals in
+  let diagram_exprs =
+      if !Util.diagram
+      then Diagram.state_var_exps spec.state [""; "1"; "12"; "2"; "21"]
+      else [] in
+  let s = string_of_smt_query spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
+  dump_query_if_enabled s;
   flush stdout;
-  run_prover prover s |> parse_prover_output prover
+  let raw = run_prover prover s |> parse_prover_output prover in
+  if !Util.diagram then begin
+      let model_opt = match raw with
+          | Sat vs ->
+              (try
+                  let n_d = List.length diagram_exprs in
+                  let d_vals = List.filteri (fun i _ -> i >= n_orig && i < n_orig + n_d) vs in
+                  Some (List.combine diagram_exprs (List.map snd d_vals))
+              with _ -> None)
+          | _ -> None
+      in
+      Diagram.generate spec m1 m2 model_opt
+          (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
+  end;
+  match raw with
+  | Sat vs when diagram_exprs <> [] ->
+      Sat (List.filteri (fun i _ -> i < n_orig) vs)
+  | _ -> raw
 
 let filter_predicates (prover : (module Prover)) spec (preds : pred list) =
     let query e = sp "(push 1)(assert (not %s))(check-sat)(pop 1)" (string_of_smt e) in

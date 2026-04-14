@@ -82,6 +82,97 @@ let map_tr f l =
 let quiet = ref false
 let verbosity = ref false
 let very_verbose = ref false
+let diagram = ref false
+let dump_queries = ref false
+let query_counter = ref 0
+let examine_script_text = {|#!/usr/bin/perl
+use strict;
+use warnings;
+
+# Convert all .dot diagram files to .jpg
+for my $dot (sort glob("servois2_diagram_*.dot")) {
+    (my $jpg = $dot) =~ s/\.dot$/.jpg/;
+    print "Converting $dot -> $jpg\n";
+    system("dot", "-Tjpg", "-o", $jpg, $dot) == 0
+        or warn "dot failed for $dot: $?\n";
+}
+
+# Generate HTML viewer
+my $html_file = "servois2_examine.html";
+open(my $out, '>', $html_file) or die "Cannot write $html_file: $!";
+
+print $out <<'HEADER';
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Servois2 Examination</title>
+<style>
+  body   { font-family: monospace; background: #1e1e1e; color: #ccc;
+           margin: 0; padding: 20px; }
+  h1     { color: #9cdcfe; }
+  h2     { color: #4ec9b0; margin-top: 2em; border-top: 1px solid #444;
+           padding-top: 0.5em; }
+  .row   { display: flex; gap: 20px; align-items: flex-start;
+           margin: 10px 0 30px 0; flex-wrap: wrap; }
+  .query { background: #252526; border: 1px solid #444; padding: 10px;
+           white-space: pre; overflow-x: auto; flex: 1; min-width: 400px;
+           font-size: 12px; line-height: 1.4; }
+  .diagram img { border: 1px solid #555; max-width: 700px; height: auto; }
+</style>
+</head>
+<body>
+<h1>Servois2 Examination</h1>
+HEADER
+
+my @queries = sort glob("servois2_query_*.smt");
+if (!@queries) {
+    print $out "<p>No query files found.</p>\n";
+} else {
+    for my $qfile (@queries) {
+        (my $padded = $qfile) =~ s/^servois2_query_(\d+)\.smt$/$1/;
+        my $dfile_jpg = "servois2_diagram_${padded}.jpg";
+
+        open(my $qfh, '<', $qfile) or die "Cannot open $qfile: $!";
+        my $text = do { local $/; <$qfh> };
+        close($qfh);
+        $text =~ s/&/&amp;/g;
+        $text =~ s/</&lt;/g;
+        $text =~ s/>/&gt;/g;
+
+        print $out "<h2>Query $padded</h2>\n<div class='row'>\n";
+        print $out "<div class='query'>$text</div>\n";
+        if (-f $dfile_jpg) {
+            print $out "<div class='diagram'><img src='$dfile_jpg' alt='Diagram $padded'></div>\n";
+        }
+        print $out "</div>\n";
+    }
+}
+
+print $out "</body>\n</html>\n";
+close($out);
+print "Wrote $html_file\n";
+|}
+
+let write_examine_script () =
+    let oc = open_out "examine.pl" in
+    output_string oc examine_script_text;
+    close_out oc;
+    (* make it executable *)
+    Unix.chmod "examine.pl" 0o755
+
+let dump_query_if_enabled (s : string) : unit =
+    if !dump_queries then begin
+        let idx = !query_counter in
+        query_counter := idx + 1;
+        if idx = 0 then write_examine_script ();
+        let filename = Printf.sprintf "servois2_query_%04d.smt" idx in
+        let oc = open_out filename in
+        output_string oc s;
+        output_char oc '\n';
+        close_out oc
+    end
+
 let if_verbose action = if !verbosity || !very_verbose then action () else ()
 let printf_verbose fmt = if !verbosity || !very_verbose then Printf.printf fmt else Printf.ifprintf stdout fmt
 let printf_very_verbose fmt = if !very_verbose then Printf.printf fmt else Printf.ifprintf stdout fmt

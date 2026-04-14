@@ -7,32 +7,38 @@ type verify_options =
   { prover : (module Prover)
   ; lift : bool
   ; ncom : bool
+  ; use_ae : bool
   }
 
 let default_verify_options =
   { prover = (module Provers.ProverCVC5)
   ; lift = true
   ; ncom = false
+  ; use_ae = false
   }
 
 let verif_time = ref 0.0
 
 let verify ?(options = default_verify_options) spec m n cond =
     
-    let spec = if options.lift then lift spec else spec in
+    let spec = if options.lift && not options.use_ae then lift spec else spec in
     
-    let implication_function = if options.ncom
-        then non_commute_of_smt
-        else commute_of_smt
+    let implication_function =
+        if options.use_ae then
+            (if options.ncom then SolveAE.non_commute_ae_of_smt else SolveAE.commute_ae_of_smt)
+        else
+            (if options.ncom then non_commute_of_smt else commute_of_smt)
     in
-    
+
+    let solve_fn = if options.use_ae then SolveAE.solve_ae else solve in
+
     let m_spec = get_method spec m |> mangle_method_vars true in
     let n_spec = get_method spec n |> mangle_method_vars false in
-    
+
     let init_time = Unix.gettimeofday () in
-    
+
     seq (verif_time := Float.sub (Unix.gettimeofday ()) init_time) @@
-    match solve options.prover spec m_spec n_spec [] (implication_function (ELop(And, [spec.precond; cond]))) with
+    match solve_fn options.prover spec m_spec n_spec [] (implication_function (ELop(And, [spec.precond; cond]))) with
         | Unsat -> Some true
         | Unknown -> None
         | Sat _ -> Some false

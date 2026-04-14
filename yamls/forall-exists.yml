@@ -13,8 +13,8 @@ states_equal:
 precondition: 
   definition: true
 
-postcondition: 
-  definition: (= xx 1)
+# postcondition: 
+#   definition: (= xx 1)
 
 
 methods:
@@ -27,6 +27,17 @@ methods:
       true
     ensures: |
       (and (= xx_new xx) (= result true))
+    terms:
+      Int: [xx]
+  - name: write
+    args: []
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= xx_new 1) (= result true))
     terms:
       Int: [xx]
   - name: havoc

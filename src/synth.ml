@@ -55,6 +55,7 @@ type synth_options =
   ; stronger_predicates_first: bool
   ; coverage_termination : float option
   ; track_coverage_progress : bool
+  ; use_ae : bool
   }
 
 let default_synth_options =
@@ -68,6 +69,7 @@ let default_synth_options =
   ; stronger_predicates_first = false
   ; coverage_termination = None
   ; track_coverage_progress = false
+  ; use_ae = false
   }
 
 type benches =
@@ -254,7 +256,7 @@ let rec synth ?(options = default_synth_options) spec m n =
   
 
 and synth_inner env options spec m n (pequivc,l) =
-  let spec = if options.lift then lift spec else spec in
+  let spec = if options.lift && not options.use_ae then lift spec else spec in
   let m_spec = get_method spec m |> mangle_method_vars true in
   let n_spec = get_method spec n |> mangle_method_vars false in
   let track_step, track_comm_region = coverage_tracker spec m_spec n_spec in
@@ -273,10 +275,21 @@ and synth_inner env options spec m n (pequivc,l) =
 
   env.synth_start_time := Some(Unix.gettimeofday ());
 
-  let solve_inst = solve options.prover spec m_spec n_spec in
+  let solve_inst, commute_fn, non_commute_fn =
+    if options.use_ae then
+      SolveAE.solve_ae options.prover spec m_spec n_spec,
+      SolveAE.commute_ae,
+      SolveAE.non_commute_ae
+    else
+      solve options.prover spec m_spec n_spec,
+      commute,
+      non_commute
+  in
 
   let choose_env = {
     solver = solve_inst;
+    commute_fn = commute_fn;
+    non_commute_fn = non_commute_fn;
     spec = spec;
     m_spec = m_spec;
     n_spec = n_spec;
@@ -292,7 +305,7 @@ and synth_inner env options spec m n (pequivc,l) =
     let p_set = L.list_of l in
     let pred_smt = List.map exp_of_predP p_set in
     
-    begin match solve_inst pred_smt @@ commute spec h with
+    begin match solve_inst pred_smt @@ commute_fn spec h with
       | Unsat ->         
         pfv "\nPred found for phi: %s\n" 
           (string_of_smt @@ smt_of_conj h);
@@ -304,7 +317,7 @@ and synth_inner env options spec m n (pequivc,l) =
       | Unknown -> raise @@ Failure "commute failure"
       | Sat vs -> 
         let com_cex = pred_data_of_values vs in
-        begin match solve_inst pred_smt @@ non_commute spec h with
+        begin match solve_inst pred_smt @@ non_commute_fn spec h with
           | Unsat ->
             pfv "\nPred found for phi-tilde: %s\n" 
               (string_of_smt @@ smt_of_conj h);
