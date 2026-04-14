@@ -97,32 +97,86 @@ for my $dot (sort glob("servois2_diagram_*.dot")) {
         or warn "dot failed for $dot: $?\n";
 }
 
+# Parse run info from servois2_run_info.txt
+my ($cmdline, $method1, $method2, $mode_label, $yaml) = ('', '?', '?', 'Commute', '');
+if (open(my $inf, '<', 'servois2_run_info.txt')) {
+    $cmdline = <$inf> // '';
+    chomp $cmdline;
+    close($inf);
+
+    my @args = split(/\s+/, $cmdline);
+
+    # Determine mode
+    if    (grep { $_ eq '--leftmover'  } @args) { $mode_label = 'Left Mover';  }
+    elsif (grep { $_ eq '--rightmover' } @args) { $mode_label = 'Right Mover'; }
+    else                                         { $mode_label = 'Commute';     }
+
+    # AE qualifier
+    # if (grep { $_ eq '-ae' || $_ eq '--forall-exists' } @args) {
+    #    $mode_label .= ' (AE \x{2200}\x{2203})';
+    # }
+
+    # Extract positional args (skip flags and their values)
+    my @pos;
+    my %takes_val = map { $_ => 1 } qw(
+        -o --prover --timeout --lattice-timeout --terms-depth --mc-term
+    );
+    my $skip_next = 0;
+    for my $a (@args) {
+        if ($skip_next)          { $skip_next = 0; next; }
+        if ($takes_val{$a})      { $skip_next = 1; next; }
+        next if $a =~ /^-/;
+        push @pos, $a;
+    }
+    # pos: [exe, subcommand, yaml, m1, m2, ...]
+    $yaml    = $pos[2] // '';
+    $method1 = $pos[3] // '?';
+    $method2 = $pos[4] // '?';
+}
+
+# Escape for HTML
+sub he {
+    my $s = shift;
+    $s =~ s/&/&amp;/g; $s =~ s/</&lt;/g; $s =~ s/>/&gt;/g;
+    return $s;
+}
+
 # Generate HTML viewer
 my $html_file = "servois2_examine.html";
 open(my $out, '>', $html_file) or die "Cannot write $html_file: $!";
 
-print $out <<'HEADER';
+my $title = "$method1 \x{2016} $method2";  # ‖
+
+print $out <<HEADER;
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Servois2 Examination</title>
+<title>Servois2: $title</title>
 <style>
-  body   { font-family: monospace; background: #1e1e1e; color: #ccc;
-           margin: 0; padding: 20px; }
-  h1     { color: #9cdcfe; }
-  h2     { color: #4ec9b0; margin-top: 2em; border-top: 1px solid #444;
-           padding-top: 0.5em; }
-  .row   { display: flex; gap: 20px; align-items: flex-start;
-           margin: 10px 0 30px 0; flex-wrap: wrap; }
-  .query { background: #252526; border: 1px solid #444; padding: 10px;
-           white-space: pre; overflow-x: auto; flex: 1; min-width: 400px;
-           font-size: 12px; line-height: 1.4; }
+  body    { font-family: monospace; background: #1e1e1e; color: #ccc;
+            margin: 0; padding: 20px; }
+  h1      { color: #9cdcfe; margin-bottom: 0.2em; }
+  .banner { margin: 0.4em 0 1.2em 0; }
+  .mode   { font-size: 1.4em; font-weight: bold; color: #f9c74f; }
+  .methods { font-size: 1.6em; font-weight: bold; color: #90e0ef; }
+  .cmdline { font-size: 0.85em; color: #888; margin-top: 0.4em; }
+  h2      { color: #4ec9b0; margin-top: 2em; border-top: 1px solid #444;
+            padding-top: 0.5em; }
+  .row    { display: flex; gap: 20px; align-items: flex-start;
+            margin: 10px 0 30px 0; flex-wrap: wrap; }
+  .query  { background: #252526; border: 1px solid #444; padding: 10px;
+            white-space: pre; overflow-x: auto; flex: 1; min-width: 400px;
+            font-size: 12px; line-height: 1.4; }
   .diagram img { border: 1px solid #555; max-width: 700px; height: auto; }
 </style>
 </head>
 <body>
 <h1>Servois2 Examination</h1>
+<div class="banner">
+  <div class="methods">$method1 <div class="mode">$mode_label</div> $method2</div>
+  <div class="cmdline">@{[he($cmdline)]}</div>
+</div>
 HEADER
 
 my @queries = sort glob("servois2_query_*.smt");
@@ -136,9 +190,7 @@ if (!@queries) {
         open(my $qfh, '<', $qfile) or die "Cannot open $qfile: $!";
         my $text = do { local $/; <$qfh> };
         close($qfh);
-        $text =~ s/&/&amp;/g;
-        $text =~ s/</&lt;/g;
-        $text =~ s/>/&gt;/g;
+        $text = he($text);
 
         print $out "<h2>Query $padded</h2>\n<div class='row'>\n";
         print $out "<div class='query'>$text</div>\n";
@@ -155,11 +207,16 @@ print "Wrote $html_file\n";
 |}
 
 let write_examine_script () =
+    (* Write examine.pl *)
     let oc = open_out "examine.pl" in
     output_string oc examine_script_text;
     close_out oc;
-    (* make it executable *)
-    Unix.chmod "examine.pl" 0o755
+    Unix.chmod "examine.pl" 0o755;
+    (* Write run info: full argv on one line *)
+    let oc = open_out "servois2_run_info.txt" in
+    output_string oc (String.concat " " (Array.to_list Sys.argv));
+    output_char oc '\n';
+    close_out oc
 
 let dump_query_if_enabled (s : string) : unit =
     if !dump_queries then begin

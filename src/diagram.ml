@@ -55,13 +55,23 @@ let node_label (state : ty bindlist) (suffix : string)
     (* title is centered via \n; variable lines are left-aligned via \l *)
     title ^ "\\n" ^ String.concat "" var_lines
 
+(* How the two non-initial diamond paths are quantified in an AE query.
+ * Used to annotate nodes and style existentially-quantified ones as dashed. *)
+type ae_quant =
+  | AE_Right  (* ∀(m1;m2)  ∃(m2;m1): s1/s12 are ∀, s2/s21 are ∃ *)
+  | AE_Left   (* ∀(m2;m1)  ∃(m1;m2): s2/s21 are ∀, s1/s12 are ∃ *)
+  | AE_Bowtie (* ∀(m1;m2) ∧ ∀(m2;m1): all four are ∀ (witnesses are hidden) *)
+
 (* Write a .dot file for one commutativity query.
  *
  * model_opt: if Some m, m is an alist (EVar → value exp) for state
  *   variables that were returned by the solver.  Variables absent from m
- *   are shown with their name only (no value). *)
+ *   are shown with their name only (no value).
+ * ae: None = standard AA (no annotations); Some q = AE mode with
+ *   quantifier annotations and dashed borders on ∃ nodes. *)
 let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
-             (model_opt : (exp * exp) list option) (result_label : string) : unit =
+             (model_opt : (exp * exp) list option) (result_label : string)
+             (ae : ae_quant option) : unit =
     let idx = !diagram_counter in
     diagram_counter := idx + 1;
     let filename = sp "servois2_diagram_%04d.dot" idx in
@@ -69,10 +79,27 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
     let n2 = display_name m2.name in
     let st = spec.state in
 
-    let nd id title sfx =
-        sp "  %s [shape=box fontname=Courier label=\"%s\"];"
-           id (node_label st sfx model_opt title)
+    let nd id title sfx style =
+        sp "  %s [shape=box fontname=Courier%s label=\"%s\"];"
+           id style (node_label st sfx model_opt title)
     in
+
+    let fa = "\xe2\x88\x80 " in  (* ∀ *)
+    let ex = "\xe2\x88\x83 " in  (* ∃ *)
+
+    (* (title_prefix, style) for each node *)
+    let p_init, p_s1, p_s12, p_s2, p_s21 = match ae with
+        | None ->
+            ("", ""), ("", ""), ("", ""), ("", ""), ("", "")
+        | Some AE_Right ->
+            (fa,""), (fa,""), (fa,""), (ex," style=dashed"), (ex," style=dashed")
+        | Some AE_Left ->
+            (* same variable layout as AE_Right: s1/s12 ∀, s2/s21 ∃ *)
+            (fa,""), (fa,""), (fa,""), (ex," style=dashed"), (ex," style=dashed")
+        | Some AE_Bowtie ->
+            (fa,""), (fa,""), (fa,""), (fa,""), (fa,"")
+    in
+    let mk pre t = fst pre ^ t in
 
     let dot = String.concat "\n" [
         "digraph {";
@@ -80,11 +107,11 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
         "  labelloc=t;";
         "  fontname=Courier;";
         "";
-        nd "init" "Init State"                     "";
-        nd "s1"   (sp "after %s"    n1)      "1";
-        nd "s12"  (sp "after %s;%s" n1 n2)   "12";
-        nd "s2"   (sp "after %s"    n2)      "2";
-        nd "s21"  (sp "after %s;%s" n2 n1)   "21";
+        nd "init" (mk p_init "Init State")               ""   (snd p_init);
+        nd "s1"   (mk p_s1   (sp "after %s"    n1))      "1"  (snd p_s1);
+        nd "s12"  (mk p_s12  (sp "after %s;%s" n1 n2))   "12" (snd p_s12);
+        nd "s2"   (mk p_s2   (sp "after %s"    n2))      "2"  (snd p_s2);
+        nd "s21"  (mk p_s21  (sp "after %s;%s" n2 n1))   "21" (snd p_s21);
         "";
         sp "  init -> s1  [label=\" %s \"];" n1;
         sp "  s1   -> s12 [label=\" %s \"];" n2;

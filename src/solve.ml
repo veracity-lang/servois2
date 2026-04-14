@@ -210,7 +210,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
           | _ -> None
       in
       Diagram.generate spec m1 m2 model_opt
-          (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
+          (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown") None
   end;
   match raw with
   | Sat vs when diagram_exprs <> [] ->
