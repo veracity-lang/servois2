@@ -49,8 +49,8 @@ let node_label (state : ty bindlist) (suffix : string)
     let var_lines = List.map (fun db ->
         let vname = name_of_binding db ^ suffix in
         match Option.bind model_opt (fun m -> List.assoc_opt (EVar (Var vname)) m) with
-        | Some v -> sp "%s = %s\\l" (name_of_binding db) (escape_val (string_of_smt v))
-        | None   -> sp "%s\\l" (name_of_binding db)
+        | Some v -> sp "%s%s = %s\\l" (name_of_binding db) suffix (escape_val (string_of_smt v))
+        | None   -> sp "%s%s\\l" (name_of_binding db) suffix
     ) state in
     (* title is centered via \n; variable lines are left-aligned via \l *)
     title ^ "\\n" ^ String.concat "" var_lines
@@ -101,22 +101,29 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
     in
     let mk pre t = fst pre ^ t in
 
+    (* For AE_Left the ∀ path is m2;m1 and the ∃ path is m1;m2; all other
+     * modes have m1;m2 on the top path and m2;m1 on the bottom path. *)
+    let t1, t2, b1, b2 = match ae with
+        | Some AE_Left -> n2, n1, n1, n2
+        | _            -> n1, n2, n2, n1
+    in
+
     let dot = String.concat "\n" [
         "digraph {";
         sp "  label=\"Object: %s  [query %d: %s]\";" spec.name idx result_label;
         "  labelloc=t;";
         "  fontname=Courier;";
         "";
-        nd "init" (mk p_init "Init State")               ""   (snd p_init);
-        nd "s1"   (mk p_s1   (sp "after %s"    n1))      "1"  (snd p_s1);
-        nd "s12"  (mk p_s12  (sp "after %s;%s" n1 n2))   "12" (snd p_s12);
-        nd "s2"   (mk p_s2   (sp "after %s"    n2))      "2"  (snd p_s2);
-        nd "s21"  (mk p_s21  (sp "after %s;%s" n2 n1))   "21" (snd p_s21);
+        nd "init" (mk p_init "Init State")                  ""   (snd p_init);
+        nd "s1"   (mk p_s1   (sp "after %s"    t1))         "1"  (snd p_s1);
+        nd "s12"  (mk p_s12  (sp "after %s;%s" t1 t2))      "12" (snd p_s12);
+        nd "s2"   (mk p_s2   (sp "after %s"    b1))         "2"  (snd p_s2);
+        nd "s21"  (mk p_s21  (sp "after %s;%s" b1 b2))      "21" (snd p_s21);
         "";
-        sp "  init -> s1  [label=\" %s \"];" n1;
-        sp "  s1   -> s12 [label=\" %s \"];" n2;
-        sp "  init -> s2  [label=\" %s \"];" n2;
-        sp "  s2   -> s21 [label=\" %s \"];" n1;
+        sp "  init -> s1  [label=\" %s \"];" t1;
+        sp "  s1   -> s12 [label=\" %s \"];" t2;
+        sp "  init -> s2  [label=\" %s \"];" b1;
+        sp "  s2   -> s21 [label=\" %s \"];" b2;
         sp "  s12  -> s21  [label=\" states_eq?\", style=dashed, dir=none];";
         "";
         "  { rank=same; s12; s21 }";

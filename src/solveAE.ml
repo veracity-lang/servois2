@@ -227,8 +227,9 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
         then Diagram.state_var_exps spec.state diagram_sfxs
         else [] in
     let ae_quant = match !Solve.mode with
-        | Solve.RightMover | Solve.LeftMover -> Some Diagram.AE_Right
-        | Solve.Bowtie                       -> Some Diagram.AE_Bowtie in
+        | Solve.RightMover -> Some Diagram.AE_Right
+        | Solve.LeftMover  -> Some Diagram.AE_Left
+        | Solve.Bowtie     -> Some Diagram.AE_Bowtie in
     let s = string_of_smt_query_ae spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
     pfv "SMT QUERY (AE): %s\n" (string_of_smt smt_exp);
     pfvv "\n%s\n" s;
