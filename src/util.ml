@@ -85,6 +85,26 @@ let very_verbose = ref false
 let diagram = ref false
 let dump_queries = ref false
 let query_counter = ref 0
+
+(* Output directory: when set, all generated files go here instead of CWD.
+   If None and output is enabled, a fresh /tmp/servois2_XXXXXX dir is
+   auto-created on the first write so the CWD is never polluted. *)
+let output_dir : string option ref = ref None
+
+let ensure_output_dir () =
+  match !output_dir with
+  | Some _ -> ()
+  | None ->
+    let base = Filename.temp_file "servois2_" "" in
+    Sys.remove base;
+    Unix.mkdir base 0o755;
+    output_dir := Some base
+
+let outfile name =
+  ensure_output_dir ();
+  match !output_dir with
+  | None -> name
+  | Some d -> Filename.concat d name
 let examine_script_text = {|#!/usr/bin/perl
 use strict;
 use warnings;
@@ -262,18 +282,16 @@ print "Wrote $html_file\n";
 |}
 
 let write_examine_script () =
-    (* Write examine.pl *)
-    let oc = open_out "examine.pl" in
+    let pl = outfile "examine.pl" in
+    let oc = open_out pl in
     output_string oc examine_script_text;
     close_out oc;
-    Unix.chmod "examine.pl" 0o755;
-    (* Write run info: full argv on one line *)
-    let oc = open_out "servois2_run_info.txt" in
+    Unix.chmod pl 0o755;
+    let oc = open_out (outfile "servois2_run_info.txt") in
     output_string oc (String.concat " " (Array.to_list Sys.argv));
     output_char oc '\n';
     close_out oc;
-    (* Reset manifest for this run *)
-    let oc = open_out "servois2_run_manifest.txt" in
+    let oc = open_out (outfile "servois2_run_manifest.txt") in
     close_out oc
 
 let dump_query_if_enabled (s : string) : unit =
@@ -281,33 +299,29 @@ let dump_query_if_enabled (s : string) : unit =
         let idx = !query_counter in
         query_counter := idx + 1;
         if idx = 0 then write_examine_script ();
-        let filename = Printf.sprintf "servois2_query_%04d.smt" idx in
+        let filename = outfile (Printf.sprintf "servois2_query_%04d.smt" idx) in
         let oc = open_out filename in
         output_string oc s;
         output_char oc '\n';
         close_out oc;
-        (* Append this index to the run manifest *)
-        let oc = open_out_gen [Open_append; Open_creat] 0o644 "servois2_run_manifest.txt" in
+        let oc = open_out_gen [Open_append; Open_creat] 0o644 (outfile "servois2_run_manifest.txt") in
         output_string oc (Printf.sprintf "%04d\n" idx);
         close_out oc
     end
 
-(* Call this after each solver call to record sat/unsat/unknown alongside the query. *)
 let dump_result_if_enabled (result : string) : unit =
     if !dump_queries && !query_counter > 0 then begin
         let idx = !query_counter - 1 in
-        let filename = Printf.sprintf "servois2_result_%04d.txt" idx in
-        let oc = open_out filename in
+        let oc = open_out (outfile (Printf.sprintf "servois2_result_%04d.txt" idx)) in
         output_string oc result;
         output_char oc '\n';
         close_out oc
     end
 
-(* Call after synthesis to record the final phi and phi-tilde. *)
 let dump_phi_if_enabled (phi : string) (phi_tilde : string) : unit =
     if !dump_queries then begin
         let write name s =
-            let oc = open_out name in
+            let oc = open_out (outfile name) in
             output_string oc s;
             output_char oc '\n';
             close_out oc

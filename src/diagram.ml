@@ -74,7 +74,7 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
              (ae : ae_quant option) : unit =
     let idx = !diagram_counter in
     diagram_counter := idx + 1;
-    let filename = sp "servois2_diagram_%04d.dot" idx in
+    let filename = outfile (sp "servois2_diagram_%04d.dot" idx) in
     let n1 = display_name m1.name in
     let n2 = display_name m2.name in
     let st = spec.state in
