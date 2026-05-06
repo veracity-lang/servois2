@@ -9,6 +9,10 @@
 # The postcondition is that xx is -5, so should generate
 # precondition that xx is -6, and require that y is 1???
 
+# ./servois2 synth ../yamls/hoare.yml skip ite --prover cvc5 --very-verbose
+# The postcondition is that xx is 1. 
+# ./servois2 verify ../yamls/hoare.yml ite skip '(or (and m1_ite_in1 (= xx 2)) (and (not m1_ite_in1) (= xx 0)))' --prover cvc5
+
 name: hoare
 
 state:
@@ -64,7 +68,23 @@ methods:
            (= result true))
     terms:
       Int: [xx, $1, (+ xx $1), $1]
+  - name: ite
+    args: 
+      - name: in1
+        type: Bool
+    return: 
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (ite in1 (= xx_new (- xx 1)) (= xx_new (+ xx 1)) )
+           (= result true))
+    terms:
+      Int: [xx, (- 1), (* xx (- 1)), $1, (+ xx $1), $1]
 
 predicates:
   - name: "="
     type: [Int, Int]
+  - name: "="
+    type: [Bool, Bool]

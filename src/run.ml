@@ -1,6 +1,19 @@
 open Servois2
 open Util
 
+(* Fail early if any method's postcondition uses 'havoc' (nondeterminism)
+ * but the user has not enabled AE (-ae / --forall-exists) reasoning. *)
+let check_no_havoc_without_ae (spec : Spec.spec) (use_ae : bool) =
+    if not use_ae then
+        let method_has_havoc (m : Spec.method_spec) =
+            let s = Smt.string_of_smt m.post in
+            (try ignore (Str.search_forward (Str.regexp_string "havoc") s 0); true
+             with Not_found -> false)
+        in
+        if List.exists method_has_havoc spec.methods then
+            failwith "one or more methods involve nondeterminism (havoc), \
+                      so you must use argument -ae for forall-exists reasoning"
+
 module type Runner = sig
   val run : unit -> unit (* Uses all of argv *)
 end
@@ -136,6 +149,7 @@ module RunSynth : Runner = struct
       Yaml_util.yaml_of_file yaml |>
       Spec.spec_of_yaml
     in
+    check_no_havoc_without_ae spec !ae;
 
     let phi_comm, phi_noncomm =
       let synth_options = {
@@ -205,7 +219,8 @@ module RunVerify : Runner = struct
           Yaml_util.yaml_of_file yaml |>
           Spec.spec_of_yaml
         in
-        
+        check_no_havoc_without_ae spec !ae;
+
         let cond_smt = Smt_parsing.exp_of_string cond in
         
         let string_of_bool_option = function
