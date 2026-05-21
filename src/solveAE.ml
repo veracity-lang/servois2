@@ -224,7 +224,10 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
         | Solve.Bowtie                       -> [""; "1"; "12"; "2"; "21"] in
     let diagram_exprs =
         if !Util.diagram
-        then Diagram.state_var_exps spec.state diagram_sfxs
+        then let scalar_state = List.filter
+                 (fun db -> match snd db with TInt | TBool -> true | _ -> false)
+                 spec.state in
+             Diagram.state_var_exps scalar_state diagram_sfxs
         else [] in
     let ae_quant = match !Solve.mode with
         | Solve.RightMover -> Some Diagram.AE_Right
@@ -248,7 +251,8 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
             | _ -> None
         in
         Diagram.generate spec m1 m2 model_opt
-            (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown") ae_quant
+            (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
+            (string_of_smt smt_exp) ae_quant
     end;
     match raw with
     | Sat vs when diagram_exprs <> [] ->

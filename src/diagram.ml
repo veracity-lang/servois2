@@ -71,7 +71,7 @@ type ae_quant =
  *   quantifier annotations and dashed borders on ∃ nodes. *)
 let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
              (model_opt : (exp * exp) list option) (result_label : string)
-             (ae : ae_quant option) : unit =
+             (candidate : string) (ae : ae_quant option) : unit =
     let idx = !diagram_counter in
     diagram_counter := idx + 1;
     let filename = outfile (sp "servois2_diagram_%04d.dot" idx) in
@@ -110,8 +110,10 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
 
     let dot = String.concat "\n" [
         "digraph {";
-        sp "  label=\"Object: %s  [query %d: %s]\";" spec.name idx result_label;
+        sp "  label=\"Candidate condition \xce\xa6: %s\\nObject: %s  [query %d: %s]\";"
+           (escape_val candidate) spec.name idx result_label;
         "  labelloc=t;";
+        "  labeljust=l;";
         "  fontname=Courier;";
         "";
         nd "init" (mk p_init "Init State")                  ""   (snd p_init);
@@ -132,5 +134,5 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
     let oc = open_out filename in
     output_string oc dot;
     output_char oc '\n';
-    close_out oc;
-    pfnq "Diagram written to %s\n" filename
+    close_out oc
+    (*pfnq "Diagram written to %s\n" filename*)

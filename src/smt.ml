@@ -164,7 +164,7 @@ module To_String = struct
     | EUop (o, e)      -> sp "(%s %s)" (uop o) (exp e)
     | ELop (o, [])     -> sp "(%s %s)" (lop o) (lop_id o)
     | ELop (o, el)     -> sp "(%s %s)" (lop o) (list exp el)
-    | ELet (bl, e)     -> sp "(let (%s) %s)" (list exp_binding bl) (exp e)
+    | ELet (bl, e)     -> sp "(let (%s) \n    %s)" (list exp_binding bl) (exp e)
     | EForall (bl, e)     -> sp "(forall (%s) %s)" (list ty_binding bl) (exp e)
     | EExists (bl, e)     -> sp "(exists (%s) %s)" (list ty_binding bl) (exp e)
     | EITE (g, e1, e2) -> sp "(ite %s %s %s)" (exp g) (exp e1) (exp e2)
@@ -322,23 +322,36 @@ let predP_pretty_print = function
   | NotP p -> pred_pretty_print ~negate: true ~paran:("(", ")") p
 
 
-let find_vars e : string list = 
+let find_vars e : string list =
   let rec lookup : exp -> string list = function
     | EVar (Var v)           -> [v]
     | EArg n           -> []
-    | EConst c         -> [] 
+    | EConst c         -> []
     | EBop (o, e1, e2) -> (lookup e1) @ (lookup e2)
     | EUop (o, e)      -> (lookup e)
     | ELop (o, [])     -> []
     | ELop (o, el)     -> (List.concat_map lookup el)
     | EFunc (s, el)    -> (List.concat_map lookup el)
+    | EExists (binds, e) ->
+        let bound = List.filter_map (function (Var v, _) -> Some v | _ -> None) binds in
+        List.filter (fun v -> not (List.mem v bound)) (lookup e)
+    | EForall (binds, e) ->
+        let bound = List.filter_map (function (Var v, _) -> Some v | _ -> None) binds in
+        List.filter (fun v -> not (List.mem v bound)) (lookup e)
     | _ -> []
   in remove_duplicate @@ lookup e
 
-let rec make_new_exp : exp -> exp = function
-  | EVar (Var v)     -> EVar (VarPost v) 
-  | EBop (o, e1, e2) -> EBop (o, (make_new_exp e1), (make_new_exp e2))
-  | EUop (o, e)      -> EUop (o, (make_new_exp e))
-  | ELop (o, el)     -> ELop (o, (List.map make_new_exp el))
-  | EFunc (s, el) -> EFunc (s, List.map make_new_exp el)
+let rec make_new_exp ?(exclude=[]) : exp -> exp = function
+  | EVar (Var v) when List.mem v exclude -> EVar (Var v)
+  | EVar (Var v)     -> EVar (VarPost v)
+  | EBop (o, e1, e2) -> EBop (o, (make_new_exp ~exclude e1), (make_new_exp ~exclude e2))
+  | EUop (o, e)      -> EUop (o, (make_new_exp ~exclude e))
+  | ELop (o, el)     -> ELop (o, (List.map (make_new_exp ~exclude) el))
+  | EFunc (s, el)    -> EFunc (s, List.map (make_new_exp ~exclude) el)
+  | EExists (binds, e) ->
+      let bound = List.filter_map (function (Var v, _) -> Some v | _ -> None) binds in
+      EExists (binds, make_new_exp ~exclude:(exclude @ bound) e)
+  | EForall (binds, e) ->
+      let bound = List.filter_map (function (Var v, _) -> Some v | _ -> None) binds in
+      EForall (binds, make_new_exp ~exclude:(exclude @ bound) e)
   | e -> e

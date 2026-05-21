@@ -191,7 +191,10 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   let n_orig = List.length get_vals in
   let diagram_exprs =
       if !Util.diagram
-      then Diagram.state_var_exps spec.state [""; "1"; "12"; "2"; "21"]
+      then let scalar_state = List.filter
+               (fun db -> match snd db with TInt | TBool -> true | _ -> false)
+               spec.state in
+           Diagram.state_var_exps scalar_state [""; "1"; "12"; "2"; "21"]
       else [] in
   let s = string_of_smt_query spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
@@ -211,7 +214,8 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
           | _ -> None
       in
       Diagram.generate spec m1 m2 model_opt
-          (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown") None
+          (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
+          (string_of_smt smt_exp) None
   end;
   match raw with
   | Sat vs when diagram_exprs <> [] ->
