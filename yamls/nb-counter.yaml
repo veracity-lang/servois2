@@ -1,0 +1,75 @@
+
+# Non-blocking increment-only counter
+#
+# Actions are: read(tid), casTrueIncr(tid), casFalse(tid)
+
+name: nbcounter
+
+# `c` is only defined for the tids in `tids`
+state:
+  - name: ctr
+    type: Int
+  - name: tids
+    type: (Set Int)
+  - name: c
+    type: (Array Int Int)
+
+states_equal:
+  definition: |
+    (and (= ctr_1 ctr_2)
+         (= c_1 c_2)
+         (= tids_1 tids_2))
+
+methods:
+  - name: casTrue
+    args:
+      - name: 't'
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (= ctr (select c t))
+    ensures: |
+      (and (= ctr_new (+ ctr 1))
+           (= tids_new tids)
+           (= c_new c)
+           (= result true))
+    terms:
+      Int: [(select c $1), ctr, (+ ctr 1)]
+  - name: casFalse
+    args:
+      - name: 't'
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      (not (= ctr (select c t)))
+    ensures: |
+      (and (= ctr_new ctr)
+           (= tids_new tids)
+           (= c_new c)
+           (= result true))
+    terms:
+      Int: [(select c $1), ctr, (+ ctr 1)]
+  - name: read
+    args:
+      - name: 't'
+        type: Int
+    return:
+      - name: result
+        type: Bool
+    requires: |
+      true
+    ensures: |
+      (and (= ctr_new ctr)
+           (= c_new (store c t ctr))
+           (= tids_new tids)
+           (= result true))
+    terms:
+      Int: [(select c $1), ctr, (+ ctr 1)]
+
+predicates:
+  - name: "="
+    type: [Int, Int]
