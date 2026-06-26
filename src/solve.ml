@@ -14,7 +14,8 @@ type smt_query = {
     bowtie : (method_spec * method_spec) option;
     smt_exp : exp
 }
-This allows for extensions like determinism etc. Currently assumes we always need the spec and bowtie.
+This allows for extensions like de
+    ; sp "; Assert NOT(commute condition => m1;m2==m2;m1)"terminism etc. Currently assumes we always need the spec and bowtie.
 
 Currently this is handled by these local refs (eg see mode)
 *)
@@ -170,6 +171,7 @@ let string_of_smt_query spec m1 m2 get_vals smt_exp = (* The query used in valid
     ; "(define-fun havoc  ( (vpre Int) (vpost Int) ) Bool true)"
     ; smt_of_spec spec
     ; generate_bowtie spec m1 m2
+    ; sp "; FORALL-FORALL Assert NOT(commute condition => m1;m2==m2;m1) "
     ; sp "(assert (not %s))" (string_of_smt smt_exp)
     ; "(check-sat)"] @
     if null get_vals

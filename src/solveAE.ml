@@ -44,7 +44,7 @@ let mk_var name ty = "(declare-fun " ^ name ^ " () " ^ string_of_ty ty ^ ")\n"
  *     bowtie = (∃(w2,w21) oper_m2m1_w ∧ equal(12,w21))
  *            ∧ (∃(w1,w12) oper_m1m2_w ∧ equal(w12,21))
  *)
-let generate_bowtie_ae = curry3 @@ memoize @@ fun (spec, m1, m2) ->
+let generate_bowtie_ae_memo = memoize @@ fun (spec, m1, (m2, _mode)) ->
     let datanames = List.map name_of_binding spec.state in
     let pre_args_list sfx args =
         String.concat " " (List.map (fun a -> a ^ sfx) datanames @ args) in
@@ -191,6 +191,9 @@ let generate_bowtie_ae = curry3 @@ memoize @@ fun (spec, m1, m2) ->
 
     unlines ~trailing_newline:false [vars; opers; bowtie_ae]
 
+let generate_bowtie_ae spec m1 m2 =
+    generate_bowtie_ae_memo (spec, m1, (m2, !Solve.mode))
+
 let smt_bowtie_ae = EVar (Var "m1m2_bowtie_ae")
 
 (* AE commutativity:     smt → m1m2_bowtie_ae
@@ -208,7 +211,7 @@ let string_of_smt_query_ae spec m1 m2 get_vals smt_exp =
     ; "(define-fun havoc  ( (vpre Int) (vpost Int) ) Bool true)"
     ; Solve.smt_of_spec spec
     ; generate_bowtie_ae spec m1 m2
-    ; sp "; Assert NOT(commute condition => m1;m2==m2;m1)"
+    ; sp "; FORALL-EXISTS Assert NOT(commute condition => m1;m2==m2;m1)"
     ; sp "(assert (not %s))" (string_of_smt smt_exp)
     ; "(check-sat)"]
     @ if null get_vals then []
