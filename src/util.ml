@@ -87,16 +87,20 @@ let dump_queries = ref false
 let query_counter = ref 0
 
 (* Output directory: when set, all generated files go here instead of CWD.
-   If None and output is enabled, a fresh /tmp/servois2_XXXXXX dir is
-   auto-created on the first write so the CWD is never polluted. *)
+   If None and output is enabled, a fresh servois2_XXXXXX/ dir is
+   auto-created in the CWD on the first write. *)
 let output_dir : string option ref = ref None
 
 let ensure_output_dir () =
   match !output_dir with
   | Some _ -> ()
   | None ->
-    let base = Filename.temp_file "servois2_" "" in
-    Sys.remove base;
+    Random.self_init ();
+    let rec find_unique () =
+        let name = Printf.sprintf "servois2_%06x" (Random.int 0x1000000) in
+        if Sys.file_exists name then find_unique () else name
+    in
+    let base = find_unique () in
     Unix.mkdir base 0o755;
     output_dir := Some base
 
@@ -105,75 +109,68 @@ let outfile name =
   match !output_dir with
   | None -> name
   | Some d -> Filename.concat d name
-let examine_script_text = {|#!/usr/bin/perl
-use strict;
-use warnings;
+let html_escape s =
+    let buf = Buffer.create (String.length s) in
+    String.iter (function
+        | '&' -> Buffer.add_string buf "&amp;"
+        | '<' -> Buffer.add_string buf "&lt;"
+        | '>' -> Buffer.add_string buf "&gt;"
+        | c   -> Buffer.add_char buf c
+    ) s;
+    Buffer.contents buf
 
-# Convert all .dot diagram files to .jpg
-for my $dot (sort glob("servois2_diagram_*.dot")) {
-    (my $jpg = $dot) =~ s/\.dot$/.jpg/;
-    print "Converting $dot -> $jpg\n";
-    system("dot", "-Tjpg", "-o", $jpg, $dot) == 0
-        or warn "dot failed for $dot: $?\n";
-}
+let read_file_opt path =
+    if Sys.file_exists path then begin
+        let ic = open_in path in
+        let n = in_channel_length ic in
+        let s = Bytes.create n in
+        really_input ic s 0 n;
+        close_in ic;
+        Some (Bytes.to_string s)
+    end else None
 
-# Parse run info from servois2_run_info.txt
-my ($cmdline, $method1, $method2, $mode_label, $yaml) = ('', '?', '?', 'Commute', '');
-if (open(my $inf, '<', 'servois2_run_info.txt')) {
-    $cmdline = <$inf> // '';
-    chomp $cmdline;
-    close($inf);
+let dot_to_jpg dot_path jpg_path =
+    (try
+        let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0o666 in
+        let pid = Unix.create_process "dot"
+            [| "dot"; "-Tjpg"; "-o"; jpg_path; dot_path |]
+            Unix.stdin Unix.stdout devnull in
+        Unix.close devnull;
+        ignore (Unix.waitpid [] pid)
+    with _ -> ())
 
-    my @args = split(/\s+/, $cmdline);
+let write_run_info () =
+    let oc = open_out (outfile "servois2_run_info.txt") in
+    output_string oc (String.concat " " (Array.to_list Sys.argv));
+    output_char oc '\n';
+    close_out oc;
+    let oc = open_out (outfile "servois2_run_manifest.txt") in
+    close_out oc
 
-    # Determine mode
-    if    (grep { $_ eq '--leftmover'  } @args) { $mode_label = 'Left Mover';  }
-    elsif (grep { $_ eq '--rightmover' } @args) { $mode_label = 'Right Mover'; }
-    else                                         { $mode_label = 'Commute';     }
-
-    # AE qualifier
-    # if (grep { $_ eq '-ae' || $_ eq '--forall-exists' } @args) {
-    #    $mode_label .= ' (AE \x{2200}\x{2203})';
-    # }
-
-    # Extract positional args (skip flags and their values)
-    my @pos;
-    my %takes_val = map { $_ => 1 } qw(
-        -o --prover --timeout --lattice-timeout --terms-depth --mc-term
-    );
-    my $skip_next = 0;
-    for my $a (@args) {
-        if ($skip_next)          { $skip_next = 0; next; }
-        if ($takes_val{$a})      { $skip_next = 1; next; }
-        next if $a =~ /^-/;
-        push @pos, $a;
-    }
-    # pos: [exe, subcommand, yaml, m1, m2, ...]
-    $yaml    = $pos[2] // '';
-    $method1 = $pos[3] // '?';
-    $method2 = $pos[4] // '?';
-}
-
-# Escape for HTML
-sub he {
-    my $s = shift;
-    $s =~ s/&/&amp;/g; $s =~ s/</&lt;/g; $s =~ s/>/&gt;/g;
-    return $s;
-}
-
-# Generate HTML viewer
-my $html_file = "servois2_examine.html";
-open(my $out, '>', $html_file) or die "Cannot write $html_file: $!";
-
-my $title = "$method1 \x{2016} $method2";  # ‖
-
-print $out <<HEADER;
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Servois2: $title</title>
-<style>
+let generate_examine_html (method1 : string) (method2 : string) (mode_label : string) : unit =
+    let sp = Printf.sprintf in
+    let cmdline = String.concat " " (Array.to_list Sys.argv) in
+    let manifest_path = outfile "servois2_run_manifest.txt" in
+    let indices = match read_file_opt manifest_path with
+        | None -> []
+        | Some s ->
+            s |> String.split_on_char '\n'
+              |> List.map String.trim
+              |> List.filter (fun l ->
+                  String.length l = 4 &&
+                  String.for_all (fun c -> c >= '0' && c <= '9') l)
+    in
+    List.iter (fun padded ->
+        let dot_path = outfile (sp "servois2_diagram_%s.dot" padded) in
+        let jpg_path = outfile (sp "servois2_diagram_%s.jpg" padded) in
+        if Sys.file_exists dot_path then dot_to_jpg dot_path jpg_path
+    ) indices;
+    let html_file = outfile "index.html" in
+    let out = open_out html_file in
+    let pr s = output_string out s in
+    let title = sp "%s \xe2\x80\x96 %s" method1 method2 in
+    pr (sp "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<title>Servois2: %s</title>\n" title);
+    pr {|<style>
   body    { font-family: monospace; background: #1e1e1e; color: #ccc;
             margin: 0; padding: 20px; }
   h1      { color: #9cdcfe; margin-bottom: 0.2em; }
@@ -210,95 +207,65 @@ print $out <<HEADER;
 </style>
 </head>
 <body>
-<h1>Servois2 Output</h1>
-<div class="banner">
-  <div class="methods">Query: <span class="mode">$method1 ($mode_label) $method2</span></div>
-  <div class="cmdline">@{[he($cmdline)]}</div>
-</div>
-HEADER
+|};
+    pr "<h1>Servois2 Output</h1>\n";
+    pr (sp "<div class=\"banner\">\n  <div class=\"methods\">Query: <span class=\"mode\">%s (%s) %s</span></div>\n  <div class=\"cmdline\">%s</div>\n</div>\n"
+        (html_escape method1) mode_label (html_escape method2) (html_escape cmdline));
+    let phi_entries = [
+        (outfile "servois2_phi.txt",      "\xcf\x86",         "commutativity condition");
+        (outfile "servois2_phitilde.txt", "\xcf\x86\xcc\x83", "non-commutativity condition");
+    ] in
+    List.iter (fun (file, sym, label) ->
+        match read_file_opt file with
+        | None -> ()
+        | Some s ->
+            let v = String.trim s in
+            pr (sp "<div class='phi-box'><span class='phi-label'>%s &nbsp;(%s):</span><span class='phi-val'>%s</span></div>\n"
+                sym label (html_escape v))
+    ) phi_entries;
+    if indices = [] then
+        pr "<p>No queries recorded for this run.</p>\n"
+    else begin
+        pr "<nav class='toc'><strong>Queries</strong><ul>\n";
+        List.iter (fun padded ->
+            let rfile = outfile (sp "servois2_result_%s.txt" padded) in
+            let result = match read_file_opt rfile with Some s -> String.trim s | None -> "" in
+            let badge = if result <> "" then
+                sp " <span class='result %s'>%s</span>" result result
+            else "" in
+            pr (sp "<li><a href='#query-%s'>Query %s</a>%s</li>\n" padded padded badge)
+        ) indices;
+        pr "</ul></nav>\n";
+        List.iter (fun padded ->
+            let qfile    = outfile (sp "servois2_query_%s.smt" padded) in
+            let jpg_base = sp "servois2_diagram_%s.jpg" padded in
+            let jpg_path = outfile jpg_base in
+            let rfile    = outfile (sp "servois2_result_%s.txt" padded) in
+            let result   = match read_file_opt rfile with Some s -> String.trim s | None -> "" in
+            let badge    = if result <> "" then
+                sp "<span class='result %s'>%s</span>" result result
+            else "" in
+            pr (sp "<h2 id='query-%s'>Query %s %s</h2>\n<div class='row'>\n" padded padded badge);
+            (match read_file_opt qfile with
+            | Some text -> pr (sp "<div class='query'>%s</div>\n" (html_escape text))
+            | None      -> pr "<div class='query'>(query file not found)</div>\n");
+            if Sys.file_exists jpg_path then
+                pr (sp "<div class='diagram'><img src='%s' alt='Diagram %s'></div>\n" jpg_base padded);
+            pr "</div>\n"
+        ) indices
+    end;
+    pr "</body>\n</html>\n";
+    close_out out
 
-# Show final phi / phi-tilde if available
-for my $entry (
-    [ 'servois2_phi.txt',      "\x{03c6}",        'commutativity condition'     ],
-    [ 'servois2_phitilde.txt', "\x{03c6}\x{0303}", 'non-commutativity condition' ],
-) {
-    my ($file, $sym, $label) = @$entry;
-    next unless -f $file;
-    open(my $fh, '<', $file) or next;
-    my $val = do { local $/; <$fh> }; close($fh); chomp $val;
-    print $out "<div class='phi-box'>"
-             . "<span class='phi-label'>$sym &nbsp;($label):</span>"
-             . "<span class='phi-val'>" . he($val) . "</span>"
-             . "</div>\n";
-}
-
-# Read query indices from the manifest (only queries from this run)
-my @indices;
-if (open(my $mfh, '<', 'servois2_run_manifest.txt')) {
-    while (my $line = <$mfh>) { chomp $line; push @indices, $line if $line =~ /^\d+$/; }
-    close($mfh);
-}
-
-if (!@indices) {
-    print $out "<p>No queries recorded for this run.</p>\n";
-} else {
-    # Table of contents
-    print $out "<nav class='toc'><strong>Queries</strong><ul>\n";
-    for my $padded (@indices) {
-        my $result = '';
-        my $rfile = "servois2_result_${padded}.txt";
-        if (open(my $rfh, '<', $rfile)) { $result = <$rfh>; chomp $result; close($rfh); }
-        my $badge = $result ? " <span class='result $result'>$result</span>" : '';
-        print $out "<li><a href='#query-$padded'>Query $padded</a>$badge</li>\n";
-    }
-    print $out "</ul></nav>\n";
-
-    # Per-query sections
-    for my $padded (@indices) {
-        my $qfile    = "servois2_query_${padded}.smt";
-        my $dfile_jpg = "servois2_diagram_${padded}.jpg";
-
-        open(my $qfh, '<', $qfile) or die "Cannot open $qfile: $!";
-        my $text = do { local $/; <$qfh> };
-        close($qfh);
-        $text = he($text);
-
-        my $result = '';
-        my $rfile = "servois2_result_${padded}.txt";
-        if (open(my $rfh, '<', $rfile)) { $result = <$rfh>; chomp $result; close($rfh); }
-        my $badge = $result ? "<span class='result $result'>$result</span>" : '';
-        print $out "<h2 id='query-$padded'>Query $padded $badge</h2>\n<div class='row'>\n";
-        print $out "<div class='query'>$text</div>\n";
-        if (-f $dfile_jpg) {
-            print $out "<div class='diagram'><img src='$dfile_jpg' alt='Diagram $padded'></div>\n";
-        }
-        print $out "</div>\n";
-    }
-}
-
-print $out "</body>\n</html>\n";
-close($out);
-print "Wrote $html_file\n";
-|}
-
-let write_examine_script () =
-    let pl = outfile "examine.pl" in
-    let oc = open_out pl in
-    output_string oc examine_script_text;
-    close_out oc;
-    Unix.chmod pl 0o755;
-    let oc = open_out (outfile "servois2_run_info.txt") in
-    output_string oc (String.concat " " (Array.to_list Sys.argv));
-    output_char oc '\n';
-    close_out oc;
-    let oc = open_out (outfile "servois2_run_manifest.txt") in
-    close_out oc
+let finalize_examine (method1 : string) (method2 : string) (mode_label : string) : unit =
+    if !dump_queries && !query_counter > 0 then
+        generate_examine_html method1 method2 mode_label
 
 let dump_query_if_enabled (s : string) : unit =
     if !dump_queries then begin
         let idx = !query_counter in
         query_counter := idx + 1;
-        if idx = 0 then write_examine_script ();
+        if idx = 0 then write_run_info ();
         let filename = outfile (Printf.sprintf "servois2_query_%04d.smt" idx) in
         let oc = open_out filename in
         output_string oc s;

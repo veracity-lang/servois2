@@ -171,6 +171,13 @@ module RunSynth : Runner = struct
 
     Util.dump_phi_if_enabled s_phi_comm s_phi_noncomm;
 
+    let mode_label = match !Solve.mode with
+        | Solve.LeftMover  -> "Left Mover"
+        | Solve.RightMover -> "Right Mover"
+        | Solve.Bowtie     -> "Commute"
+    in
+    Util.finalize_examine method1 method2 mode_label;
+
     let out =
       if !quiet then s_phi_comm ^ "\n" else
       sp "phi = %s\nphi-tilde = %s\n" 
