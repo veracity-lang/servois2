@@ -409,8 +409,12 @@ let run_exec (prog : string) (args : string array) (output : string) =
     output_string tmp_out output;
     flush tmp_out;
     close_out tmp_out;
+    (* Strip "-in" (stdin flag) from args: passing it alongside a filename
+       confuses z3 ("Error: using standard input to read formula"). *)
+    let file_args =
+      Array.of_list (List.filter (fun s -> s <> "-in") (Array.to_list args)) in
     let chan_out, chan_in, chan_err =
-      Unix.open_process_args_full prog (Array.append args [|"_servois2_temp.smt"|]) [||] in
+      Unix.open_process_args_full prog (Array.append file_args [|"_servois2_temp.smt"|]) [||] in
     let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
     Sys.set_signal Sys.sigalrm (
         Sys.Signal_handle (fun _ ->
