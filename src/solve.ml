@@ -215,7 +215,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
               with _ -> None)
           | _ -> None
       in
-      Diagram.generate spec m1 m2 model_opt
+      Diagram.generate spec m1 m2 model_opt None [""; "1"; "12"; "2"; "21"]
           (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
           (string_of_smt smt_exp) None
   end;

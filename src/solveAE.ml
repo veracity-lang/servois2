@@ -232,11 +232,59 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
                  spec.state in
              Diagram.state_var_exps scalar_state diagram_sfxs
         else [] in
+    (* For each scalar state variable that appears as an array index in the method
+       terms, emit (select heap_arr<sfx> key<sfx>) for every heap array and suffix.
+       This makes heap contents at those keys visible in the SAT model. *)
+    let heap_sel_exprs =
+        if !Util.diagram then
+            let heap_arr_names =
+                List.filter_map (fun db ->
+                    let n = name_of_binding db in
+                    match snd db with
+                    | TArray _ when
+                        String.length n >= 4 && String.sub n 0 4 = "heap"
+                        && n <> "heap_alloc" -> Some n
+                    | _ -> None
+                ) spec.state in
+            let scalar_names =
+                List.filter_map (fun db ->
+                    let n = name_of_binding db in
+                    match snd db with
+                    | TInt ->
+                        let is_heap = String.length n >= 4 && String.sub n 0 4 = "heap" in
+                        let is_size = let l = String.length n in
+                                      l >= 5 && String.sub n (l-5) 5 = "_size" in
+                        if is_heap || is_size then None else Some n
+                    | _ -> None
+                ) spec.state in
+            let rec find_keys acc = function
+                | EFunc ("select", [_; EVar (Var k)]) when List.mem k scalar_names ->
+                    if List.mem k acc then acc else k :: acc
+                | EFunc (_, args) -> List.fold_left find_keys acc args
+                | EBop (_, a, b)  -> find_keys (find_keys acc a) b
+                | EUop (_, a)     -> find_keys acc a
+                | ELop (_, es)    -> List.fold_left find_keys acc es
+                | EITE (a, b, c)  -> find_keys (find_keys (find_keys acc a) b) c
+                | ELet (bs, e)    ->
+                    List.fold_left (fun a (_,b) -> find_keys a b) (find_keys acc e) bs
+                | EForall (_, e) | EExists (_, e) -> find_keys acc e
+                | _ -> acc
+            in
+            let all_terms = List.concat_map (fun m -> List.concat_map snd m.terms) [m1; m2] in
+            let keys = List.fold_left find_keys [] all_terms in
+            List.concat_map (fun sfx ->
+                List.concat_map (fun harr ->
+                    List.map (fun key ->
+                        EFunc ("select", [EVar (Var (harr ^ sfx)); EVar (Var (key ^ sfx))])
+                    ) keys
+                ) heap_arr_names
+            ) diagram_sfxs
+        else [] in
     let ae_quant = match !Solve.mode with
         | Solve.RightMover -> Some Diagram.AE_Right
         | Solve.LeftMover  -> Some Diagram.AE_Left
         | Solve.Bowtie     -> Some Diagram.AE_Bowtie in
-    let s = string_of_smt_query_ae spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
+    let s = string_of_smt_query_ae spec m1 m2 (get_vals @ diagram_exprs @ heap_sel_exprs) smt_exp in
     pfv "SMT QUERY (AE): %s\n" (string_of_smt smt_exp);
     pfvv "\n%s\n" s;
     dump_query_if_enabled s;
@@ -244,16 +292,20 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
     let raw = run_prover prover s |> parse_prover_output prover in
     dump_result_if_enabled (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown");
     if !Util.diagram then begin
-        let model_opt = match raw with
+        let n_d = List.length diagram_exprs in
+        let n_h = List.length heap_sel_exprs in
+        let model_opt, heap_model_opt = match raw with
             | Sat vs ->
                 (try
-                    let n_d = List.length diagram_exprs in
                     let d_vals = List.filteri (fun i _ -> i >= n_orig && i < n_orig + n_d) vs in
-                    Some (List.combine diagram_exprs (List.map snd d_vals))
-                with _ -> None)
-            | _ -> None
+                    let h_vals = List.filteri (fun i _ -> i >= n_orig + n_d && i < n_orig + n_d + n_h) vs in
+                    Some (List.combine diagram_exprs (List.map snd d_vals)),
+                    (if heap_sel_exprs = [] then None
+                     else Some (List.combine heap_sel_exprs (List.map snd h_vals)))
+                with _ -> None, None)
+            | _ -> None, None
         in
-        Diagram.generate spec m1 m2 model_opt
+        Diagram.generate spec m1 m2 model_opt heap_model_opt diagram_sfxs
             (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
             (string_of_smt smt_exp) ae_quant
     end;

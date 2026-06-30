@@ -42,18 +42,54 @@ let escape_val s =
     s |> Str.global_replace (Str.regexp_string "\\") "\\\\"
       |> Str.global_replace (Str.regexp_string "\"") "'"
 
+(* True iff [name] ends with exactly [sfx], meaning no longer suffix in [all_sfxs]
+ * also matches.  This disambiguates e.g. suffix "2" vs "12" for "heap_next12". *)
+let ends_with_exactly name sfx all_sfxs =
+    let nl = String.length name in
+    let ends_with s =
+        let sl = String.length s in
+        sl <= nl && String.sub name (nl - sl) sl = s
+    in
+    ends_with sfx &&
+    not (List.exists (fun s -> String.length s > String.length sfx && ends_with s) all_sfxs)
+
+let strip_suffix name sfx =
+    if sfx = "" then name
+    else let nl = String.length name and sl = String.length sfx in
+         if nl > sl then String.sub name 0 (nl - sl) else name
+
+(* Format heap-select model entries that belong to [suffix] as graphviz label lines. *)
+let heap_sel_lines suffix all_sfxs heap_model_opt =
+    match heap_model_opt with
+    | None -> []
+    | Some extra ->
+        List.filter_map (fun (k, v) ->
+            match k with
+            | EFunc ("select", [EVar (Var arr); EVar (Var key)])
+              when ends_with_exactly arr suffix all_sfxs
+                && ends_with_exactly key suffix all_sfxs ->
+                let arr0 = strip_suffix arr suffix in
+                let key0 = strip_suffix key suffix in
+                Some (sp "%s[%s] = %s\\l" arr0 key0 (escape_val (string_of_smt v)))
+            | _ -> None
+        ) extra
+
 (* Build the body of a double-quoted graphviz label for one state node.
  * Layout: title line (centered \n), then each state variable left-aligned (\l). *)
 let node_label (state : ty bindlist) (suffix : string)
-               (model_opt : (exp * exp) list option) (title : string) : string =
+               (model_opt : (exp * exp) list option)
+               (heap_model_opt : (exp * exp) list option)
+               (all_sfxs : string list)
+               (title : string) : string =
     let var_lines = List.map (fun db ->
         let vname = name_of_binding db ^ suffix in
         match Option.bind model_opt (fun m -> List.assoc_opt (EVar (Var vname)) m) with
         | Some v -> sp "%s%s = %s\\l" (name_of_binding db) suffix (escape_val (string_of_smt v))
         | None   -> sp "%s%s\\l" (name_of_binding db) suffix
     ) state in
+    let hlines = heap_sel_lines suffix all_sfxs heap_model_opt in
     (* title is centered via \n; variable lines are left-aligned via \l *)
-    title ^ "\\n" ^ String.concat "" var_lines
+    title ^ "\\n" ^ String.concat "" var_lines ^ String.concat "" hlines
 
 (* How the two non-initial diamond paths are quantified in an AE query.
  * Used to annotate nodes and style existentially-quantified ones as dashed. *)
@@ -70,7 +106,10 @@ type ae_quant =
  * ae: None = standard AA (no annotations); Some q = AE mode with
  *   quantifier annotations and dashed borders on ∃ nodes. *)
 let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
-             (model_opt : (exp * exp) list option) (result_label : string)
+             (model_opt : (exp * exp) list option)
+             (heap_model_opt : (exp * exp) list option)
+             (all_sfxs : string list)
+             (result_label : string)
              (candidate : string) (ae : ae_quant option) : unit =
     let idx = !diagram_counter in
     diagram_counter := idx + 1;
@@ -81,7 +120,7 @@ let generate (spec : spec) (m1 : method_spec) (m2 : method_spec)
 
     let nd id title sfx style =
         sp "  %s [shape=box fontname=Courier%s label=\"%s\"];"
-           id style (node_label st sfx model_opt title)
+           id style (node_label st sfx model_opt heap_model_opt all_sfxs title)
     in
 
     let fa = "\xe2\x88\x80 " in  (* ∀ *)
