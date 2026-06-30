@@ -53,11 +53,6 @@ let ends_with_exactly name sfx all_sfxs =
     ends_with sfx &&
     not (List.exists (fun s -> String.length s > String.length sfx && ends_with s) all_sfxs)
 
-let strip_suffix name sfx =
-    if sfx = "" then name
-    else let nl = String.length name and sl = String.length sfx in
-         if nl > sl then String.sub name 0 (nl - sl) else name
-
 (* Format heap-select model entries that belong to [suffix] as graphviz label lines. *)
 let heap_sel_lines suffix all_sfxs heap_model_opt =
     match heap_model_opt with
@@ -68,9 +63,7 @@ let heap_sel_lines suffix all_sfxs heap_model_opt =
             | EFunc ("select", [EVar (Var arr); EVar (Var key)])
               when ends_with_exactly arr suffix all_sfxs
                 && ends_with_exactly key suffix all_sfxs ->
-                let arr0 = strip_suffix arr suffix in
-                let key0 = strip_suffix key suffix in
-                Some (sp "%s[%s] = %s\\l" arr0 key0 (escape_val (string_of_smt v)))
+                Some (sp "%s[%s] = %s\\l" arr key (escape_val (string_of_smt v)))
             | _ -> None
         ) extra
 
