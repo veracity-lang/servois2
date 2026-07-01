@@ -22,15 +22,16 @@ type method_spec =
   }
 
 type spec =
-  { name     : string
-  ; preamble : string option
-  ; preds    : pred_sig list
-  ; state_eq : exp
-  ; precond  : exp
-  ; postcond : exp
-  ; state    : ty bindlist
-  ; methods  : method_spec list
-  ; smt_fns  : smt_fn list
+  { name           : string
+  ; preamble       : string option
+  ; preds          : pred_sig list
+  ; state_eq       : exp
+  ; precond        : exp
+  ; postcond       : exp
+  ; state          : ty bindlist
+  ; methods        : method_spec list
+  ; smt_fns        : smt_fn list
+  ; tloc_arr_names : string list  (* names of TArr TLoc variables in state *)
   }
 
 let has_err_state spec = List.exists (fun binding -> name_of_binding binding = "err") spec.state
@@ -298,8 +299,9 @@ let spec_of_yaml (y : Yaml.value) : spec =
   ; precond = precond
   ; postcond = postcond
   ; state = state
-  ; methods = methods 
-  ; smt_fns = functions }
+  ; methods = methods
+  ; smt_fns = functions
+  ; tloc_arr_names = [] }
 
 
 
@@ -323,7 +325,7 @@ module Spec_ToMLString = struct
     (Smt_ToMLString.exp post)
     (ToMLString.list term_list terms)
 
-  let spec {name;preamble;preds;state_eq;precond;postcond;state;methods;smt_fns} =
+  let spec {name;preamble;preds;state_eq;precond;postcond;state;methods;smt_fns;tloc_arr_names=_} =
     sp "{name=%s;\npreamble=%s;\npreds=%s;\nstate_eq=%s;\nprecondition=%s;\npostcondition=%s;\nstate=%s;\nmethods=%s;\nsmt_fns=%s}"
     (ToMLString.str name)
     (ToMLString.option ToMLString.str preamble)

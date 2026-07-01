@@ -191,13 +191,53 @@ let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commut
 
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let n_orig = List.length get_vals in
-  let diagram_exprs =
+  let sfxs = [""; "1"; "12"; "2"; "21"] in
+  let scalar_state = List.filter
+      (fun db -> match snd db with TInt | TBool -> true | _ -> false)
+      spec.state in
+  (* Scalar state variables at all five suffixes — for the dot diagram. *)
+  let scalar_exprs =
       if !Util.diagram
-      then let scalar_state = List.filter
-               (fun db -> match snd db with TInt | TBool -> true | _ -> false)
-               spec.state in
-           Diagram.state_var_exps scalar_state [""; "1"; "12"; "2"; "21"]
+      then Diagram.state_var_exps scalar_state sfxs
       else [] in
+  (* Heap cell contents: (select heap_value<sfx> i) and (select heap_next<sfx> i)
+     for each suffix and cell index 0..max_cells-1. *)
+  let max_cells = 16 in
+  let heap_exprs =
+      if !Util.diagram then
+        List.concat_map (fun sfx ->
+          List.concat_map (fun i ->
+            [ EFunc ("select", [EVar (Var ("heap_value" ^ sfx)); EConst (CInt i)])
+            ; EFunc ("select", [EVar (Var ("heap_next"  ^ sfx)); EConst (CInt i)])
+            ])
+          (List.init max_cells Fun.id))
+        sfxs
+      else [] in
+  (* Thread-local array snapshots: (select <arr><sfx> <thread_var><sfx>). *)
+  let thread_var_name =
+    let ns = List.map name_of_binding scalar_state in
+    if List.mem "tj" ns then "tj"
+    else if List.mem "ti" ns then "ti"
+    else if List.mem "t"  ns then "t"
+    else "" in
+  let all_arr_names = List.filter_map (fun db ->
+    let n = name_of_binding db in
+    match snd db with
+    | TArray (TInt, TInt) when n <> "heap_value" && n <> "heap_next" -> Some n
+    | _ -> None) spec.state in
+  let local_arr_names = List.filter (fun n -> List.mem n spec.tloc_arr_names) all_arr_names in
+  let int_arr_names   = List.filter (fun n -> not (List.mem n spec.tloc_arr_names)) all_arr_names in
+  let local_exprs =
+      if !Util.diagram && thread_var_name <> "" then
+        List.concat_map (fun sfx ->
+          List.map (fun arr ->
+            EFunc ("select",
+              [ EVar (Var (arr ^ sfx))
+              ; EVar (Var (thread_var_name ^ sfx)) ]))
+          (local_arr_names @ int_arr_names))
+        sfxs
+      else [] in
+  let diagram_exprs = scalar_exprs @ heap_exprs @ local_exprs in
   let s = string_of_smt_query spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
@@ -215,9 +255,33 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
               with _ -> None)
           | _ -> None
       in
-      Diagram.generate spec m1 m2 model_opt None [""; "1"; "12"; "2"; "21"]
+      Diagram.generate spec m1 m2 model_opt None sfxs
           (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
-          (string_of_smt smt_exp) None
+          (string_of_smt smt_exp) None;
+      (* Heap diagram SVG for SAT counterexamples *)
+      (match model_opt with
+       | Some model ->
+         let global_names = List.filter_map (fun db ->
+           let n = name_of_binding db in
+           match snd db with
+           | TInt when n <> "" &&
+                       Char.uppercase_ascii n.[0] = n.[0] &&
+                       n <> thread_var_name -> Some n
+           | _ -> None) spec.state in
+         let svg_titles =
+           [ "Init"
+           ; sp "After %s" (Diagram.display_name m1.name)
+           ; sp "After %s; %s" (Diagram.display_name m1.name) (Diagram.display_name m2.name)
+           ] in
+         Cex_svg.write_svg (outfile "heap_diagram.svg")
+           ~suffixes:[""; "1"; "12"]
+           ~titles:svg_titles
+           ~global_names
+           ~local_arr_names
+           ~int_arr_names
+           ~thread_var:thread_var_name
+           model
+       | None -> ())
   end;
   match raw with
   | Sat vs when diagram_exprs <> [] ->

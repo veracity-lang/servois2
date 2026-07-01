@@ -284,30 +284,112 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
         | Solve.RightMover -> Some Diagram.AE_Right
         | Solve.LeftMover  -> Some Diagram.AE_Left
         | Solve.Bowtie     -> Some Diagram.AE_Bowtie in
-    let s = string_of_smt_query_ae spec m1 m2 (get_vals @ diagram_exprs @ heap_sel_exprs) smt_exp in
+    (* Heap cells by numeric index and thread-local array snapshots, for the SVG diagram. *)
+    let max_cells = 16 in
+    let heap_numeric_exprs =
+        if !Util.diagram then
+            List.concat_map (fun sfx ->
+              List.concat_map (fun i ->
+                [ EFunc ("select", [EVar (Var ("heap_value" ^ sfx)); EConst (CInt i)])
+                ; EFunc ("select", [EVar (Var ("heap_next"  ^ sfx)); EConst (CInt i)])
+                ])
+              (List.init max_cells Fun.id))
+            diagram_sfxs
+        else [] in
+    let thread_var_name =
+        let ns = List.filter_map (fun db ->
+            match snd db with TInt -> Some (name_of_binding db) | _ -> None)
+            spec.state in
+        if List.mem "tj" ns then "tj"
+        else if List.mem "ti" ns then "ti"
+        else if List.mem "t"  ns then "t"
+        else "" in
+    let all_arr_names = List.filter_map (fun db ->
+        let n = name_of_binding db in
+        match snd db with
+        | TArray (TInt, TInt) when n <> "heap_value" && n <> "heap_next" -> Some n
+        | _ -> None) spec.state in
+    (* Split into TLoc arrays (drawn as arrows) and int arrays (shown as values). *)
+    let local_arr_names = List.filter (fun n -> List.mem n spec.tloc_arr_names) all_arr_names in
+    let int_arr_names   = List.filter (fun n -> not (List.mem n spec.tloc_arr_names)) all_arr_names in
+    (* Request model values for both TLoc and int local arrays. *)
+    let local_sel_exprs =
+        if !Util.diagram && thread_var_name <> "" then
+            List.concat_map (fun sfx ->
+              List.map (fun arr ->
+                EFunc ("select",
+                    [ EVar (Var (arr ^ sfx))
+                    ; EVar (Var (thread_var_name ^ sfx)) ]))
+              (local_arr_names @ int_arr_names))
+            diagram_sfxs
+        else [] in
+    let s = string_of_smt_query_ae spec m1 m2
+        (get_vals @ diagram_exprs @ heap_sel_exprs @ heap_numeric_exprs @ local_sel_exprs)
+        smt_exp in
     pfv "SMT QUERY (AE): %s\n" (string_of_smt smt_exp);
     pfvv "\n%s\n" s;
     dump_query_if_enabled s;
     flush stdout;
-    let raw = run_prover prover s |> parse_prover_output prover in
+    let raw_lines = run_prover prover s in
+    let raw = parse_prover_output prover raw_lines in
     dump_result_if_enabled (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown");
+    dump_model_if_enabled raw_lines;
     if !Util.diagram then begin
-        let n_d = List.length diagram_exprs in
-        let n_h = List.length heap_sel_exprs in
-        let model_opt, heap_model_opt = match raw with
+        let n_d  = List.length diagram_exprs in
+        let n_h  = List.length heap_sel_exprs in
+        let n_hn = List.length heap_numeric_exprs in
+        let n_lo = List.length local_sel_exprs in
+        let model_opt, heap_model_opt, svg_model_opt = match raw with
             | Sat vs ->
                 (try
-                    let d_vals = List.filteri (fun i _ -> i >= n_orig && i < n_orig + n_d) vs in
-                    let h_vals = List.filteri (fun i _ -> i >= n_orig + n_d && i < n_orig + n_d + n_h) vs in
-                    Some (List.combine diagram_exprs (List.map snd d_vals)),
+                    let d_vals  = List.filteri (fun i _ -> i >= n_orig && i < n_orig + n_d) vs in
+                    let h_vals  = List.filteri (fun i _ -> i >= n_orig + n_d && i < n_orig + n_d + n_h) vs in
+                    let hn_vals = List.filteri (fun i _ -> i >= n_orig + n_d + n_h && i < n_orig + n_d + n_h + n_hn) vs in
+                    let lo_vals = List.filteri (fun i _ -> i >= n_orig + n_d + n_h + n_hn && i < n_orig + n_d + n_h + n_hn + n_lo) vs in
+                    let scalar_model  = List.combine diagram_exprs (List.map snd d_vals) in
+                    let numeric_model = List.combine (heap_numeric_exprs @ local_sel_exprs)
+                                                     (List.map snd (hn_vals @ lo_vals)) in
+                    Some scalar_model,
                     (if heap_sel_exprs = [] then None
-                     else Some (List.combine heap_sel_exprs (List.map snd h_vals)))
-                with _ -> None, None)
-            | _ -> None, None
+                     else Some (List.combine heap_sel_exprs (List.map snd h_vals))),
+                    Some (numeric_model @ scalar_model)
+                with _ -> None, None, None)
+            | _ -> None, None, None
         in
         Diagram.generate spec m1 m2 model_opt heap_model_opt diagram_sfxs
             (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown")
-            (string_of_smt smt_exp) ae_quant
+            (string_of_smt smt_exp) ae_quant;
+        (* Heap diagram SVG for SAT counterexamples *)
+        (match svg_model_opt with
+         | Some svg_model when thread_var_name <> "" ->
+             let global_names = List.filter_map (fun db ->
+                 let n = name_of_binding db in
+                 match snd db with
+                 | TInt when n <> "" && Char.uppercase_ascii n.[0] = n.[0]
+                             && n <> thread_var_name -> Some n
+                 | _ -> None) spec.state in
+             let svg_titles = match !Solve.mode with
+                 | Solve.RightMover ->
+                     [ "Init"
+                     ; sp "After %s" (Diagram.display_name m1.name)
+                     ; sp "After %s; %s"
+                           (Diagram.display_name m1.name)
+                           (Diagram.display_name m2.name)
+                     ]
+                 | _ ->
+                     List.map (fun sfx ->
+                         sp "State %s" (if sfx = "" then "0" else sfx))
+                     diagram_sfxs
+             in
+             Cex_svg.write_svg (outfile "heap_diagram.svg")
+                 ~suffixes:diagram_sfxs
+                 ~titles:svg_titles
+                 ~global_names
+                 ~local_arr_names
+                 ~int_arr_names
+                 ~thread_var:thread_var_name
+                 svg_model
+         | _ -> ())
     end;
     match raw with
     | Sat vs when diagram_exprs <> [] ->

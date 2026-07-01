@@ -285,6 +285,18 @@ let dump_result_if_enabled (result : string) : unit =
         close_out oc
     end
 
+(* Write the raw model lines (everything after "sat") to servois2_model_NNNN.smt2.
+   Called only when dump_queries is active and the result is SAT. *)
+let dump_model_if_enabled (raw_lines : string list) : unit =
+    if !dump_queries && !query_counter > 0 then
+        match raw_lines with
+        | "sat" :: model_lines when model_lines <> [] ->
+            let idx = !query_counter - 1 in
+            let oc = open_out (outfile (Printf.sprintf "servois2_model_%04d.smt2" idx)) in
+            List.iter (fun line -> output_string oc line; output_char oc '\n') model_lines;
+            close_out oc
+        | _ -> ()
+
 let dump_phi_if_enabled (phi : string) (phi_tilde : string) : unit =
     if !dump_queries then begin
         let write name s =
