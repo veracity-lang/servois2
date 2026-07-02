@@ -169,9 +169,9 @@ let svg_arrow_line ?(stroke="#888") x1 y1 x2 y2 =
 let svg_null x y =
   let xend = x + 18 in
   String.concat "\n"
-    [ svg_line ~stroke:"#666" x y xend y
-    ; svg_line ~stroke:"#666" xend (y-5) xend (y+5)
-    ; svg_line ~stroke:"#666" (xend+4) (y-3) (xend+4) (y+3)
+    [ svg_line ~stroke:"#da4343" x y xend y
+    ; svg_line ~stroke:"#da4343" xend (y-5) xend (y+5)
+    ; svg_line ~stroke:"#da4343" (xend+4) (y-3) (xend+4) (y+3)
     ]
 
 (* ------------------------------------------------------------------ *)
