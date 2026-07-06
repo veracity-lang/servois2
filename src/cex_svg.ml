@@ -71,9 +71,10 @@ type heap_state = {
 }
 
 (* Build heap_state from model values at the given state suffix.
-   [local_arr_names] — TLoc arrays shown as pointer arrows.
-   [int_arr_names]   — int arrays shown as plain values. *)
-let parse_state model sfx title global_names local_arr_names int_arr_names thread_var =
+   [local_arr_names]  — TLoc arrays shown as pointer arrows.
+   [int_arr_names]    — int arrays shown as plain values.
+   [global_int_names] — plain scalar integer globals shown as plain values. *)
+let parse_state ?(global_int_names=[]) model sfx title global_names local_arr_names int_arr_names thread_var =
   let key_var name = EVar (Var (name ^ sfx)) in
   let key_sel arr idx_exp =
     EFunc ("select", [EVar (Var (arr ^ sfx)); idx_exp]) in
@@ -110,6 +111,12 @@ let parse_state model sfx title global_names local_arr_names int_arr_names threa
     int_arr_names
   in
 
+  let scalar_int_vars = List.filter_map (fun name ->
+    find model (key_var name)
+    |> Option.map (fun v -> { val_label = name; val_int = v }))
+    global_int_names
+  in
+
   (* For every TLoc pointer we display, also show its ->next field as a
      pointer row immediately below it. The value comes from the already-
      extracted cells array, so no extra SMT queries are needed. *)
@@ -123,7 +130,7 @@ let parse_state model sfx title global_names local_arr_names int_arr_names threa
   in
   let all_ptrs = List.concat_map ptr_with_next (global_ptrs @ local_ptrs) in
 
-  { title; alloc; cells; ptrs = all_ptrs; int_vars = int_var_list }
+  { title; alloc; cells; ptrs = all_ptrs; int_vars = scalar_int_vars @ int_var_list }
 
 (* ------------------------------------------------------------------ *)
 (* SVG helpers                                                         *)
@@ -181,9 +188,10 @@ let svg_null x y =
 (* Total label rows = pointer rows + int-value rows. *)
 let n_label_rows st = List.length st.ptrs + List.length st.int_vars
 
-(* Compute where cell [i] begins vertically, relative to panel origin. *)
-let cell_top n_rows i =
-  pad + title_h + 6 + n_rows * ptr_h + 8 + i * (cell_h + cell_gap)
+(* Compute where cell [i] begins vertically, relative to panel origin.
+   Cells are laid out starting at the same Y as the first pointer-label row. *)
+let cell_top i =
+  pad + title_h + 8 + i * (cell_h + cell_gap)
 
 (* Render one panel (state) at origin (0,0); caller wraps in <g translate>. *)
 let render_panel st max_alloc =
@@ -199,8 +207,9 @@ let render_panel st max_alloc =
 
   (* ---- Background for body ---- *)
   let body_top = pad + title_h in
-  let body_h   = 6 + n_rows * ptr_h + 8
-                 + max_alloc * (cell_h + cell_gap) + pad in
+  let body_h   = 8
+                 + max (n_rows * ptr_h) (max_alloc * (cell_h + cell_gap))
+                 + pad in
   put (svg_rect ~rx:0 ~fill:"#1e2d3d" ~stroke:"none" ~sw:0
          0 body_top panel_w body_h);
 
@@ -210,7 +219,7 @@ let render_panel st max_alloc =
     let ly = pad + title_h + 6 + k * ptr_h + ptr_h / 2 + 4 in
     put (svg_text ~fill:"#b5d0e8" ~fs:10 6 ly (p.label ^ ":"));
     if p.cell >= 0 && p.cell < st.alloc then begin
-      let cy = cell_top n_rows p.cell + cell_hh in
+      let cy = cell_top p.cell + cell_hh in
       let bx = ptr_col_w - 6 in
       put (svg_bezier ~stroke:"#6ab" bx ly (bx+12) ly (cell_left-10) cy cell_left cy)
     end else
@@ -228,7 +237,7 @@ let render_panel st max_alloc =
 
   (* ---- Cell boxes ---- *)
   for i = 0 to max_alloc - 1 do
-    let cy   = cell_top n_rows i in
+    let cy   = cell_top i in
     let live = i < st.alloc in
     let fill = if live then "#283848" else "#1a2530" in
     let sc   = if live then "#4a6a7a" else "#2a3a4a" in
@@ -257,7 +266,7 @@ let render_panel st max_alloc =
         let sy  = cy + cell_h * 3 / 4 in
         let j   = nx in   (* target cell index *)
         if j < max_alloc then begin
-          let ty = cell_top n_rows j + cell_hh in
+          let ty = cell_top j + cell_hh in
           let cx = sx + 30 in
           put (svg_bezier ~stroke:"#6ab" sx sy cx sy cx ty cell_left ty)
         end else begin
@@ -282,13 +291,14 @@ let render_panel st max_alloc =
 (* Top-level render                                                    *)
 (* ------------------------------------------------------------------ *)
 
-(** [render ~suffixes ~titles ~global_names ~local_arr_names ~int_arr_names ~thread_var model]
+(** [render ~suffixes ~titles ~global_names ~local_arr_names ~int_arr_names ~global_int_names ~thread_var model]
     returns an SVG string showing the heap diagram for each state in [suffixes].
-    [local_arr_names] — TLoc arrays shown as pointer arrows.
-    [int_arr_names]   — int arrays shown as plain values. *)
-let render ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ~thread_var model =
+    [local_arr_names]  — TLoc arrays shown as pointer arrows.
+    [int_arr_names]    — int arrays shown as plain values.
+    [global_int_names] — plain scalar integer globals shown as plain values. *)
+let render ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ?(global_int_names=[]) ~thread_var model =
   let states = List.map2 (fun sfx title ->
-    parse_state model sfx title global_names local_arr_names int_arr_names thread_var
+    parse_state ~global_int_names model sfx title global_names local_arr_names int_arr_names thread_var
   ) suffixes titles in
 
   let n_panels  = List.length states in
@@ -297,8 +307,8 @@ let render ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) 
   let max_alloc = max max_alloc 1 in  (* always show at least one cell row *)
 
   let total_w = pad + n_panels * panel_w + (n_panels - 1) * panel_gap + pad in
-  let total_h = pad + title_h + 6 + max_rows * ptr_h + 8
-                + max_alloc * (cell_h + cell_gap) + pad in
+  let total_h = pad + title_h + 8
+                + max (max_rows * ptr_h) (max_alloc * (cell_h + cell_gap)) + pad in
 
   let buf = Buffer.create 8192 in
   let put s = Buffer.add_string buf s; Buffer.add_char buf '\n' in
@@ -335,12 +345,13 @@ let render ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) 
   Buffer.contents buf
 
 (** Write the SVG to [path]. Does nothing if model is empty.
-    [local_arr_names] — TLoc arrays shown as arrows.
-    [int_arr_names]   — int arrays shown as plain values (default []). *)
-let write_svg path ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ~thread_var model =
+    [local_arr_names]  — TLoc arrays shown as arrows.
+    [int_arr_names]    — int arrays shown as plain values (default []).
+    [global_int_names] — plain scalar integer globals shown as plain values (default []). *)
+let write_svg path ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ?(global_int_names=[]) ~thread_var model =
   if model = [] then ()
   else begin
-    let svg = render ~suffixes ~titles ~global_names ~local_arr_names ~int_arr_names ~thread_var model in
+    let svg = render ~suffixes ~titles ~global_names ~local_arr_names ~int_arr_names ~global_int_names ~thread_var model in
     let oc = open_out path in
     output_string oc svg;
     close_out oc

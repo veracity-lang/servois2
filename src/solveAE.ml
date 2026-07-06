@@ -323,8 +323,22 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
               (local_arr_names @ int_arr_names))
             diagram_sfxs
         else [] in
+    let global_int_names = List.filter_map (fun db ->
+        let n = name_of_binding db in
+        match snd db with
+        | TInt when n <> "" && Char.uppercase_ascii n.[0] <> n.[0]
+                    && n <> thread_var_name
+                    && not (String.length n >= 4 && String.sub n 0 4 = "heap")
+                    && not (let l = String.length n in l >= 5 && String.sub n (l-5) 5 = "_size") -> Some n
+        | _ -> None) spec.state in
+    let global_int_exprs =
+        if !Util.diagram then
+            List.concat_map (fun sfx ->
+              List.map (fun n -> EVar (Var (n ^ sfx))) global_int_names)
+            diagram_sfxs
+        else [] in
     let s = string_of_smt_query_ae spec m1 m2
-        (get_vals @ diagram_exprs @ heap_sel_exprs @ heap_numeric_exprs @ local_sel_exprs)
+        (get_vals @ diagram_exprs @ heap_sel_exprs @ heap_numeric_exprs @ local_sel_exprs @ global_int_exprs)
         smt_exp in
     pfv "SMT QUERY (AE): %s\n" (string_of_smt smt_exp);
     pfvv "\n%s\n" s;
@@ -339,6 +353,7 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
         let n_h  = List.length heap_sel_exprs in
         let n_hn = List.length heap_numeric_exprs in
         let n_lo = List.length local_sel_exprs in
+        let n_gi = List.length global_int_exprs in
         let model_opt, heap_model_opt, svg_model_opt = match raw with
             | Sat vs ->
                 (try
@@ -346,13 +361,15 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
                     let h_vals  = List.filteri (fun i _ -> i >= n_orig + n_d && i < n_orig + n_d + n_h) vs in
                     let hn_vals = List.filteri (fun i _ -> i >= n_orig + n_d + n_h && i < n_orig + n_d + n_h + n_hn) vs in
                     let lo_vals = List.filteri (fun i _ -> i >= n_orig + n_d + n_h + n_hn && i < n_orig + n_d + n_h + n_hn + n_lo) vs in
+                    let gi_vals = List.filteri (fun i _ -> i >= n_orig + n_d + n_h + n_hn + n_lo && i < n_orig + n_d + n_h + n_hn + n_lo + n_gi) vs in
                     let scalar_model  = List.combine diagram_exprs (List.map snd d_vals) in
                     let numeric_model = List.combine (heap_numeric_exprs @ local_sel_exprs)
                                                      (List.map snd (hn_vals @ lo_vals)) in
+                    let global_int_model = List.combine global_int_exprs (List.map snd gi_vals) in
                     Some scalar_model,
                     (if heap_sel_exprs = [] then None
                      else Some (List.combine heap_sel_exprs (List.map snd h_vals))),
-                    Some (numeric_model @ scalar_model)
+                    Some (numeric_model @ scalar_model @ global_int_model)
                 with _ -> None, None, None)
             | _ -> None, None, None
         in
@@ -387,6 +404,7 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
                  ~global_names
                  ~local_arr_names
                  ~int_arr_names
+                 ~global_int_names
                  ~thread_var:thread_var_name
                  svg_model
          | _ -> ())

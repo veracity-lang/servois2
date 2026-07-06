@@ -268,6 +268,15 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
                        Char.uppercase_ascii n.[0] = n.[0] &&
                        n <> thread_var_name -> Some n
            | _ -> None) spec.state in
+         let global_int_names = List.filter_map (fun db ->
+           let n = name_of_binding db in
+           match snd db with
+           | TInt when n <> "" &&
+                       Char.uppercase_ascii n.[0] <> n.[0] &&
+                       n <> thread_var_name &&
+                       not (String.length n >= 4 && String.sub n 0 4 = "heap") &&
+                       not (let l = String.length n in l >= 5 && String.sub n (l-5) 5 = "_size") -> Some n
+           | _ -> None) spec.state in
          let svg_titles =
            [ "Init"
            ; sp "After %s" (Diagram.display_name m1.name)
@@ -279,6 +288,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
            ~global_names
            ~local_arr_names
            ~int_arr_names
+           ~global_int_names
            ~thread_var:thread_var_name
            model
        | None -> ())
