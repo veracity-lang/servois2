@@ -290,6 +290,15 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
            ~int_arr_names
            ~global_int_names
            ~thread_var:thread_var_name
+           model;
+         Cex_svg.write_table (outfile "heap_table.html")
+           ~suffixes:[""; "1"; "12"]
+           ~titles:svg_titles
+           ~global_names
+           ~local_arr_names
+           ~int_arr_names
+           ~global_int_names
+           ~thread_var:thread_var_name
            model
        | None -> ())
   end;

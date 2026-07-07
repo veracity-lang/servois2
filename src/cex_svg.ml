@@ -356,3 +356,94 @@ let write_svg path ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_na
     output_string oc svg;
     close_out oc
   end
+
+(* ------------------------------------------------------------------ *)
+(* HTML variable table                                                 *)
+(* ------------------------------------------------------------------ *)
+
+(** [render_table_html] returns an HTML <table> fragment showing all state
+    variables in three columns: Init (""), After M1 ("1"), After M1;M2 ("12").
+    Variable names are in the first column; values come from [model].
+    Uses the same lookup key construction as [parse_state]. *)
+let render_table_html ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ?(global_int_names=[]) ~thread_var model =
+  let val_str v = if v = -1 then "null" else string_of_int v in
+  let look key = Option.fold ~none:"—" ~some:val_str (find model key) in
+
+  let per_sfx sfx =
+    let kv name = EVar (Var (name ^ sfx)) in
+    let tidx    = kv thread_var in
+    let ks arr  = EFunc ("select", [EVar (Var (arr ^ sfx)); tidx]) in
+    (kv, ks)
+  in
+  let sfx_fns = List.map per_sfx suffixes in
+
+  (* rows: (display_name, [val_at_sfx0; ...]) *)
+  let rows =
+    List.map (fun n ->
+      (n, List.map (fun (kv, _) -> look (kv n)) sfx_fns))
+      global_names
+    @ (let vs = List.map (fun (kv, _) -> look (kv "heap_alloc")) sfx_fns in
+       if List.for_all (( = ) "—") vs then [] else [("heap_alloc", vs)])
+    @ List.map (fun n ->
+        (n, List.map (fun (kv, _) -> look (kv n)) sfx_fns))
+        global_int_names
+    @ List.map (fun arr ->
+        let lbl = Printf.sprintf "%s[%s]" arr thread_var in
+        (lbl, List.map (fun (_, ks) -> look (ks arr)) sfx_fns))
+        local_arr_names
+    @ List.map (fun arr ->
+        let lbl = Printf.sprintf "%s[%s]" arr thread_var in
+        (lbl, List.map (fun (_, ks) -> look (ks arr)) sfx_fns))
+        int_arr_names
+  in
+  let rows = List.filter (fun (_, vs) -> not (List.for_all (( = ) "—") vs)) rows in
+
+  if rows = [] then ""
+  else begin
+    let buf = Buffer.create 2048 in
+    let put = Buffer.add_string buf in
+    put {|<table style="border-collapse:collapse;font-family:'Courier New',Courier,monospace;|};
+    put {|font-size:12px;margin-top:10px;width:100%">|};
+    put "\n";
+    (* header row *)
+    put {|<tr style="background:#1e3a50">|};
+    put {|<th style="padding:5px 10px;text-align:left;color:#7ec8e3;border:1px solid #2a4a60">Variable</th>|};
+    List.iter (fun title ->
+      put (sp {|<th style="padding:5px 10px;text-align:right;color:#7ec8e3;border:1px solid #2a4a60">%s</th>|}
+               (xe title))
+    ) titles;
+    put "</tr>\n";
+    (* data rows *)
+    List.iteri (fun ri (name, vs) ->
+      let bg = if ri mod 2 = 0 then "#162030" else "#1a2a3a" in
+      put (sp {|<tr style="background:%s">|} bg);
+      put (sp {|<td style="padding:4px 10px;color:#b5d0e8;border:1px solid #2a4a60">%s</td>|}
+               (xe name));
+      List.iter (fun v ->
+        let color = if v = "null" then "#da8080"
+                    else if v = "—"   then "#555"
+                    else "#e8d8a8" in
+        put (sp {|<td style="padding:4px 10px;text-align:right;color:%s;border:1px solid #2a4a60">%s</td>|}
+                 color (xe v))
+      ) vs;
+      put "</tr>\n"
+    ) rows;
+    put "</table>\n";
+    Buffer.contents buf
+  end
+
+(** Write the HTML variable table to [path].
+    Name the file "heap_table.html" so it sorts after "heap_diagram.svg"
+    and is displayed below the SVG in the panel. *)
+let write_table path ~suffixes ~titles ~global_names ~local_arr_names ?(int_arr_names=[]) ?(global_int_names=[]) ~thread_var model =
+  if model = [] then ()
+  else begin
+    let tbl = render_table_html ~suffixes ~titles ~global_names ~local_arr_names
+                ~int_arr_names ~global_int_names ~thread_var model in
+    if tbl = "" then ()
+    else begin
+      let oc = open_out path in
+      output_string oc tbl;
+      close_out oc
+    end
+  end
