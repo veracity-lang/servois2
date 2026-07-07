@@ -19,10 +19,10 @@ let default_verify_options =
 
 let verif_time = ref 0.0
 
-let verify ?(options = default_verify_options) spec m n cond =
-    
+let verify ?(options = default_verify_options) ?(ctx_post_12 : Smt.exp option = None) spec m n cond =
+
     let spec = if options.lift && not options.use_ae then lift spec else spec in
-    
+
     let implication_function =
         if options.use_ae then
             (if options.ncom then SolveAE.non_commute_ae_of_smt else SolveAE.commute_ae_of_smt)
@@ -35,10 +35,15 @@ let verify ?(options = default_verify_options) spec m n cond =
     let m_spec = get_method spec m |> mangle_method_vars true in
     let n_spec = get_method spec n |> mangle_method_vars false in
 
+    let antecedent = match ctx_post_12 with
+        | None       -> Smt.ELop(Smt.And, [spec.precond; cond])
+        | Some ctx12 -> Smt.ELop(Smt.And, [spec.precond; cond; ctx12])
+    in
+
     let init_time = Unix.gettimeofday () in
 
     seq (verif_time := Float.sub (Unix.gettimeofday ()) init_time) @@
-    match solve_fn options.prover spec m_spec n_spec [] (implication_function (ELop(And, [spec.precond; cond]))) with
+    match solve_fn options.prover spec m_spec n_spec [] (implication_function antecedent) with
         | Unsat -> Some true
         | Unknown -> None
         | Sat _ -> Some false
