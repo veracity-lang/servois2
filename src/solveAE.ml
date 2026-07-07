@@ -406,6 +406,15 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
                  ~int_arr_names
                  ~global_int_names
                  ~thread_var:thread_var_name
+                 svg_model;
+             Cex_svg.write_table (outfile "heap_table.html")
+                 ~suffixes:diagram_sfxs
+                 ~titles:svg_titles
+                 ~global_names
+                 ~local_arr_names
+                 ~int_arr_names
+                 ~global_int_names
+                 ~thread_var:thread_var_name
                  svg_model
          | _ -> ())
     end;
