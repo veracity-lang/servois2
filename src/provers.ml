@@ -14,6 +14,12 @@ let () =
 
 let n_queries = ref 0
 
+(* Extra CVC5 command-line flags supplied by the embedder, read per query so it
+   can be set at runtime (e.g. ConQuoer enables --full-saturate-quant only for
+   benchmarks with 2-D arrays, whose -ae store-vs-havoc goals need it). Applies
+   to the CVC5 prover only. *)
+let cvc5_extra_args : string list ref = ref []
+
 
 type solve_result =
   | Sat of (exp * exp) list
@@ -37,7 +43,12 @@ let default_parse_output = function
 let run_prover (prover : (module Prover)) (smt : string) : string list =
     let module P = (val prover) in
     let exec = find_exec P.name P.exec_paths in
-    let sout, serr = run_exec exec P.args smt in
+    let args =
+      if P.name = "CVC5" && !cvc5_extra_args <> []
+      then Array.append P.args (Array.of_list !cvc5_extra_args)
+      else P.args
+    in
+    let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
     sout
@@ -72,16 +83,16 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    (* --full-saturate-quant: enumerative/full-saturation instantiation. The -ae
-       bowtie encodes havoc'd arrays as existentially-quantified array vars; the
-       default instantiation strategy returns "unknown" on the resulting
-       store-vs-havoc goals (e.g. proving an array WRITE right-commutes past a
-       whole-array havoc). Full-saturation instantiation discharges them.
-       --tlimit-per=12000: per-check-sat wall-clock limit (120s). CVC5 returns
+    (* --tlimit-per=120000: per-check-sat wall-clock limit (120s). CVC5 returns
        "unknown" (→ Unknown, handled by default_parse_output) instead of
        spinning; per-query, not cumulative, so it fits the --incremental multi-
-       check-sat usage. Full-saturation can run long, so this bounds it. *)
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp"; "--full-saturate-quant"; "--tlimit-per=120000"  |]
+       check-sat usage.
+       --full-saturate-quant is NOT set here unconditionally — it slows some
+       benchmarks. It is added per-run via [cvc5_extra_args] (see run_prover)
+       only when the embedder requests it (ConQuoer: benchmarks with 2-D
+       arrays, whose -ae store-vs-havoc goals need full-saturation to close). *)
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp";
+      "--tlimit-per=120000"  |]
 
   let parse_output = default_parse_output
 
