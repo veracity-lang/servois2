@@ -96,6 +96,27 @@ end
 
 
 
+module ProverYices : Prover = struct
+  let name = "Yices"
+
+  let exec_paths =
+    [ "/usr/local/bin/yices-smt2"
+    ; "/opt/homebrew/bin/yices-smt2"
+    ; "/usr/bin/yices-smt2"
+    ]
+
+  (* yices-smt2 reads SMT-LIB 2 from stdin; --incremental enables push/pop and
+     interactive check-sat.  Models are emitted when the script sets
+     (set-option :produce-models true). *)
+  let args =
+    [| ""; "--incremental" |]
+
+  let parse_output = default_parse_output
+
+end
+
+
+
 module ProverMathSAT : Prover = struct
   let name = "Z3" (* TODO: Is this correct? *)
 

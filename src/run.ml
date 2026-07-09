@@ -46,6 +46,7 @@ module CommonOptions = struct
       | "cvc4" -> (module Provers.ProverCVC4)
       | "cvc5" -> (module Provers.ProverCVC5)
       | "z3"   -> (module Provers.ProverZ3)
+      | "yices"   -> (module Provers.ProverYices)
       | ""     -> (module Provers.ProverCVC5)
       | "mathsat" -> (module Provers.ProverMathSAT)
       | s      -> raise @@ Invalid_argument (sp "Unknown/unsupported prover '%s'" s)
