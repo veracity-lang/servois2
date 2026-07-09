@@ -72,7 +72,16 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp"  |]
+    (* --full-saturate-quant: enumerative/full-saturation instantiation. The -ae
+       bowtie encodes havoc'd arrays as existentially-quantified array vars; the
+       default instantiation strategy returns "unknown" on the resulting
+       store-vs-havoc goals (e.g. proving an array WRITE right-commutes past a
+       whole-array havoc). Full-saturation instantiation discharges them.
+       --tlimit-per=12000: per-check-sat wall-clock limit (120s). CVC5 returns
+       "unknown" (→ Unknown, handled by default_parse_output) instead of
+       spinning; per-query, not cumulative, so it fits the --incremental multi-
+       check-sat usage. Full-saturation can run long, so this bounds it. *)
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp"; "--full-saturate-quant"; "--tlimit-per=120000"  |]
 
   let parse_output = default_parse_output
 
