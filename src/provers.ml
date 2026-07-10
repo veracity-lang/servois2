@@ -80,6 +80,7 @@ module ProverCVC5 : Prover = struct
   let exec_paths =
     [ "/usr/local/bin/cvc5"
     ; "/usr/bin/cvc5"
+    ; "/opt/homebrew/bin/cvc5"
     ]
 
   let args =
@@ -105,6 +106,7 @@ module ProverZ3 : Prover = struct
   let exec_paths =
     [ "/usr/local/bin/z3"
     ; "/usr/bin/z3"
+    ; "/opt/homebrew/bin/z3"
     ]
 
   let args =
