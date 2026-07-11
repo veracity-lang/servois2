@@ -86,23 +86,14 @@ let diagram = ref false
 let dump_queries = ref false
 let query_counter = ref 0
 
-(* Output directory: when set, all generated files go here instead of CWD.
-   If None and output is enabled, a fresh servois2_XXXXXX/ dir is
-   auto-created in the CWD on the first write. *)
+(* Output directory: when set by a calling tool (veracity does this, per
+   commute), all generated files go there.  Standalone, Rundir falls through to
+   $SERVOIS2_OUT or a fresh ./servois2_output/run_NNNN/.  Creation stays lazy:
+   a run that dumps nothing leaves no directory behind. *)
 let output_dir : string option ref = ref None
 
 let ensure_output_dir () =
-  match !output_dir with
-  | Some _ -> ()
-  | None ->
-    Random.self_init ();
-    let rec find_unique () =
-        let name = Printf.sprintf "servois2_%06x" (Random.int 0x1000000) in
-        if Sys.file_exists name then find_unique () else name
-    in
-    let base = find_unique () in
-    Unix.mkdir base 0o755;
-    output_dir := Some base
+  ignore (Rundir.resolve ~root:output_dir ~tool:"servois2" ~env_var:"SERVOIS2_OUT")
 
 let outfile name =
   ensure_output_dir ();
@@ -258,8 +249,28 @@ let generate_examine_html (method1 : string) (method2 : string) (mode_label : st
     close_out out
 
 let finalize_examine (method1 : string) (method2 : string) (mode_label : string) : unit =
-    if !dump_queries && !query_counter > 0 then
-        generate_examine_html method1 method2 mode_label
+    if !dump_queries && !query_counter > 0 then begin
+        generate_examine_html method1 method2 mode_label;
+        (* Same manifest schema as the layers above, so one script walks the
+           whole tree.  Each query and its result is listed, which is what makes
+           a single query re-runnable straight out of this directory. *)
+        match !output_dir with
+        | None -> ()
+        | Some dir ->
+            let artifacts = ref [] in
+            for i = !query_counter - 1 downto 0 do
+                artifacts :=
+                    { Rundir.kind = "query";
+                      path = Printf.sprintf "servois2_query_%04d.smt" i }
+                    :: { Rundir.kind = "result";
+                         path = Printf.sprintf "servois2_result_%04d.txt" i }
+                    :: !artifacts
+            done;
+            Rundir.write_manifest ~dir ~tool:"servois2"
+                ~input:(Printf.sprintf "%s %s %s" mode_label method1 method2)
+                ~result:(Printf.sprintf "%d queries" !query_counter)
+                ~artifacts:(!artifacts) ()
+    end
 
 let dump_query_if_enabled (s : string) : unit =
     if !dump_queries then begin
