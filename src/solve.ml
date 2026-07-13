@@ -189,6 +189,40 @@ let commute spec h = smt_of_conj (add_conjunct spec.precond h) |> commute_of_smt
 let non_commute_of_smt smt = EBop(Imp, ELop(And, [smt_oper; smt]), EUop(Not, smt_bowtie))
 let non_commute spec h = smt_of_conj (add_conjunct spec.precond h) |> non_commute_of_smt
 
+(* Extra expressions a calling tool wants model values for, beyond the ones
+   solve/solveAE request for their own diagrams.  Veracity uses this to probe
+   the SMT translation of each expression in a commute block at each state
+   version it cares about, and tabulate the counterexample.
+
+   Servois2 stays agnostic about what these expressions mean: it appends them
+   to the (get-value ...) request and records, for every SAT query, the values
+   it got back.  The caller sets [extra_model_exprs] before running a query and
+   reads [extra_models] afterwards; both are reset by the caller, not here. *)
+let extra_model_exprs : exp list ref = ref []
+
+(* (query index, "sat"/"unsat"/"unknown", model) for each query that produced
+   one.  Query index matches the servois2_query_NNNN.smt dumped alongside. *)
+let extra_models : (int * string * (exp * exp) list) list ref = ref []
+
+(* Slice the tail of a (get-value) response corresponding to [extra_model_exprs]
+   and record it against the query that produced it. [skip] is the number of
+   values requested ahead of ours. *)
+let record_extra_model (raw : solve_result) (skip : int) : unit =
+  if !extra_model_exprs <> [] then
+    let result = match raw with
+      | Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown" in
+    let model = match raw with
+      | Sat vs ->
+        (try
+           let tail = List.filteri (fun i _ -> i >= skip) vs in
+           List.combine !extra_model_exprs (List.map snd tail)
+         with _ -> [])
+      | _ -> []
+    in
+    if model <> [] then
+      (* query_counter was already advanced by dump_query_if_enabled. *)
+      extra_models := !extra_models @ [ (!Util.query_counter - 1, result, model) ]
+
 let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : method_spec) (get_vals : exp list) (smt_exp : exp) : solve_result =
   let n_orig = List.length get_vals in
   let sfxs = [""; "1"; "12"; "2"; "21"] in
@@ -238,13 +272,17 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
         sfxs
       else [] in
   let diagram_exprs = scalar_exprs @ heap_exprs @ local_exprs in
-  let s = string_of_smt_query spec m1 m2 (get_vals @ diagram_exprs) smt_exp in
+  (* Caller-supplied probes go last, so the existing positional slicing above
+     is unaffected and ours is just the tail. *)
+  let s = string_of_smt_query spec m1 m2
+            (get_vals @ diagram_exprs @ !extra_model_exprs) smt_exp in
   pfv "SMT QUERY: %s\n" (string_of_smt smt_exp);
   pfvv "\n%s\n" s;
   dump_query_if_enabled s;
   flush stdout;
   let raw = run_prover prover s |> parse_prover_output prover in
   dump_result_if_enabled (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown");
+  record_extra_model raw (n_orig + List.length diagram_exprs);
   if !Util.diagram then begin
       let model_opt = match raw with
           | Sat vs ->
@@ -303,7 +341,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
        | None -> ())
   end;
   match raw with
-  | Sat vs when diagram_exprs <> [] ->
+  | Sat vs when diagram_exprs <> [] || !extra_model_exprs <> [] ->
       Sat (List.filteri (fun i _ -> i < n_orig) vs)
   | _ -> raw
 

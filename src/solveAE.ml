@@ -337,8 +337,11 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
               List.map (fun n -> EVar (Var (n ^ sfx))) global_int_names)
             diagram_sfxs
         else [] in
+    (* Caller-supplied probes (see Solve.extra_model_exprs) go last, so the
+       positional slicing of the diagram blocks below is unaffected. *)
     let s = string_of_smt_query_ae spec m1 m2
-        (get_vals @ diagram_exprs @ heap_sel_exprs @ heap_numeric_exprs @ local_sel_exprs @ global_int_exprs)
+        (get_vals @ diagram_exprs @ heap_sel_exprs @ heap_numeric_exprs @ local_sel_exprs
+         @ global_int_exprs @ !Solve.extra_model_exprs)
         smt_exp in
     pfv "SMT QUERY (AE): %s\n" (string_of_smt smt_exp);
     pfvv "\n%s\n" s;
@@ -348,6 +351,10 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
     let raw = parse_prover_output prover raw_lines in
     dump_result_if_enabled (match raw with Sat _ -> "sat" | Unsat -> "unsat" | Unknown -> "unknown");
     dump_model_if_enabled raw_lines;
+    Solve.record_extra_model raw
+      (n_orig + List.length diagram_exprs + List.length heap_sel_exprs
+       + List.length heap_numeric_exprs + List.length local_sel_exprs
+       + List.length global_int_exprs);
     if !Util.diagram then begin
         let n_d  = List.length diagram_exprs in
         let n_h  = List.length heap_sel_exprs in
@@ -419,6 +426,6 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
          | _ -> ())
     end;
     match raw with
-    | Sat vs when diagram_exprs <> [] ->
+    | Sat vs when diagram_exprs <> [] || !Solve.extra_model_exprs <> [] ->
         Sat (List.filteri (fun i _ -> i < n_orig) vs)
     | _ -> raw
