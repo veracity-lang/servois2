@@ -39,7 +39,7 @@ module CommonOptions = struct
     ; "--rightmover", Arg.Unit (fun () -> Solve.mode := Solve.RightMover), " Synthesize right-mover condition (default: bowtie)"
     ; "--diagram", Arg.Set Util.diagram, " After each solver query write a Graphviz .dot diagram to servois2_diagram_NNNN.dot"
     ; "--dump-queries", Arg.Set Util.dump_queries, " Write each SMT query to servois2_query_NNNN.smt"
-    ]
+    ] @ Timeouts.speclist
     
   let get_prover () : (module Provers.Prover) =
       match !prover_name |> String.lowercase_ascii with
@@ -111,9 +111,7 @@ module RunSynth : Runner = struct
   
   open CommonOptions
   
-  let timeout = ref None
   let lattice = ref false
-  let lattice_timeout = ref (Some 30.)
   let stronger_pred_first = ref false
   let no_cache = ref true
   let coverage_term = ref None
@@ -128,8 +126,13 @@ module RunSynth : Runner = struct
     ; "--mcpeak-max-poke2", Arg.Unit (fun () -> Choose.choose := Choose.mc_max_poke), " Use model counting based synthesis with strategy: maximum-coverage, then poke2"
     ; "--stronger-pred-first", Arg.Unit (fun () -> stronger_pred_first := true), " Choose stronger predicates first"
     ; "--lattice", Arg.Unit (fun () -> lattice := true), " Create and use lattice of predicate implication"
-    ; "--lattice-timeout", Arg.Float (fun f -> lattice_timeout := Some f), " Set the time limit for lattice construction"
-    ; "--timeout", Arg.Float (fun f -> timeout := Some f), " Set time limit for execution"
+    (* Deprecated names, kept working: both meant the synth-level limits. *)
+    ; "--lattice-timeout", Arg.Float (fun f ->
+        Timeouts.set { (Timeouts.get ()) with lattice = Some f }),
+        " Deprecated alias for --timeout-lattice"
+    ; "--timeout", Arg.Float (fun f ->
+        Timeouts.set { (Timeouts.get ()) with synth = Some f }),
+        " Deprecated alias for --timeout-synth"
     ; "--auto-terms", Arg.Unit (fun () -> Predicate.autogen_terms := true), " Automatically extract terms from method specifications"
     ; "--terms-depth", Arg.Int (fun i -> Predicate.terms_depth := i), " Generate terms from given base terms and smt functions to a given depth"
     ; "--cache", Arg.Unit (fun () -> no_cache := false), " Use cached implication lattice"
@@ -155,9 +158,9 @@ module RunSynth : Runner = struct
     let phi_comm, phi_noncomm =
       let synth_options = {
         Synth.default_synth_options with prover = get_prover ();
-                                         timeout = !timeout;
+                                         timeout = (Timeouts.get ()).Timeouts.synth;
                                          lattice = !lattice;
-                                         lattice_timeout = !lattice_timeout;
+                                         lattice_timeout = (Timeouts.get ()).Timeouts.lattice;
                                          no_cache = !no_cache;
                                          stronger_predicates_first = !stronger_pred_first;
                                          coverage_termination = !coverage_term;

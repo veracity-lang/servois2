@@ -48,6 +48,9 @@ let run_prover (prover : (module Prover)) (smt : string) : string list =
       then Array.append P.args (Array.of_list !cvc5_extra_args)
       else P.args
     in
+    (* The per-query limit is not baked into P.args: it comes from the shared
+       Timeouts record, so every layer above can configure it. *)
+    let args = Array.append args (Timeouts.prover_args P.name) in
     let sout, serr = run_exec exec args smt in
     print_exec_result sout serr;
     n_queries := !n_queries + 1;
@@ -84,16 +87,13 @@ module ProverCVC5 : Prover = struct
     ]
 
   let args =
-    (* --tlimit-per=120000: per-check-sat wall-clock limit (120s). CVC5 returns
-       "unknown" (→ Unknown, handled by default_parse_output) instead of
-       spinning; per-query, not cumulative, so it fits the --incremental multi-
-       check-sat usage.
+    (* The per-check-sat limit (--tlimit-per) is appended by run_prover from
+       Timeouts.prover_args, so it can be configured from any layer above.
        --full-saturate-quant is NOT set here unconditionally — it slows some
        benchmarks. It is added per-run via [cvc5_extra_args] (see run_prover)
        only when the embedder requests it (ConQuoer: benchmarks with 2-D
        arrays, whose -ae store-vs-havoc goals need full-saturation to close). *)
-    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp";
-      "--tlimit-per=120000"  |]
+    [| ""; "--lang"; "smt2"; "--produce-models"; "--incremental"; "--strings-exp" |]
 
   let parse_output = default_parse_output
 

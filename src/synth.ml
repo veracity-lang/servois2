@@ -58,13 +58,17 @@ type synth_options =
   ; use_ae : bool
   }
 
+(* The synth-level limits come from the shared Timeouts record, so that the
+   library default and the CLI default cannot drift apart -- they used to:
+   lattice_timeout defaulted to None here but to 30s in the CLI, and a library
+   caller enabling the lattice without setting it hit an Option.get. *)
 let default_synth_options =
   { preds = None
   ; prover = (module Provers.ProverCVC5)
   ; lift = true
-  ; timeout = None
+  ; timeout = (Timeouts.get ()).Timeouts.synth
   ; lattice = false
-  ; lattice_timeout = None
+  ; lattice_timeout = (Timeouts.get ()).Timeouts.lattice
   ; no_cache = false
   ; stronger_predicates_first = false
   ; coverage_termination = None
@@ -159,7 +163,9 @@ let make_lattice env options spec m n preds =
       seq (env.bench := { !(env.bench) with 
                          lattice_construct_time =
                            Float.sub (Unix.gettimeofday ()) lattice_start_time }) @@
-      try run_with_time_limit (Option.get options.lattice_timeout) (fun () ->
+      try (match options.lattice_timeout with
+           | None -> run
+           | Some f -> run_with_time_limit f) (fun () ->
           let lattice_fname = sp "%s.lattice" spec.name in
           let equivc_fname = sp "%s.equivc" spec.name in
           if Sys.file_exists lattice_fname && Sys.file_exists equivc_fname && not options.no_cache
@@ -193,9 +199,9 @@ let make_lattice env options spec m n preds =
           end
         ) 
       with
-      | Timeout -> 
-        pfnq "Time limit of %.2fs for lattice construction exceeded.\n" 
-          (Option.get options.lattice_timeout);
+      | Timeout ->
+        pfnq "Time limit of %.2fs for lattice construction exceeded.\n"
+          (Option.value options.lattice_timeout ~default:0.);
         env.lattice_err := true;
         (* make trivial lattice *)
         [], construct_lattice (List.map (fun p -> P p) preds) []
