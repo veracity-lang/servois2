@@ -234,16 +234,21 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
       if !Util.diagram
       then Diagram.state_var_exps scalar_state sfxs
       else [] in
-  (* Heap cell contents: (select heap_value<sfx> i) and (select heap_next<sfx> i)
-     for each suffix and cell index 0..max_cells-1. *)
+  (* Heap cell contents: (select heap_<field><sfx> i) for every declared field,
+     each suffix, and cell index 0..max_cells-1. The field set is read off the
+     spec state rather than hardcoded -- see Util.is_heap_array. *)
+  let heap_arr_names =
+    List.filter (fun n -> Util.is_heap_array n)
+      (List.map name_of_binding spec.state) in
   let max_cells = 16 in
   let heap_exprs =
       if !Util.diagram then
         List.concat_map (fun sfx ->
           List.concat_map (fun i ->
-            [ EFunc ("select", [EVar (Var ("heap_value" ^ sfx)); EConst (CInt i)])
-            ; EFunc ("select", [EVar (Var ("heap_next"  ^ sfx)); EConst (CInt i)])
-            ])
+            List.map
+              (fun arr ->
+                EFunc ("select", [EVar (Var (arr ^ sfx)); EConst (CInt i)]))
+              heap_arr_names)
           (List.init max_cells Fun.id))
         sfxs
       else [] in
@@ -257,7 +262,7 @@ let solve (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : meth
   let all_arr_names = List.filter_map (fun db ->
     let n = name_of_binding db in
     match snd db with
-    | TArray (TInt, TInt) when n <> "heap_value" && n <> "heap_next" -> Some n
+    | TArray (TInt, TInt) when not (Util.is_heap_array n) -> Some n
     | _ -> None) spec.state in
   let local_arr_names = List.filter (fun n -> List.mem n spec.tloc_arr_names) all_arr_names in
   let int_arr_names   = List.filter (fun n -> not (List.mem n spec.tloc_arr_names)) all_arr_names in

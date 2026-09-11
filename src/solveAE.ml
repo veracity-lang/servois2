@@ -241,9 +241,7 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
                 List.filter_map (fun db ->
                     let n = name_of_binding db in
                     match snd db with
-                    | TArray _ when
-                        String.length n >= 4 && String.sub n 0 4 = "heap"
-                        && n <> "heap_alloc" -> Some n
+                    | TArray _ when Util.is_heap_array n -> Some n
                     | _ -> None
                 ) spec.state in
             let scalar_names =
@@ -286,13 +284,17 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
         | Solve.Bowtie     -> Some Diagram.AE_Bowtie in
     (* Heap cells by numeric index and thread-local array snapshots, for the SVG diagram. *)
     let max_cells = 16 in
+    let heap_arr_names_all =
+      List.filter (fun n -> Util.is_heap_array n)
+        (List.map name_of_binding spec.state) in
     let heap_numeric_exprs =
         if !Util.diagram then
             List.concat_map (fun sfx ->
               List.concat_map (fun i ->
-                [ EFunc ("select", [EVar (Var ("heap_value" ^ sfx)); EConst (CInt i)])
-                ; EFunc ("select", [EVar (Var ("heap_next"  ^ sfx)); EConst (CInt i)])
-                ])
+                List.map
+                  (fun arr ->
+                    EFunc ("select", [EVar (Var (arr ^ sfx)); EConst (CInt i)]))
+                  heap_arr_names_all)
               (List.init max_cells Fun.id))
             diagram_sfxs
         else [] in
@@ -307,7 +309,7 @@ let solve_ae (prover : (module Prover)) (spec : spec) (m1 : method_spec) (m2 : m
     let all_arr_names = List.filter_map (fun db ->
         let n = name_of_binding db in
         match snd db with
-        | TArray (TInt, TInt) when n <> "heap_value" && n <> "heap_next" -> Some n
+        | TArray (TInt, TInt) when not (Util.is_heap_array n) -> Some n
         | _ -> None) spec.state in
     (* Split into TLoc arrays (drawn as arrows) and int arrays (shown as values). *)
     let local_arr_names = List.filter (fun n -> List.mem n spec.tloc_arr_names) all_arr_names in

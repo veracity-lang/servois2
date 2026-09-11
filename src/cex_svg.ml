@@ -47,9 +47,19 @@ let find model key =
 (* Heap state                                                          *)
 (* ------------------------------------------------------------------ *)
 
+(* One cell's contents. [fields] carries every declared field in declaration
+   order, discovered from the model rather than fixed, so a cell with a lock or
+   a prev pointer draws as well as the original {val, next} pair.
+
+   [next] is kept as a separate convenience because the arrows between cells
+   are drawn from it. Which field the arrows follow is a RENDERING heuristic --
+   the field literally named "next" -- not something the model can tell us: a
+   tloc lowers to Int in SMT, so every heap array has the same type and nothing
+   distinguishes a pointer from an integer here. A cell with no "next" field
+   simply draws without arrows. *)
 type heap_cell = {
-  value : int;
-  next  : int;   (* -1 = null *)
+  fields : (string * int) list;
+  next   : int;   (* -1 = null, or absent *)
 }
 
 type named_ptr = {
@@ -83,11 +93,38 @@ let parse_state ?(global_int_names=[]) model sfx title global_names local_arr_na
     find model (key_var "heap_alloc") |> Option.value ~default:0 in
   let alloc = max 0 (min alloc 32) in
 
+  (* Which heap field arrays this model mentions, in first-seen order. *)
+  let heap_field_names =
+    List.filter_map
+      (fun (key, _) ->
+        match key with
+        | EFunc ("select", [EVar (Var name); _]) ->
+            let base =
+              if sfx <> "" && Filename.check_suffix name sfx
+              then String.sub name 0 (String.length name - String.length sfx)
+              else name
+            in
+            if Util.is_heap_array base then Some (Util.heap_field_of_array base)
+            else None
+        | _ -> None)
+      model
+    |> List.fold_left (fun acc n -> if List.mem n acc then acc else acc @ [n]) []
+  in
+
   let cells = Array.init alloc (fun i ->
     let ci = EConst (CInt i) in
-    let value = find model (key_sel "heap_value" ci) |> Option.value ~default:0 in
-    let next  = find model (key_sel "heap_next"  ci) |> Option.value ~default:(-1) in
-    { value; next })
+    let fields =
+      List.map
+        (fun field ->
+          ( field,
+            find model (key_sel (Util.heap_prefix ^ field) ci)
+            |> Option.value ~default:0 ))
+        heap_field_names
+    in
+    let next =
+      match List.assoc_opt "next" fields with Some n -> n | None -> -1
+    in
+    { fields; next })
   in
 
   let global_ptrs = List.filter_map (fun name ->
@@ -250,9 +287,14 @@ let render_panel st max_alloc =
       (* Top half: cell index + value *)
       put (svg_text ~fill:"#aaa" ~fs:9 (cell_left + 3) (cy + 10)
              (sp "cell %d" i));
+      (* Every field except the one the arrows follow, on one line. *)
+      let shown =
+        List.filter (fun (f, _) -> f <> "next") st.cells.(i).fields
+      in
       put (svg_text ~fill:"#e8d8a8" ~fw:"bold" ~fs:11
              (cell_left + 50) (cy + cell_hh - 6)
-             (sp "val = %d" st.cells.(i).value));
+             (String.concat "  "
+                (List.map (fun (f, v) -> sp "%s = %d" f v) shown)));
       (* Bottom half: next pointer *)
       let next_y = cy + cell_hh + 18 in
       put (svg_text ~fill:"#aaa" ~fs:10 (cell_left + 4) next_y "next:");

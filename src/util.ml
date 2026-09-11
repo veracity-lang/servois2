@@ -630,3 +630,28 @@ let remove_duplicate lst =
         end
   in
   loop lst
+
+(* ── Heap-model variables ────────────────────────────────────────────────
+ *
+ * The front end encodes a heap cell as one SMT array per declared field,
+ * named [heap_<field>], alongside the [heap_alloc] allocation counter. Servois2
+ * never sees the cell declaration -- it is the dependency, not the dependent --
+ * so it recovers the field set from the names in the spec state instead. That
+ * is why the prefix is a contract rather than a convenience: renaming these
+ * arrays on the Veracity side silently changes what Servois2 treats as heap.
+ *
+ * [heap_alloc] is an Int, not an array, so it is excluded explicitly rather
+ * than relying on a type test. *)
+let heap_prefix = "heap_"
+
+let heap_alloc_name = "heap_alloc"
+
+let is_heap_array (name : string) : bool =
+  name <> heap_alloc_name
+  && String.length name > String.length heap_prefix
+  && String.sub name 0 (String.length heap_prefix) = heap_prefix
+
+(* "heap_lock" -> "lock" *)
+let heap_field_of_array (name : string) : string =
+  String.sub name (String.length heap_prefix)
+    (String.length name - String.length heap_prefix)
