@@ -425,19 +425,45 @@ let waitpid_poll ?(interval=0.01) pid =
     if !ret = 0 then Unix.sleepf interval
   done
 
+(* Scratch file for a query too large to hand the solver on stdin.
+   
+   The name must be unique across PROCESSES, not just within one. It used to be
+   the fixed relative "_servois2_temp.smt" in the working directory, so any two
+   solver invocations running at once -- the benchmark script while something
+   else verifies, or veracity's own parallel mode -- overwrote each other's SMT
+   input. The symptom is not a crash but a wrong answer: the solver replies
+   about a query it was never given, and the caller reports predicates naming
+   variables that appear nowhere in the program under analysis.
+   
+   It goes in the run directory rather than /tmp, like everything else a run
+   writes. *)
+let temp_query_counter = ref 0
+
+let temp_query_file () =
+  incr temp_query_counter;
+  outfile
+    (Printf.sprintf "_servois2_temp_%d_%d.smt"
+       (Unix.getpid ()) !temp_query_counter)
+
 let run_exec (prog : string) (args : string array) (output : string) =
   if String.length output > 16384 then
     (* We write to a temporary file and use that. *)
-    let tmp_out = open_out "_servois2_temp.smt" in
+    let tmp_path = temp_query_file () in
+    let tmp_out = open_out tmp_path in
     output_string tmp_out output;
     flush tmp_out;
     close_out tmp_out;
+    (* Removed however we leave: the timeout handler below raises [Timeout]
+       straight past the end of this function, which used to leak the file. *)
+    Fun.protect
+      ~finally:(fun () -> try Sys.remove tmp_path with Sys_error _ -> ())
+    @@ fun () ->
     (* Strip "-in" (stdin flag) from args: passing it alongside a filename
        confuses z3 ("Error: using standard input to read formula"). *)
     let file_args =
       Array.of_list (List.filter (fun s -> s <> "-in") (Array.to_list args)) in
     let chan_out, chan_in, chan_err =
-      Unix.open_process_args_full prog (Array.append file_args [|"_servois2_temp.smt"|]) [||] in
+      Unix.open_process_args_full prog (Array.append file_args [|tmp_path|]) [||] in
     let pid = Unix.process_full_pid (chan_out, chan_in, chan_err) in
     Sys.set_signal Sys.sigalrm (
         Sys.Signal_handle (fun _ ->
@@ -445,7 +471,6 @@ let run_exec (prog : string) (args : string array) (output : string) =
             raise Timeout)
         );
     let _ = waitpid_poll pid in
-    Sys.remove "_servois2_temp.smt";
     let sout = read_all_in chan_out in
     let serr = read_all_in chan_err in
     sout, serr
